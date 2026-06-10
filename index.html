@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediPrice — Τιμοκατάλογος Mediterraneo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/typescript/5.4.5/typescript.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #181c27;
+    --surface2: #1e2333;
+    --border: #2a2f42;
+    --accent: #3b82f6;
+    --accent2: #06b6d4;
+    --text: #e8eaf0;
+    --text-muted: #6b7280;
+    --text-dim: #9ca3af;
+    --green: #10b981;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    white-space: nowrap;
+  }
+
+  .logo span {
+    font-weight: 300;
+    opacity: 0.7;
+  }
+
+  .header-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    border-left: 1px solid var(--border);
+    padding-left: 16px;
+  }
+
+  .count-badge {
+    margin-left: auto;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* MAIN LAYOUT */
+  .main {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    height: calc(100vh - 56px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-search {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .search-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 9px 12px 9px 36px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 11px center;
+  }
+
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--text-muted); }
+
+  .specialty-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+
+  .specialty-list::-webkit-scrollbar { width: 4px; }
+  .specialty-list::-webkit-scrollbar-track { background: transparent; }
+  .specialty-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .specialty-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    gap: 8px;
+  }
+
+  .specialty-item:hover { background: var(--surface2); }
+  .specialty-item.active { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25); }
+  .specialty-item.active .specialty-name { color: var(--accent); }
+
+  .specialty-name {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-dim);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .specialty-count {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 2px 7px;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+
+  .specialty-item.active .specialty-count {
+    background: rgba(59,130,246,0.15);
+    color: var(--accent);
+  }
+
+  /* CONTENT */
+  .content {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .content-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface);
+  }
+
+  .content-title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .content-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  .global-search-bar {
+    flex: 1;
+    max-width: 400px;
+  }
+
+  /* TABLE WRAPPER */
+  .table-wrapper {
+    flex: 1;
+    overflow: auto;
+    padding: 0;
+  }
+
+  .table-wrapper::-webkit-scrollbar { width: 6px; height: 6px; }
+  .table-wrapper::-webkit-scrollbar-track { background: transparent; }
+  .table-wrapper::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  th {
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  th.num { text-align: right; }
+
+  td {
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(42,47,66,0.6);
+    vertical-align: middle;
+    color: var(--text);
+  }
+
+  td.num {
+    text-align: right;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+  }
+
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .td-desc {
+    max-width: 340px;
+    line-height: 1.4;
+  }
+
+  .td-ken {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .price-private { color: var(--text); }
+  .price-eopyy { color: var(--accent2); }
+  .price-null { color: var(--border); }
+
+  .extra-badge {
+    display: inline-block;
+    background: rgba(245,158,11,0.1);
+    color: var(--amber);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 11px;
+    max-width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .stay-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-dim);
+  }
+
+  /* EMPTY / LOADING */
+  .state-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--text-muted);
+    padding: 40px;
+  }
+
+  .state-icon { font-size: 40px; opacity: 0.4; }
+  .state-title { font-size: 15px; font-weight: 500; color: var(--text-dim); }
+  .state-sub { font-size: 13px; text-align: center; max-width: 300px; }
+
+  .spinner {
+    width: 28px; height: 28px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SEARCH HIGHLIGHT */
+  mark {
+    background: rgba(59,130,246,0.25);
+    color: var(--accent);
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+
+  /* EMPTY SEARCH */
+  .no-results {
+    padding: 40px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Medi<span>Price</span></div>
+  <div class="header-sub">Τιμοκατάλογος Mediterraneo Hospital</div>
+  <div class="count-badge" id="totalCount">—</div>
+</header>
+
+<div class="main">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-search">
+      <input class="search-input" id="specialtySearch" placeholder="Αναζήτηση ειδικότητας..." type="text">
+    </div>
+    <div class="specialty-list" id="specialtyList">
+      <div class="state-center"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <div class="content-header">
+      <div class="content-title" id="contentTitle">Επιλέξτε ειδικότητα</div>
+      <input class="search-input global-search-bar" id="procedureSearch" placeholder="🔍  Αναζήτηση πράξης..." type="text" style="display:none">
+      <div class="content-sub" id="contentSub"></div>
+    </div>
+
+    <div id="tableArea">
+      <div class="state-center">
+        <div class="state-icon">🏥</div>
+        <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
+        <div class="state-sub">Επιλέξτε ειδικότητα από τα αριστερά για να δείτε τον τιμοκατάλογο</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://odtbtugzilxsfqxlpofq.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_ch-7C1ihpZRrxEhXFqV1xA_hXPwq61S';
+
+let allSpecialties = {};
+let currentSpecialty = null;
+let currentData = [];
+
+async function supabase(table, params = '') {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  return res.json();
+}
+
+async function init() {
+  // Load all specialties with counts
+  const data = await supabase('procedures', 'select=specialty&order=specialty');
+  
+  // Count per specialty
+  const counts = {};
+  data.forEach(r => {
+    counts[r.specialty] = (counts[r.specialty] || 0) + 1;
+  });
+  allSpecialties = counts;
+
+  const total = data.length;
+  document.getElementById('totalCount').textContent = `${total} πράξεις`;
+
+  renderSpecialtyList(counts);
+}
+
+function renderSpecialtyList(counts, filter = '') {
+  const list = document.getElementById('specialtyList');
+  const entries = Object.entries(counts)
+    .filter(([name]) => name.toLowerCase().includes(filter.toLowerCase()))
+    .sort((a, b) => a[0].localeCompare(b[0], 'el'));
+
+  if (entries.length === 0) {
+    list.innerHTML = '<div class="no-results">Δεν βρέθηκε ειδικότητα</div>';
+    return;
+  }
+
+  list.innerHTML = entries.map(([name, count]) => `
+    <div class="specialty-item ${currentSpecialty === name ? 'active' : ''}" onclick="loadSpecialty('${name.replace(/'/g, "\\'")}')">
+      <span class="specialty-name">${name}</span>
+      <span class="specialty-count">${count}</span>
+    </div>
+  `).join('');
+}
+
+async function loadSpecialty(specialty) {
+  currentSpecialty = specialty;
+  
+  // Update sidebar active state
+  renderSpecialtyList(allSpecialties, document.getElementById('specialtySearch').value);
+
+  // Show loading
+  document.getElementById('contentTitle').textContent = specialty;
+  document.getElementById('contentSub').textContent = '';
+  document.getElementById('procedureSearch').style.display = 'block';
+  document.getElementById('procedureSearch').value = '';
+  document.getElementById('tableArea').innerHTML = '<div class="state-center"><div class="spinner"></div></div>';
+
+  const data = await supabase('procedures', 
+    `specialty=eq.${encodeURIComponent(specialty)}&order=aa&select=*`
+  );
+  
+  currentData = data;
+  document.getElementById('contentSub').textContent = `${data.length} πράξεις`;
+  renderTable(data);
+}
+
+function fmt(val) {
+  if (val === null || val === undefined) return '<span class="price-null">—</span>';
+  return `<span class="price-private">${Number(val).toLocaleString('el-GR', {minimumFractionDigits: 0, maximumFractionDigits: 2})} €</span>`;
+}
+
+function fmtEopyy(val) {
+  if (val === null || val === undefined) return '<span class="price-null">—</span>';
+  return `<span class="price-eopyy">${Number(val).toLocaleString('el-GR', {minimumFractionDigits: 0, maximumFractionDigits: 2})} €</span>`;
+}
+
+function highlight(text, query) {
+  if (!query || !text) return text || '';
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return String(text).replace(new RegExp(escaped, 'gi'), m => `<mark>${m}</mark>`);
+}
+
+function renderTable(data, query = '') {
+  if (data.length === 0) {
+    document.getElementById('tableArea').innerHTML = `
+      <div class="state-center">
+        <div class="state-icon">🔍</div>
+        <div class="state-title">Δεν βρέθηκαν αποτελέσματα</div>
+        <div class="state-sub">Δοκιμάστε διαφορετική αναζήτηση</div>
+      </div>`;
+    return;
+  }
+
+  const rows = data.map(r => `
+    <tr>
+      <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px;width:40px">${r.aa || ''}</td>
+      <td class="td-desc">${highlight(r.description, query)}</td>
+      <td class="td-ken">${r.ken || '—'}</td>
+      <td><span class="stay-badge">${r.stay_days || '—'}</span></td>
+      <td class="num">${fmt(r.price_private_ba3)}</td>
+      <td class="num">${fmt(r.price_private_ba)}</td>
+      <td class="num">${fmtEopyy(r.price_eopyy_ba3)}</td>
+      <td class="num">${fmtEopyy(r.price_eopyy_ba)}</td>
+      <td>${r.price_extra ? `<span class="extra-badge" title="${r.price_extra}">${r.price_extra}</span>` : '—'}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('tableArea').innerHTML = `
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Περιγραφή Πράξης</th>
+            <th>ΚΕΝ</th>
+            <th>Νοσηλεία</th>
+            <th class="num">Ιδ. ΒΑ3</th>
+            <th class="num">Ιδ. ΒΑ</th>
+            <th class="num">ΕΟΠΥΥ ΒΑ3</th>
+            <th class="num">ΕΟΠΥΥ ΒΑ</th>
+            <th>Extra</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// Specialty search
+document.getElementById('specialtySearch').addEventListener('input', e => {
+  renderSpecialtyList(allSpecialties, e.target.value);
+});
+
+// Procedure search
+document.getElementById('procedureSearch').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  const filtered = currentData.filter(r => 
+    (r.description || '').toLowerCase().includes(q) ||
+    (r.ken || '').toLowerCase().includes(q)
+  );
+  document.getElementById('contentSub').textContent = `${filtered.length} από ${currentData.length} πράξεις`;
+  renderTable(filtered, e.target.value);
+});
+
+init();
+</script>
+</body>
+</html>
