@@ -24,49 +24,50 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
+  html, body { height: 100%; overflow: hidden; }
+
   body {
     background: var(--bg);
     color: var(--text);
     font-family: 'Inter', sans-serif;
     font-size: 14px;
-    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 
   /* HEADER */
   header {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 0 24px;
+    padding: 0 20px;
     display: flex;
     align-items: center;
-    gap: 16px;
-    height: 56px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    gap: 14px;
+    height: 52px;
+    flex-shrink: 0;
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   }
 
   .logo {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
-    letter-spacing: -0.5px;
     color: var(--accent);
     white-space: nowrap;
+    letter-spacing: -0.3px;
   }
-
   .logo span { font-weight: 300; color: var(--text-muted); }
 
   .header-sub {
     font-size: 12px;
     color: var(--text-muted);
     border-left: 1px solid var(--border);
-    padding-left: 16px;
+    padding-left: 14px;
+    white-space: nowrap;
   }
 
   .header-search {
     flex: 1;
-    max-width: 440px;
+    max-width: 420px;
     margin-left: auto;
   }
 
@@ -74,24 +75,22 @@
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 12px;
+    padding: 3px 10px;
+    font-size: 11px;
     color: var(--text-muted);
     font-family: 'DM Mono', monospace;
     white-space: nowrap;
   }
 
   /* SEARCH INPUT */
-  .search-wrap {
-    position: relative;
-  }
+  .search-wrap { position: relative; }
 
   .search-input {
     width: 100%;
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 8px 12px 8px 36px;
+    padding: 7px 30px 7px 32px;
     color: var(--text);
     font-size: 13px;
     font-family: 'Inter', sans-serif;
@@ -109,7 +108,7 @@
 
   .search-icon {
     position: absolute;
-    left: 11px;
+    left: 10px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-muted);
@@ -118,7 +117,7 @@
 
   .search-clear {
     position: absolute;
-    right: 10px;
+    right: 8px;
     top: 50%;
     transform: translateY(-50%);
     background: var(--text-muted);
@@ -127,19 +126,19 @@
     border-radius: 50%;
     width: 16px;
     height: 16px;
-    font-size: 10px;
+    font-size: 9px;
     cursor: pointer;
     display: none;
     align-items: center;
     justify-content: center;
-    line-height: 1;
   }
 
-  /* MAIN LAYOUT */
+  /* MAIN */
   .main {
     display: grid;
-    grid-template-columns: 260px 1fr;
-    height: calc(100vh - 56px);
+    grid-template-columns: 240px 1fr;
+    flex: 1;
+    overflow: hidden;
   }
 
   /* SIDEBAR */
@@ -152,56 +151,40 @@
   }
 
   .sidebar-header {
-    padding: 12px 16px;
+    padding: 10px 14px;
     border-bottom: 1px solid var(--border);
     font-size: 11px;
     font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-shrink: 0;
   }
 
-  .sidebar-search {
-    padding: 12px;
-    border-bottom: 1px solid var(--border);
-  }
+  .sidebar-search { padding: 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
 
-  .specialty-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 6px;
-  }
-
-  .specialty-list::-webkit-scrollbar { width: 4px; }
-  .specialty-list::-webkit-scrollbar-track { background: transparent; }
+  .specialty-list { flex: 1; overflow-y: auto; padding: 5px; }
+  .specialty-list::-webkit-scrollbar { width: 3px; }
   .specialty-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
   .specialty-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 10px;
-    border-radius: 8px;
+    padding: 7px 9px;
+    border-radius: 7px;
     cursor: pointer;
     transition: background 0.15s;
-    gap: 8px;
+    gap: 6px;
     border: 1px solid transparent;
   }
 
   .specialty-item:hover { background: var(--surface2); }
-
-  .specialty-item.active {
-    background: #eff6ff;
-    border-color: #bfdbfe;
-  }
-
+  .specialty-item.active { background: #eff6ff; border-color: #bfdbfe; }
   .specialty-item.active .specialty-name { color: var(--accent); font-weight: 600; }
 
   .specialty-name {
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--text-dim);
     flex: 1;
@@ -211,73 +194,51 @@
   }
 
   .specialty-count {
-    font-size: 11px;
+    font-size: 10px;
     font-family: 'DM Mono', monospace;
     color: var(--text-muted);
     background: var(--surface2);
-    padding: 2px 7px;
+    padding: 1px 6px;
     border-radius: 10px;
     flex-shrink: 0;
   }
 
-  .specialty-item.active .specialty-count {
-    background: #dbeafe;
-    color: var(--accent);
-  }
+  .specialty-item.active .specialty-count { background: #dbeafe; color: var(--accent); }
 
   /* CONTENT */
   .content {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: var(--bg);
   }
 
   .content-header {
-    padding: 14px 20px;
+    padding: 10px 16px;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     background: var(--surface);
+    flex-shrink: 0;
   }
 
-  .content-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-  }
+  .content-title { font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .content-sub { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
 
-  .content-sub {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-left: 4px;
-  }
-
-  .global-search-mode {
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 6px;
-    padding: 3px 10px;
-    font-size: 12px;
-    color: var(--accent);
-    font-weight: 500;
-  }
-
-  /* TABLE */
-  .table-wrapper {
+  /* TABLE AREA — scrollable */
+  #tableArea {
     flex: 1;
     overflow: auto;
   }
 
-  .table-wrapper::-webkit-scrollbar { width: 6px; height: 6px; }
-  .table-wrapper::-webkit-scrollbar-track { background: transparent; }
-  .table-wrapper::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  #tableArea::-webkit-scrollbar { width: 6px; height: 6px; }
+  #tableArea::-webkit-scrollbar-track { background: transparent; }
+  #tableArea::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: 12.5px;
     background: var(--surface);
   }
 
@@ -287,10 +248,10 @@
     background: #f8fafc;
     color: var(--text-muted);
     font-weight: 600;
-    font-size: 11px;
+    font-size: 10.5px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 10px 14px;
+    letter-spacing: 0.4px;
+    padding: 8px 10px;
     text-align: left;
     border-bottom: 2px solid var(--border);
     white-space: nowrap;
@@ -299,35 +260,34 @@
   th.num { text-align: right; }
 
   td {
-    padding: 10px 14px;
+    padding: 8px 10px;
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
-    color: var(--text);
   }
 
   td.num {
     text-align: right;
     font-family: 'DM Mono', monospace;
-    font-size: 13px;
+    font-size: 12px;
   }
 
   tr:hover td { background: #f8faff; }
 
-  .td-desc { max-width: 320px; line-height: 1.4; }
+  .td-desc { max-width: 300px; line-height: 1.35; }
 
   .td-specialty {
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 600;
     color: var(--accent);
     background: #eff6ff;
     border-radius: 4px;
-    padding: 2px 8px;
+    padding: 2px 6px;
     white-space: nowrap;
   }
 
   .td-ken {
     font-family: 'DM Mono', monospace;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-muted);
   }
 
@@ -341,19 +301,20 @@
     color: var(--amber);
     border: 1px solid #fde68a;
     border-radius: 4px;
-    padding: 2px 7px;
-    font-size: 11px;
-    max-width: 160px;
+    padding: 1px 6px;
+    font-size: 10.5px;
+    max-width: 140px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: help;
   }
 
   .stay-badge {
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 4px;
-    padding: 2px 8px;
+    padding: 1px 6px;
     font-size: 11px;
     font-family: 'DM Mono', monospace;
     color: var(--text-dim);
@@ -361,81 +322,47 @@
 
   /* STATE */
   .state-center {
-    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 12px;
     color: var(--text-muted);
-    padding: 60px 40px;
-    background: var(--surface);
+    padding: 80px 40px;
     height: 100%;
+    background: var(--surface);
   }
 
-  .state-icon { font-size: 44px; opacity: 0.3; }
-  .state-title { font-size: 16px; font-weight: 600; color: var(--text-dim); }
-  .state-sub { font-size: 13px; text-align: center; max-width: 300px; line-height: 1.6; }
+  .state-icon { font-size: 40px; opacity: 0.25; }
+  .state-title { font-size: 15px; font-weight: 600; color: var(--text-dim); }
+  .state-sub { font-size: 13px; text-align: center; max-width: 300px; line-height: 1.6; color: var(--text-muted); }
 
   .spinner {
-    width: 28px; height: 28px;
+    width: 24px; height: 24px;
     border: 2px solid var(--border);
     border-top-color: var(--accent);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
+    margin: 0 auto;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  mark {
-    background: #fef08a;
-    color: #713f12;
-    border-radius: 2px;
-    padding: 0 1px;
-  }
+  mark { background: #fef08a; color: #713f12; border-radius: 2px; padding: 0 1px; }
 
-  .no-results {
-    padding: 30px;
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 13px;
-  }
+  .no-results { padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
 
-  /* TABS */
-  .view-tabs {
-    display: flex;
-    gap: 2px;
-    margin-left: auto;
-  }
-
-  .tab-btn {
-    padding: 5px 12px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--surface2);
-    color: var(--text-muted);
-    font-size: 12px;
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    transition: all 0.15s;
-  }
-
-  .tab-btn.active {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-  }
+  .aa-cell { color: var(--text-muted); font-family: 'DM Mono', monospace; font-size: 11px; width: 30px; }
 </style>
 </head>
 <body>
 
 <header>
   <div class="logo">Medi<span>Price</span></div>
-  <div class="header-sub">Τιμοκατάλογος Mediterraneo Hospital</div>
+  <div class="header-sub">Τιμοκατάλογος Mediterraneo</div>
 
-  <!-- Global search -->
   <div class="header-search search-wrap">
-    <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input class="search-input" id="globalSearch" placeholder="Αναζήτηση σε όλες τις ειδικότητες..." type="text">
+    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="search-input" id="globalSearch" placeholder="Αναζήτηση πράξης σε όλες τις ειδικότητες..." type="text">
     <button class="search-clear" id="globalClear">✕</button>
   </div>
 
@@ -443,30 +370,24 @@
 </header>
 
 <div class="main">
-  <!-- SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-header">
-      🏥 Ειδικότητες
-    </div>
+    <div class="sidebar-header">🏥 Ειδικότητες</div>
     <div class="sidebar-search search-wrap">
-      <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input class="search-input" id="specialtySearch" placeholder="Φιλτράρισμα ειδικότητας..." type="text">
+      <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="search-input" id="specialtySearch" placeholder="Φιλτράρισμα..." type="text">
     </div>
     <div class="specialty-list" id="specialtyList">
-      <div style="padding:20px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>
+      <div style="padding:20px;text-align:center"><div class="spinner"></div></div>
     </div>
   </div>
 
-  <!-- CONTENT -->
   <div class="content">
     <div class="content-header" id="contentHeader" style="display:none">
-      <div>
-        <span class="content-title" id="contentTitle"></span>
-        <span class="content-sub" id="contentSub"></span>
-      </div>
-      <div class="search-wrap" style="flex:1;max-width:360px;margin-left:20px" id="procedureSearchWrap">
-        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input class="search-input" id="procedureSearch" placeholder="Αναζήτηση στην ειδικότητα..." type="text">
+      <span class="content-title" id="contentTitle"></span>
+      <span class="content-sub" id="contentSub"></span>
+      <div class="search-wrap" style="flex:1;max-width:320px;margin-left:auto" id="localSearchWrap">
+        <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" id="localSearch" placeholder="Αναζήτηση στην ειδικότητα..." type="text">
       </div>
     </div>
 
@@ -474,7 +395,7 @@
       <div class="state-center">
         <div class="state-icon">🏥</div>
         <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
-        <div class="state-sub">Επιλέξτε ειδικότητα από τα αριστερά ή χρησιμοποιήστε την αναζήτηση για να βρείτε πράξη σε όλες τις ειδικότητες</div>
+        <div class="state-sub">Επιλέξτε ειδικότητα από τα αριστερά ή αναζητήστε πράξη στο πεδίο αναζήτησης</div>
       </div>
     </div>
   </div>
@@ -502,22 +423,22 @@ async function init() {
   data.forEach(r => { counts[r.specialty] = (counts[r.specialty] || 0) + 1; });
   allSpecialties = counts;
   document.getElementById('totalCount').textContent = `${data.length} πράξεις`;
-  renderSpecialtyList(counts);
+  renderSidebar();
 }
 
-function renderSpecialtyList(counts, filter = '') {
+function renderSidebar(filter = '') {
   const list = document.getElementById('specialtyList');
-  const entries = Object.entries(counts)
+  const entries = Object.entries(allSpecialties)
     .filter(([n]) => n.toLowerCase().includes(filter.toLowerCase()))
     .sort((a, b) => a[0].localeCompare(b[0], 'el'));
 
   if (!entries.length) {
-    list.innerHTML = '<div class="no-results">Δεν βρέθηκε ειδικότητα</div>';
+    list.innerHTML = '<div class="no-results">Δεν βρέθηκε</div>';
     return;
   }
 
   list.innerHTML = entries.map(([name, count]) => `
-    <div class="specialty-item ${currentSpecialty === name && !globalMode ? 'active' : ''}"
+    <div class="specialty-item ${!globalMode && currentSpecialty === name ? 'active' : ''}"
          onclick="loadSpecialty('${name.replace(/'/g,"\\'")}')">
       <span class="specialty-name">${name}</span>
       <span class="specialty-count">${count}</span>
@@ -529,14 +450,11 @@ async function loadSpecialty(specialty) {
   currentSpecialty = specialty;
   document.getElementById('globalSearch').value = '';
   document.getElementById('globalClear').style.display = 'none';
-  renderSpecialtyList(allSpecialties, document.getElementById('specialtySearch').value);
+  document.getElementById('localSearch').value = '';
+  renderSidebar(document.getElementById('specialtySearch').value);
 
-  document.getElementById('contentHeader').style.display = 'flex';
-  document.getElementById('contentTitle').textContent = specialty;
-  document.getElementById('contentSub').textContent = '';
-  document.getElementById('procedureSearch').value = '';
-  document.getElementById('procedureSearchWrap').style.display = 'block';
-  document.getElementById('tableArea').innerHTML = '<div class="state-center"><div class="spinner"></div></div>';
+  showHeader(specialty, '', true);
+  showLoading();
 
   const data = await api(`specialty=eq.${encodeURIComponent(specialty)}&order=aa&select=*`);
   currentData = data;
@@ -544,17 +462,14 @@ async function loadSpecialty(specialty) {
   renderTable(data, '', false);
 }
 
-async function globalSearch(query) {
+async function doGlobalSearch(query) {
   if (!query || query.length < 2) return;
   globalMode = true;
   currentSpecialty = null;
-  renderSpecialtyList(allSpecialties, document.getElementById('specialtySearch').value);
+  renderSidebar(document.getElementById('specialtySearch').value);
 
-  document.getElementById('contentHeader').style.display = 'flex';
-  document.getElementById('contentTitle').textContent = `Αποτελέσματα για "${query}"`;
-  document.getElementById('contentSub').textContent = '';
-  document.getElementById('procedureSearchWrap').style.display = 'none';
-  document.getElementById('tableArea').innerHTML = '<div class="state-center"><div class="spinner"></div></div>';
+  showHeader(`"${query}"`, '', false);
+  showLoading();
 
   const data = await api(`description=ilike.*${encodeURIComponent(query)}*&order=specialty&select=*`);
   currentData = data;
@@ -562,16 +477,26 @@ async function globalSearch(query) {
   renderTable(data, query, true);
 }
 
+function showHeader(title, sub, showLocal) {
+  document.getElementById('contentHeader').style.display = 'flex';
+  document.getElementById('contentTitle').textContent = title;
+  document.getElementById('contentSub').textContent = sub;
+  document.getElementById('localSearchWrap').style.display = showLocal ? 'block' : 'none';
+}
+
+function showLoading() {
+  document.getElementById('tableArea').innerHTML =
+    '<div class="state-center"><div class="spinner"></div></div>';
+}
+
 function fmt(val) {
   if (val === null || val === undefined) return '<span class="price-null">—</span>';
   return `<span class="price-private">${Number(val).toLocaleString('el-GR', {minimumFractionDigits: 0, maximumFractionDigits: 2})} €</span>`;
 }
-
 function fmtE(val) {
   if (val === null || val === undefined) return '<span class="price-null">—</span>';
   return `<span class="price-eopyy">${Number(val).toLocaleString('el-GR', {minimumFractionDigits: 0, maximumFractionDigits: 2})} €</span>`;
 }
-
 function hl(text, q) {
   if (!q || !text) return text || '';
   const esc = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -589,65 +514,61 @@ function renderTable(data, query, showSpecialty) {
     return;
   }
 
-  const specCol = showSpecialty ? `<th>Ειδικότητα</th>` : '';
+  const specCol = showSpecialty ? '<th>Ειδικότητα</th>' : '';
 
   const rows = data.map(r => {
     const specCell = showSpecialty
-      ? `<td><span class="td-specialty">${r.specialty}</span></td>`
-      : '';
+      ? `<td><span class="td-specialty">${r.specialty}</span></td>` : '';
     return `<tr>
       ${specCell}
-      <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px;width:36px">${r.aa || ''}</td>
+      <td class="aa-cell">${r.aa || ''}</td>
       <td class="td-desc">${hl(r.description, query)}</td>
       <td class="td-ken">${r.ken || '—'}</td>
-      <td>${r.stay_days ? `<span class="stay-badge">${r.stay_days}</span>` : '—'}</td>
+      <td>${r.stay_days ? `<span class="stay-badge">${r.stay_days}</span>` : '<span class="price-null">—</span>'}</td>
       <td class="num">${fmt(r.price_private_ba3)}</td>
       <td class="num">${fmt(r.price_private_ba)}</td>
       <td class="num">${fmtE(r.price_eopyy_ba3)}</td>
       <td class="num">${fmtE(r.price_eopyy_ba)}</td>
-      <td>${r.price_extra ? `<span class="extra-badge" title="${r.price_extra}">${r.price_extra}</span>` : '—'}</td>
+      <td>${r.price_extra ? `<span class="extra-badge" title="${r.price_extra}">${r.price_extra}</span>` : '<span class="price-null">—</span>'}</td>
     </tr>`;
   }).join('');
 
   document.getElementById('tableArea').innerHTML = `
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            ${specCol}
-            <th>#</th>
-            <th>Περιγραφή Πράξης</th>
-            <th>ΚΕΝ</th>
-            <th>Νοσηλεία</th>
-            <th class="num">Ιδ. ΒΑ3</th>
-            <th class="num">Ιδ. ΒΑ</th>
-            <th class="num">ΕΟΠΥΥ ΒΑ3</th>
-            <th class="num">ΕΟΠΥΥ ΒΑ</th>
-            <th>Extra</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
+    <table>
+      <thead><tr>
+        ${specCol}
+        <th>#</th>
+        <th>Περιγραφή Πράξης</th>
+        <th>ΚΕΝ</th>
+        <th>Νοσηλεία</th>
+        <th class="num">Ιδ. ΒΑ3</th>
+        <th class="num">Ιδ. ΒΑ</th>
+        <th class="num">ΕΟΠΥΥ ΒΑ3</th>
+        <th class="num">ΕΟΠΥΥ ΒΑ</th>
+        <th>Extra</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
 // Global search
-let searchTimer;
+let timer;
 document.getElementById('globalSearch').addEventListener('input', e => {
   const q = e.target.value.trim();
   document.getElementById('globalClear').style.display = q ? 'flex' : 'none';
-  clearTimeout(searchTimer);
+  clearTimeout(timer);
   if (q.length >= 2) {
-    searchTimer = setTimeout(() => globalSearch(q), 400);
-  } else if (!q) {
+    timer = setTimeout(() => doGlobalSearch(q), 400);
+  } else if (!q && !currentSpecialty) {
     globalMode = false;
     document.getElementById('contentHeader').style.display = 'none';
     document.getElementById('tableArea').innerHTML = `
       <div class="state-center">
         <div class="state-icon">🏥</div>
         <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
-        <div class="state-sub">Επιλέξτε ειδικότητα ή χρησιμοποιήστε την αναζήτηση</div>
+        <div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div>
       </div>`;
+    renderSidebar();
   }
 });
 
@@ -656,23 +577,23 @@ document.getElementById('globalClear').addEventListener('click', () => {
   document.getElementById('globalClear').style.display = 'none';
   globalMode = false;
   currentSpecialty = null;
-  renderSpecialtyList(allSpecialties);
+  renderSidebar();
   document.getElementById('contentHeader').style.display = 'none';
   document.getElementById('tableArea').innerHTML = `
     <div class="state-center">
       <div class="state-icon">🏥</div>
       <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
-      <div class="state-sub">Επιλέξτε ειδικότητα ή χρησιμοποιήστε την αναζήτηση</div>
+      <div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div>
     </div>`;
 });
 
-// Specialty filter
+// Sidebar filter
 document.getElementById('specialtySearch').addEventListener('input', e => {
-  renderSpecialtyList(allSpecialties, e.target.value);
+  renderSidebar(e.target.value);
 });
 
-// Procedure search (within specialty)
-document.getElementById('procedureSearch').addEventListener('input', e => {
+// Local search within specialty
+document.getElementById('localSearch').addEventListener('input', e => {
   const q = e.target.value.toLowerCase();
   const filtered = currentData.filter(r =>
     (r.description || '').toLowerCase().includes(q) ||
