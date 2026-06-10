@@ -4,23 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MediPrice — Τιμοκατάλογος Mediterraneo</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/typescript/5.4.5/typescript.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
   :root {
-    --bg: #0f1117;
-    --surface: #181c27;
-    --surface2: #1e2333;
-    --border: #2a2f42;
-    --accent: #3b82f6;
-    --accent2: #06b6d4;
-    --text: #e8eaf0;
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --surface2: #f0f2f5;
+    --border: #e2e6ed;
+    --accent: #1a56db;
+    --accent2: #0891b2;
+    --text: #111827;
     --text-muted: #6b7280;
-    --text-dim: #9ca3af;
-    --green: #10b981;
-    --amber: #f59e0b;
-    --red: #ef4444;
+    --text-dim: #374151;
+    --green: #059669;
+    --amber: #d97706;
     --radius: 10px;
   }
 
@@ -46,22 +44,18 @@
     position: sticky;
     top: 0;
     z-index: 100;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   }
 
   .logo {
     font-size: 18px;
     font-weight: 700;
     letter-spacing: -0.5px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--accent);
     white-space: nowrap;
   }
 
-  .logo span {
-    font-weight: 300;
-    opacity: 0.7;
-  }
+  .logo span { font-weight: 300; color: var(--text-muted); }
 
   .header-sub {
     font-size: 12px;
@@ -70,21 +64,81 @@
     padding-left: 16px;
   }
 
-  .count-badge {
+  .header-search {
+    flex: 1;
+    max-width: 440px;
     margin-left: auto;
+  }
+
+  .count-badge {
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 20px;
     padding: 4px 12px;
     font-size: 12px;
-    color: var(--text-dim);
+    color: var(--text-muted);
     font-family: 'DM Mono', monospace;
+    white-space: nowrap;
+  }
+
+  /* SEARCH INPUT */
+  .search-wrap {
+    position: relative;
+  }
+
+  .search-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px 8px 36px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .search-input:focus {
+    border-color: var(--accent);
+    background: var(--surface);
+    box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+  }
+
+  .search-input::placeholder { color: var(--text-muted); }
+
+  .search-icon {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .search-clear {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--text-muted);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
   }
 
   /* MAIN LAYOUT */
   .main {
     display: grid;
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 260px 1fr;
     height: calc(100vh - 56px);
   }
 
@@ -97,34 +151,28 @@
     overflow: hidden;
   }
 
+  .sidebar-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   .sidebar-search {
-    padding: 16px;
+    padding: 12px;
     border-bottom: 1px solid var(--border);
   }
-
-  .search-input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 9px 12px 9px 36px;
-    color: var(--text);
-    font-size: 13px;
-    font-family: 'Inter', sans-serif;
-    outline: none;
-    transition: border-color 0.2s;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: 11px center;
-  }
-
-  .search-input:focus { border-color: var(--accent); }
-  .search-input::placeholder { color: var(--text-muted); }
 
   .specialty-list {
     flex: 1;
     overflow-y: auto;
-    padding: 8px;
+    padding: 6px;
   }
 
   .specialty-list::-webkit-scrollbar { width: 4px; }
@@ -135,16 +183,22 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 9px 12px;
+    padding: 8px 10px;
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.15s;
     gap: 8px;
+    border: 1px solid transparent;
   }
 
   .specialty-item:hover { background: var(--surface2); }
-  .specialty-item.active { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25); }
-  .specialty-item.active .specialty-name { color: var(--accent); }
+
+  .specialty-item.active {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+  }
+
+  .specialty-item.active .specialty-name { color: var(--accent); font-weight: 600; }
 
   .specialty-name {
     font-size: 12.5px;
@@ -167,7 +221,7 @@
   }
 
   .specialty-item.active .specialty-count {
-    background: rgba(59,130,246,0.15);
+    background: #dbeafe;
     color: var(--accent);
   }
 
@@ -176,10 +230,11 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background: var(--bg);
   }
 
   .content-header {
-    padding: 16px 24px;
+    padding: 14px 20px;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -190,24 +245,29 @@
   .content-title {
     font-size: 15px;
     font-weight: 600;
+    color: var(--text);
   }
 
   .content-sub {
     font-size: 12px;
     color: var(--text-muted);
-    margin-left: auto;
+    margin-left: 4px;
   }
 
-  .global-search-bar {
-    flex: 1;
-    max-width: 400px;
+  .global-search-mode {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
   }
 
-  /* TABLE WRAPPER */
+  /* TABLE */
   .table-wrapper {
     flex: 1;
     overflow: auto;
-    padding: 0;
   }
 
   .table-wrapper::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -218,32 +278,29 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
+    background: var(--surface);
   }
 
-  thead {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
+  thead { position: sticky; top: 0; z-index: 10; }
 
   th {
-    background: var(--surface2);
+    background: #f8fafc;
     color: var(--text-muted);
-    font-weight: 500;
+    font-weight: 600;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 10px 16px;
+    padding: 10px 14px;
     text-align: left;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 2px solid var(--border);
     white-space: nowrap;
   }
 
   th.num { text-align: right; }
 
   td {
-    padding: 11px 16px;
-    border-bottom: 1px solid rgba(42,47,66,0.6);
+    padding: 10px 14px;
+    border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
     color: var(--text);
   }
@@ -254,11 +311,18 @@
     font-size: 13px;
   }
 
-  tr:hover td { background: rgba(255,255,255,0.02); }
+  tr:hover td { background: #f8faff; }
 
-  .td-desc {
-    max-width: 340px;
-    line-height: 1.4;
+  .td-desc { max-width: 320px; line-height: 1.4; }
+
+  .td-specialty {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    background: #eff6ff;
+    border-radius: 4px;
+    padding: 2px 8px;
+    white-space: nowrap;
   }
 
   .td-ken {
@@ -267,19 +331,19 @@
     color: var(--text-muted);
   }
 
-  .price-private { color: var(--text); }
-  .price-eopyy { color: var(--accent2); }
-  .price-null { color: var(--border); }
+  .price-private { color: var(--text); font-weight: 500; }
+  .price-eopyy { color: var(--green); font-weight: 500; }
+  .price-null { color: #d1d5db; }
 
   .extra-badge {
     display: inline-block;
-    background: rgba(245,158,11,0.1);
+    background: #fffbeb;
     color: var(--amber);
-    border: 1px solid rgba(245,158,11,0.2);
+    border: 1px solid #fde68a;
     border-radius: 4px;
     padding: 2px 7px;
     font-size: 11px;
-    max-width: 180px;
+    max-width: 160px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -295,7 +359,7 @@
     color: var(--text-dim);
   }
 
-  /* EMPTY / LOADING */
+  /* STATE */
   .state-center {
     flex: 1;
     display: flex;
@@ -304,12 +368,14 @@
     justify-content: center;
     gap: 12px;
     color: var(--text-muted);
-    padding: 40px;
+    padding: 60px 40px;
+    background: var(--surface);
+    height: 100%;
   }
 
-  .state-icon { font-size: 40px; opacity: 0.4; }
-  .state-title { font-size: 15px; font-weight: 500; color: var(--text-dim); }
-  .state-sub { font-size: 13px; text-align: center; max-width: 300px; }
+  .state-icon { font-size: 44px; opacity: 0.3; }
+  .state-title { font-size: 16px; font-weight: 600; color: var(--text-dim); }
+  .state-sub { font-size: 13px; text-align: center; max-width: 300px; line-height: 1.6; }
 
   .spinner {
     width: 28px; height: 28px;
@@ -320,19 +386,43 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* SEARCH HIGHLIGHT */
   mark {
-    background: rgba(59,130,246,0.25);
-    color: var(--accent);
+    background: #fef08a;
+    color: #713f12;
     border-radius: 2px;
     padding: 0 1px;
   }
 
-  /* EMPTY SEARCH */
   .no-results {
-    padding: 40px;
+    padding: 30px;
     text-align: center;
     color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  /* TABS */
+  .view-tabs {
+    display: flex;
+    gap: 2px;
+    margin-left: auto;
+  }
+
+  .tab-btn {
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .tab-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
   }
 </style>
 </head>
@@ -341,33 +431,50 @@
 <header>
   <div class="logo">Medi<span>Price</span></div>
   <div class="header-sub">Τιμοκατάλογος Mediterraneo Hospital</div>
+
+  <!-- Global search -->
+  <div class="header-search search-wrap">
+    <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="search-input" id="globalSearch" placeholder="Αναζήτηση σε όλες τις ειδικότητες..." type="text">
+    <button class="search-clear" id="globalClear">✕</button>
+  </div>
+
   <div class="count-badge" id="totalCount">—</div>
 </header>
 
 <div class="main">
   <!-- SIDEBAR -->
   <div class="sidebar">
-    <div class="sidebar-search">
-      <input class="search-input" id="specialtySearch" placeholder="Αναζήτηση ειδικότητας..." type="text">
+    <div class="sidebar-header">
+      🏥 Ειδικότητες
+    </div>
+    <div class="sidebar-search search-wrap">
+      <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="search-input" id="specialtySearch" placeholder="Φιλτράρισμα ειδικότητας..." type="text">
     </div>
     <div class="specialty-list" id="specialtyList">
-      <div class="state-center"><div class="spinner"></div></div>
+      <div style="padding:20px;text-align:center"><div class="spinner" style="margin:0 auto"></div></div>
     </div>
   </div>
 
   <!-- CONTENT -->
   <div class="content">
-    <div class="content-header">
-      <div class="content-title" id="contentTitle">Επιλέξτε ειδικότητα</div>
-      <input class="search-input global-search-bar" id="procedureSearch" placeholder="🔍  Αναζήτηση πράξης..." type="text" style="display:none">
-      <div class="content-sub" id="contentSub"></div>
+    <div class="content-header" id="contentHeader" style="display:none">
+      <div>
+        <span class="content-title" id="contentTitle"></span>
+        <span class="content-sub" id="contentSub"></span>
+      </div>
+      <div class="search-wrap" style="flex:1;max-width:360px;margin-left:20px" id="procedureSearchWrap">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" id="procedureSearch" placeholder="Αναζήτηση στην ειδικότητα..." type="text">
+      </div>
     </div>
 
     <div id="tableArea">
       <div class="state-center">
         <div class="state-icon">🏥</div>
         <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
-        <div class="state-sub">Επιλέξτε ειδικότητα από τα αριστερά για να δείτε τον τιμοκατάλογο</div>
+        <div class="state-sub">Επιλέξτε ειδικότητα από τα αριστερά ή χρησιμοποιήστε την αναζήτηση για να βρείτε πράξη σε όλες τις ειδικότητες</div>
       </div>
     </div>
   </div>
@@ -380,74 +487,79 @@ const SUPABASE_KEY = 'sb_publishable_ch-7C1ihpZRrxEhXFqV1xA_hXPwq61S';
 let allSpecialties = {};
 let currentSpecialty = null;
 let currentData = [];
+let globalMode = false;
 
-async function supabase(table, params = '') {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json'
-    }
+async function api(params) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/procedures?${params}`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
   });
   return res.json();
 }
 
 async function init() {
-  // Load all specialties with counts
-  const data = await supabase('procedures', 'select=specialty&order=specialty');
-  
-  // Count per specialty
+  const data = await api('select=specialty&order=specialty');
   const counts = {};
-  data.forEach(r => {
-    counts[r.specialty] = (counts[r.specialty] || 0) + 1;
-  });
+  data.forEach(r => { counts[r.specialty] = (counts[r.specialty] || 0) + 1; });
   allSpecialties = counts;
-
-  const total = data.length;
-  document.getElementById('totalCount').textContent = `${total} πράξεις`;
-
+  document.getElementById('totalCount').textContent = `${data.length} πράξεις`;
   renderSpecialtyList(counts);
 }
 
 function renderSpecialtyList(counts, filter = '') {
   const list = document.getElementById('specialtyList');
   const entries = Object.entries(counts)
-    .filter(([name]) => name.toLowerCase().includes(filter.toLowerCase()))
+    .filter(([n]) => n.toLowerCase().includes(filter.toLowerCase()))
     .sort((a, b) => a[0].localeCompare(b[0], 'el'));
 
-  if (entries.length === 0) {
+  if (!entries.length) {
     list.innerHTML = '<div class="no-results">Δεν βρέθηκε ειδικότητα</div>';
     return;
   }
 
   list.innerHTML = entries.map(([name, count]) => `
-    <div class="specialty-item ${currentSpecialty === name ? 'active' : ''}" onclick="loadSpecialty('${name.replace(/'/g, "\\'")}')">
+    <div class="specialty-item ${currentSpecialty === name && !globalMode ? 'active' : ''}"
+         onclick="loadSpecialty('${name.replace(/'/g,"\\'")}')">
       <span class="specialty-name">${name}</span>
       <span class="specialty-count">${count}</span>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 async function loadSpecialty(specialty) {
+  globalMode = false;
   currentSpecialty = specialty;
-  
-  // Update sidebar active state
+  document.getElementById('globalSearch').value = '';
+  document.getElementById('globalClear').style.display = 'none';
   renderSpecialtyList(allSpecialties, document.getElementById('specialtySearch').value);
 
-  // Show loading
+  document.getElementById('contentHeader').style.display = 'flex';
   document.getElementById('contentTitle').textContent = specialty;
   document.getElementById('contentSub').textContent = '';
-  document.getElementById('procedureSearch').style.display = 'block';
   document.getElementById('procedureSearch').value = '';
+  document.getElementById('procedureSearchWrap').style.display = 'block';
   document.getElementById('tableArea').innerHTML = '<div class="state-center"><div class="spinner"></div></div>';
 
-  const data = await supabase('procedures', 
-    `specialty=eq.${encodeURIComponent(specialty)}&order=aa&select=*`
-  );
-  
+  const data = await api(`specialty=eq.${encodeURIComponent(specialty)}&order=aa&select=*`);
   currentData = data;
-  document.getElementById('contentSub').textContent = `${data.length} πράξεις`;
-  renderTable(data);
+  document.getElementById('contentSub').textContent = `· ${data.length} πράξεις`;
+  renderTable(data, '', false);
+}
+
+async function globalSearch(query) {
+  if (!query || query.length < 2) return;
+  globalMode = true;
+  currentSpecialty = null;
+  renderSpecialtyList(allSpecialties, document.getElementById('specialtySearch').value);
+
+  document.getElementById('contentHeader').style.display = 'flex';
+  document.getElementById('contentTitle').textContent = `Αποτελέσματα για "${query}"`;
+  document.getElementById('contentSub').textContent = '';
+  document.getElementById('procedureSearchWrap').style.display = 'none';
+  document.getElementById('tableArea').innerHTML = '<div class="state-center"><div class="spinner"></div></div>';
+
+  const data = await api(`description=ilike.*${encodeURIComponent(query)}*&order=specialty&select=*`);
+  currentData = data;
+  document.getElementById('contentSub').textContent = `· ${data.length} αποτελέσματα`;
+  renderTable(data, query, true);
 }
 
 function fmt(val) {
@@ -455,19 +567,19 @@ function fmt(val) {
   return `<span class="price-private">${Number(val).toLocaleString('el-GR', {minimumFractionDigits: 0, maximumFractionDigits: 2})} €</span>`;
 }
 
-function fmtEopyy(val) {
+function fmtE(val) {
   if (val === null || val === undefined) return '<span class="price-null">—</span>';
   return `<span class="price-eopyy">${Number(val).toLocaleString('el-GR', {minimumFractionDigits: 0, maximumFractionDigits: 2})} €</span>`;
 }
 
-function highlight(text, query) {
-  if (!query || !text) return text || '';
-  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return String(text).replace(new RegExp(escaped, 'gi'), m => `<mark>${m}</mark>`);
+function hl(text, q) {
+  if (!q || !text) return text || '';
+  const esc = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return String(text).replace(new RegExp(esc, 'gi'), m => `<mark>${m}</mark>`);
 }
 
-function renderTable(data, query = '') {
-  if (data.length === 0) {
+function renderTable(data, query, showSpecialty) {
+  if (!data.length) {
     document.getElementById('tableArea').innerHTML = `
       <div class="state-center">
         <div class="state-icon">🔍</div>
@@ -477,25 +589,32 @@ function renderTable(data, query = '') {
     return;
   }
 
-  const rows = data.map(r => `
-    <tr>
-      <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px;width:40px">${r.aa || ''}</td>
-      <td class="td-desc">${highlight(r.description, query)}</td>
+  const specCol = showSpecialty ? `<th>Ειδικότητα</th>` : '';
+
+  const rows = data.map(r => {
+    const specCell = showSpecialty
+      ? `<td><span class="td-specialty">${r.specialty}</span></td>`
+      : '';
+    return `<tr>
+      ${specCell}
+      <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px;width:36px">${r.aa || ''}</td>
+      <td class="td-desc">${hl(r.description, query)}</td>
       <td class="td-ken">${r.ken || '—'}</td>
-      <td><span class="stay-badge">${r.stay_days || '—'}</span></td>
+      <td>${r.stay_days ? `<span class="stay-badge">${r.stay_days}</span>` : '—'}</td>
       <td class="num">${fmt(r.price_private_ba3)}</td>
       <td class="num">${fmt(r.price_private_ba)}</td>
-      <td class="num">${fmtEopyy(r.price_eopyy_ba3)}</td>
-      <td class="num">${fmtEopyy(r.price_eopyy_ba)}</td>
+      <td class="num">${fmtE(r.price_eopyy_ba3)}</td>
+      <td class="num">${fmtE(r.price_eopyy_ba)}</td>
       <td>${r.price_extra ? `<span class="extra-badge" title="${r.price_extra}">${r.price_extra}</span>` : '—'}</td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 
   document.getElementById('tableArea').innerHTML = `
     <div class="table-wrapper">
       <table>
         <thead>
           <tr>
+            ${specCol}
             <th>#</th>
             <th>Περιγραφή Πράξης</th>
             <th>ΚΕΝ</th>
@@ -512,20 +631,55 @@ function renderTable(data, query = '') {
     </div>`;
 }
 
-// Specialty search
+// Global search
+let searchTimer;
+document.getElementById('globalSearch').addEventListener('input', e => {
+  const q = e.target.value.trim();
+  document.getElementById('globalClear').style.display = q ? 'flex' : 'none';
+  clearTimeout(searchTimer);
+  if (q.length >= 2) {
+    searchTimer = setTimeout(() => globalSearch(q), 400);
+  } else if (!q) {
+    globalMode = false;
+    document.getElementById('contentHeader').style.display = 'none';
+    document.getElementById('tableArea').innerHTML = `
+      <div class="state-center">
+        <div class="state-icon">🏥</div>
+        <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
+        <div class="state-sub">Επιλέξτε ειδικότητα ή χρησιμοποιήστε την αναζήτηση</div>
+      </div>`;
+  }
+});
+
+document.getElementById('globalClear').addEventListener('click', () => {
+  document.getElementById('globalSearch').value = '';
+  document.getElementById('globalClear').style.display = 'none';
+  globalMode = false;
+  currentSpecialty = null;
+  renderSpecialtyList(allSpecialties);
+  document.getElementById('contentHeader').style.display = 'none';
+  document.getElementById('tableArea').innerHTML = `
+    <div class="state-center">
+      <div class="state-icon">🏥</div>
+      <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
+      <div class="state-sub">Επιλέξτε ειδικότητα ή χρησιμοποιήστε την αναζήτηση</div>
+    </div>`;
+});
+
+// Specialty filter
 document.getElementById('specialtySearch').addEventListener('input', e => {
   renderSpecialtyList(allSpecialties, e.target.value);
 });
 
-// Procedure search
+// Procedure search (within specialty)
 document.getElementById('procedureSearch').addEventListener('input', e => {
   const q = e.target.value.toLowerCase();
-  const filtered = currentData.filter(r => 
+  const filtered = currentData.filter(r =>
     (r.description || '').toLowerCase().includes(q) ||
     (r.ken || '').toLowerCase().includes(q)
   );
-  document.getElementById('contentSub').textContent = `${filtered.length} από ${currentData.length} πράξεις`;
-  renderTable(filtered, e.target.value);
+  document.getElementById('contentSub').textContent = `· ${filtered.length} από ${currentData.length} πράξεις`;
+  renderTable(filtered, e.target.value, false);
 });
 
 init();
