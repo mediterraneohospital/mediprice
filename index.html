@@ -5,602 +5,303 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MediPrice — Τιμοκατάλογος Mediterraneo</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
   :root {
     --bg: #f5f7fa;
-    --surface: #ffffff;
+    --surface: #fff;
     --surface2: #f0f2f5;
     --border: #e2e6ed;
     --accent: #1a56db;
-    --accent2: #0891b2;
     --text: #111827;
-    --text-muted: #6b7280;
-    --text-dim: #374151;
+    --muted: #6b7280;
+    --dim: #374151;
     --green: #059669;
     --amber: #d97706;
-    --radius: 10px;
+    --r: 8px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html, body { height: 100%; overflow: hidden; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    display: flex;
-    flex-direction: column;
-  }
+  html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; font-size: 13px; background: var(--bg); color: var(--text); }
 
   /* HEADER */
   header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 20px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    height: 52px;
-    flex-shrink: 0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    height: 48px; background: var(--surface); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px; padding: 0 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06); flex-shrink: 0; position: relative; z-index: 100;
   }
+  .logo { font-size: 16px; font-weight: 700; color: var(--accent); letter-spacing: -0.3px; white-space: nowrap; }
+  .logo span { font-weight: 300; color: var(--muted); }
+  .sep { width: 1px; height: 20px; background: var(--border); }
+  .hospital { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .badge { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 2px 10px; font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; white-space: nowrap; margin-left: auto; }
 
-  .logo {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--accent);
-    white-space: nowrap;
-    letter-spacing: -0.3px;
-  }
-  .logo span { font-weight: 300; color: var(--text-muted); }
+  /* SEARCH */
+  .sw { position: relative; flex: 1; max-width: 400px; }
+  .si { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 6px 28px 6px 30px; color: var(--text); font-size: 12px; font-family: inherit; outline: none; transition: all .2s; }
+  .si:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px rgba(26,86,219,.1); }
+  .si::placeholder { color: var(--muted); }
+  .sico { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+  .sclr { position: absolute; right: 7px; top: 50%; transform: translateY(-50%); background: var(--muted); color: #fff; border: none; border-radius: 50%; width: 15px; height: 15px; font-size: 8px; cursor: pointer; display: none; align-items: center; justify-content: center; }
 
-  .header-sub {
-    font-size: 12px;
-    color: var(--text-muted);
-    border-left: 1px solid var(--border);
-    padding-left: 14px;
-    white-space: nowrap;
-  }
-
-  .header-search {
-    flex: 1;
-    max-width: 420px;
-    margin-left: auto;
-  }
-
-  .count-badge {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 3px 10px;
-    font-size: 11px;
-    color: var(--text-muted);
-    font-family: 'DM Mono', monospace;
-    white-space: nowrap;
-  }
-
-  /* SEARCH INPUT */
-  .search-wrap { position: relative; }
-
-  .search-input {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 7px 30px 7px 32px;
-    color: var(--text);
-    font-size: 13px;
-    font-family: 'Inter', sans-serif;
-    outline: none;
-    transition: all 0.2s;
-  }
-
-  .search-input:focus {
-    border-color: var(--accent);
-    background: var(--surface);
-    box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
-  }
-
-  .search-input::placeholder { color: var(--text-muted); }
-
-  .search-icon {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-    pointer-events: none;
-  }
-
-  .search-clear {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: var(--text-muted);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 16px;
-    height: 16px;
-    font-size: 9px;
-    cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* MAIN */
-  .main {
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    flex: 1;
-    overflow: hidden;
-  }
+  /* LAYOUT */
+  .main { display: grid; grid-template-columns: 220px 1fr; height: calc(100vh - 48px); overflow: hidden; }
 
   /* SIDEBAR */
-  .sidebar {
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+  .sidebar { background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+  .sb-head { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; flex-shrink: 0; }
+  .sb-search { padding: 8px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .sp-list { flex: 1; overflow-y: auto; padding: 4px; }
+  .sp-list::-webkit-scrollbar { width: 3px; }
+  .sp-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .sp-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 8px; border-radius: 6px; cursor: pointer;
+    transition: background .12s; gap: 6px; border: 1px solid transparent;
   }
-
-  .sidebar-header {
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    flex-shrink: 0;
-  }
-
-  .sidebar-search { padding: 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-
-  .specialty-list { flex: 1; overflow-y: auto; padding: 5px; }
-  .specialty-list::-webkit-scrollbar { width: 3px; }
-  .specialty-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-  .specialty-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 7px 9px;
-    border-radius: 7px;
-    cursor: pointer;
-    transition: background 0.15s;
-    gap: 6px;
-    border: 1px solid transparent;
-  }
-
-  .specialty-item:hover { background: var(--surface2); }
-  .specialty-item.active { background: #eff6ff; border-color: #bfdbfe; }
-  .specialty-item.active .specialty-name { color: var(--accent); font-weight: 600; }
-
-  .specialty-name {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-dim);
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .specialty-count {
-    font-size: 10px;
-    font-family: 'DM Mono', monospace;
-    color: var(--text-muted);
-    background: var(--surface2);
-    padding: 1px 6px;
-    border-radius: 10px;
-    flex-shrink: 0;
-  }
-
-  .specialty-item.active .specialty-count { background: #dbeafe; color: var(--accent); }
+  .sp-item:hover { background: var(--surface2); }
+  .sp-item.active { background: #eff6ff; border-color: #bfdbfe; }
+  .sp-item.active .sp-name { color: var(--accent); font-weight: 600; }
+  .sp-name { font-size: 11.5px; font-weight: 500; color: var(--dim); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sp-cnt { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--muted); background: var(--surface2); padding: 1px 5px; border-radius: 8px; flex-shrink: 0; }
+  .sp-item.active .sp-cnt { background: #dbeafe; color: var(--accent); }
 
   /* CONTENT */
-  .content {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+  .content { display: flex; flex-direction: column; overflow: hidden; }
+  .ch { padding: 8px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--surface); flex-shrink: 0; }
+  .ct { font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .cs { font-size: 11px; color: var(--muted); white-space: nowrap; }
 
-  .content-header {
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--surface);
-    flex-shrink: 0;
-  }
+  /* TABLE */
+  #ta { flex: 1; overflow: auto; }
+  #ta::-webkit-scrollbar { width: 5px; height: 5px; }
+  #ta::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-  .content-title { font-size: 14px; font-weight: 600; white-space: nowrap; }
-  .content-sub { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
-
-  /* TABLE AREA — scrollable */
-  #tableArea {
-    flex: 1;
-    overflow: auto;
-  }
-
-  #tableArea::-webkit-scrollbar { width: 6px; height: 6px; }
-  #tableArea::-webkit-scrollbar-track { background: transparent; }
-  #tableArea::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12.5px;
-    background: var(--surface);
-  }
-
+  table { width: 100%; border-collapse: collapse; font-size: 12px; background: var(--surface); }
   thead { position: sticky; top: 0; z-index: 10; }
-
   th {
-    background: #f8fafc;
-    color: var(--text-muted);
-    font-weight: 600;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    padding: 8px 10px;
-    text-align: left;
-    border-bottom: 2px solid var(--border);
+    background: #f8fafc; color: var(--muted); font-weight: 600;
+    font-size: 10px; text-transform: uppercase; letter-spacing: .4px;
+    padding: 7px 8px; text-align: left; border-bottom: 2px solid var(--border);
     white-space: nowrap;
   }
-
-  th.num { text-align: right; }
-
-  td {
-    padding: 8px 10px;
-    border-bottom: 1px solid #f1f5f9;
-    vertical-align: middle;
-  }
-
-  td.num {
-    text-align: right;
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-  }
-
+  th.r { text-align: right; }
+  td { padding: 7px 8px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  td.r { text-align: right; font-family: 'DM Mono', monospace; font-size: 11.5px; }
   tr:hover td { background: #f8faff; }
 
-  .td-desc { max-width: 300px; line-height: 1.35; }
+  /* Column widths */
+  .col-aa   { width: 28px; color: var(--muted); font-family: 'DM Mono', monospace; font-size: 10.5px; }
+  .col-desc { max-width: 280px; line-height: 1.35; font-size: 12px; }
+  .col-ken  { font-family: 'DM Mono', monospace; font-size: 10.5px; color: var(--muted); width: 70px; }
+  .col-stay { width: 55px; }
+  .col-price{ width: 80px; }
+  .col-extra{ width: 110px; }
+  .col-notes{ max-width: 160px; font-size: 11px; color: var(--muted); line-height: 1.3; }
+  .col-sp   { width: 130px; }
 
-  .td-specialty {
-    font-size: 10.5px;
-    font-weight: 600;
-    color: var(--accent);
-    background: #eff6ff;
-    border-radius: 4px;
-    padding: 2px 6px;
-    white-space: nowrap;
-  }
-
-  .td-ken {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--text-muted);
-  }
-
-  .price-private { color: var(--text); font-weight: 500; }
-  .price-eopyy { color: var(--green); font-weight: 500; }
-  .price-null { color: #d1d5db; }
-
-  .extra-badge {
-    display: inline-block;
-    background: #fffbeb;
-    color: var(--amber);
-    border: 1px solid #fde68a;
-    border-radius: 4px;
-    padding: 1px 6px;
-    font-size: 10.5px;
-    max-width: 140px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    cursor: help;
-  }
-
-  .stay-badge {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 1px 6px;
-    font-size: 11px;
-    font-family: 'DM Mono', monospace;
-    color: var(--text-dim);
-  }
+  .sp-badge { font-size: 10px; font-weight: 600; color: var(--accent); background: #eff6ff; border-radius: 4px; padding: 2px 5px; white-space: nowrap; }
+  .stay-b { background: var(--surface2); border: 1px solid var(--border); border-radius: 3px; padding: 1px 5px; font-size: 10.5px; font-family: 'DM Mono', monospace; color: var(--dim); }
+  .pv { color: var(--text); font-weight: 500; }
+  .pe { color: var(--green); font-weight: 500; }
+  .pn { color: #d1d5db; }
+  .ex-b { display: inline-block; background: #fffbeb; color: var(--amber); border: 1px solid #fde68a; border-radius: 3px; padding: 1px 5px; font-size: 10.5px; max-width: 105px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help; }
 
   /* STATE */
-  .state-center {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    color: var(--text-muted);
-    padding: 80px 40px;
-    height: 100%;
-    background: var(--surface);
-  }
-
-  .state-icon { font-size: 40px; opacity: 0.25; }
-  .state-title { font-size: 15px; font-weight: 600; color: var(--text-dim); }
-  .state-sub { font-size: 13px; text-align: center; max-width: 300px; line-height: 1.6; color: var(--text-muted); }
-
-  .spinner {
-    width: 24px; height: 24px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
+  .state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 80px 40px; height: 100%; background: var(--surface); color: var(--muted); }
+  .state-icon { font-size: 36px; opacity: .2; }
+  .state-title { font-size: 14px; font-weight: 600; color: var(--dim); }
+  .state-sub { font-size: 12px; text-align: center; max-width: 280px; line-height: 1.6; }
+  .spin { width: 22px; height: 22px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: sp .8s linear infinite; margin: 0 auto; }
+  @keyframes sp { to { transform: rotate(360deg); } }
   mark { background: #fef08a; color: #713f12; border-radius: 2px; padding: 0 1px; }
-
-  .no-results { padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
-
-  .aa-cell { color: var(--text-muted); font-family: 'DM Mono', monospace; font-size: 11px; width: 30px; }
+  .nr { padding: 20px; text-align: center; color: var(--muted); font-size: 12px; }
 </style>
 </head>
 <body>
 
 <header>
   <div class="logo">Medi<span>Price</span></div>
-  <div class="header-sub">Τιμοκατάλογος Mediterraneo</div>
-
-  <div class="header-search search-wrap">
-    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input class="search-input" id="globalSearch" placeholder="Αναζήτηση πράξης σε όλες τις ειδικότητες..." type="text">
-    <button class="search-clear" id="globalClear">✕</button>
+  <div class="sep"></div>
+  <div class="hospital">Τιμοκατάλογος Mediterraneo Hospital</div>
+  <div class="sw">
+    <svg class="sico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="si" id="gSearch" placeholder="Αναζήτηση πράξης σε όλες τις ειδικότητες..." type="text">
+    <button class="sclr" id="gClr">✕</button>
   </div>
-
-  <div class="count-badge" id="totalCount">—</div>
+  <div class="badge" id="totalBadge">—</div>
 </header>
 
 <div class="main">
   <div class="sidebar">
-    <div class="sidebar-header">🏥 Ειδικότητες</div>
-    <div class="sidebar-search search-wrap">
-      <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input class="search-input" id="specialtySearch" placeholder="Φιλτράρισμα..." type="text">
+    <div class="sb-head">🏥 Ειδικότητες</div>
+    <div class="sb-search">
+      <div class="sw">
+        <svg class="sico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="si" id="spSearch" placeholder="Φιλτράρισμα..." type="text">
+      </div>
     </div>
-    <div class="specialty-list" id="specialtyList">
-      <div style="padding:20px;text-align:center"><div class="spinner"></div></div>
-    </div>
+    <div class="sp-list" id="spList"><div style="padding:20px;text-align:center"><div class="spin"></div></div></div>
   </div>
 
   <div class="content">
-    <div class="content-header" id="contentHeader" style="display:none">
-      <span class="content-title" id="contentTitle"></span>
-      <span class="content-sub" id="contentSub"></span>
-      <div class="search-wrap" style="flex:1;max-width:320px;margin-left:auto" id="localSearchWrap">
-        <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input class="search-input" id="localSearch" placeholder="Αναζήτηση στην ειδικότητα..." type="text">
+    <div class="ch" id="cHeader" style="display:none">
+      <span class="ct" id="cTitle"></span>
+      <span class="cs" id="cSub"></span>
+      <div class="sw" style="max-width:280px;margin-left:auto" id="lSearchWrap">
+        <svg class="sico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="si" id="lSearch" placeholder="Αναζήτηση στην ειδικότητα..." type="text">
       </div>
     </div>
-
-    <div id="tableArea">
-      <div class="state-center">
+    <div id="ta">
+      <div class="state">
         <div class="state-icon">🏥</div>
         <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
-        <div class="state-sub">Επιλέξτε ειδικότητα από τα αριστερά ή αναζητήστε πράξη στο πεδίο αναζήτησης</div>
+        <div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη στο πεδίο αναζήτησης</div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-const SUPABASE_URL = 'https://odtbtugzilxsfqxlpofq.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_ch-7C1ihpZRrxEhXFqV1xA_hXPwq61S';
+const URL_ = 'https://odtbtugzilxsfqxlpofq.supabase.co';
+const KEY  = 'sb_publishable_ch-7C1ihpZRrxEhXFqV1xA_hXPwq61S';
 
-let allSpecialties = {};
-let currentSpecialty = null;
-let currentData = [];
-let globalMode = false;
+let specialties = {}, curSp = null, curData = [], globalMode = false;
 
 async function api(params) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/procedures?${params}`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+  const r = await fetch(`${URL_}/rest/v1/procedures?${params}`, {
+    headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }
   });
-  return res.json();
+  return r.json();
 }
 
 async function init() {
-  const data = await api('select=specialty&order=specialty');
-  const counts = {};
-  data.forEach(r => { counts[r.specialty] = (counts[r.specialty] || 0) + 1; });
-  allSpecialties = counts;
-  document.getElementById('totalCount').textContent = `${data.length} πράξεις`;
+  const d = await api('select=specialty&order=specialty');
+  d.forEach(r => specialties[r.specialty] = (specialties[r.specialty]||0)+1);
+  document.getElementById('totalBadge').textContent = `${d.length} πράξεις`;
   renderSidebar();
 }
 
-function renderSidebar(filter = '') {
-  const list = document.getElementById('specialtyList');
-  const entries = Object.entries(allSpecialties)
-    .filter(([n]) => n.toLowerCase().includes(filter.toLowerCase()))
-    .sort((a, b) => a[0].localeCompare(b[0], 'el'));
-
-  if (!entries.length) {
-    list.innerHTML = '<div class="no-results">Δεν βρέθηκε</div>';
-    return;
-  }
-
-  list.innerHTML = entries.map(([name, count]) => `
-    <div class="specialty-item ${!globalMode && currentSpecialty === name ? 'active' : ''}"
-         onclick="loadSpecialty('${name.replace(/'/g,"\\'")}')">
-      <span class="specialty-name">${name}</span>
-      <span class="specialty-count">${count}</span>
+function renderSidebar(f='') {
+  const el = document.getElementById('spList');
+  const entries = Object.entries(specialties)
+    .filter(([n]) => n.toLowerCase().includes(f.toLowerCase()))
+    .sort((a,b) => a[0].localeCompare(b[0],'el'));
+  if (!entries.length) { el.innerHTML='<div class="nr">Δεν βρέθηκε</div>'; return; }
+  el.innerHTML = entries.map(([n,c]) => `
+    <div class="sp-item ${!globalMode && curSp===n?'active':''}" onclick="loadSp('${n.replace(/'/g,"\\'")}')">
+      <span class="sp-name">${n}</span>
+      <span class="sp-cnt">${c}</span>
     </div>`).join('');
 }
 
-async function loadSpecialty(specialty) {
-  globalMode = false;
-  currentSpecialty = specialty;
-  document.getElementById('globalSearch').value = '';
-  document.getElementById('globalClear').style.display = 'none';
-  document.getElementById('localSearch').value = '';
-  renderSidebar(document.getElementById('specialtySearch').value);
-
-  showHeader(specialty, '', true);
-  showLoading();
-
-  const data = await api(`specialty=eq.${encodeURIComponent(specialty)}&order=aa&select=*`);
-  currentData = data;
-  document.getElementById('contentSub').textContent = `· ${data.length} πράξεις`;
-  renderTable(data, '', false);
+async function loadSp(sp) {
+  globalMode=false; curSp=sp;
+  document.getElementById('gSearch').value='';
+  document.getElementById('gClr').style.display='none';
+  document.getElementById('lSearch').value='';
+  renderSidebar(document.getElementById('spSearch').value);
+  showHeader(sp,'',true); loading();
+  const d = await api(`specialty=eq.${encodeURIComponent(sp)}&order=aa&select=*`);
+  curData=d;
+  document.getElementById('cSub').textContent=`· ${d.length} πράξεις`;
+  renderTable(d,'',false);
 }
 
-async function doGlobalSearch(query) {
-  if (!query || query.length < 2) return;
-  globalMode = true;
-  currentSpecialty = null;
-  renderSidebar(document.getElementById('specialtySearch').value);
-
-  showHeader(`"${query}"`, '', false);
-  showLoading();
-
-  const data = await api(`description=ilike.*${encodeURIComponent(query)}*&order=specialty&select=*`);
-  currentData = data;
-  document.getElementById('contentSub').textContent = `· ${data.length} αποτελέσματα`;
-  renderTable(data, query, true);
+async function gSearch(q) {
+  if (!q||q.length<2) return;
+  globalMode=true; curSp=null;
+  renderSidebar(document.getElementById('spSearch').value);
+  showHeader(`"${q}"`, '', false); loading();
+  const d = await api(`description=ilike.*${encodeURIComponent(q)}*&order=specialty&select=*`);
+  curData=d;
+  document.getElementById('cSub').textContent=`· ${d.length} αποτελέσματα`;
+  renderTable(d,q,true);
 }
 
-function showHeader(title, sub, showLocal) {
-  document.getElementById('contentHeader').style.display = 'flex';
-  document.getElementById('contentTitle').textContent = title;
-  document.getElementById('contentSub').textContent = sub;
-  document.getElementById('localSearchWrap').style.display = showLocal ? 'block' : 'none';
+function showHeader(t,s,local) {
+  document.getElementById('cHeader').style.display='flex';
+  document.getElementById('cTitle').textContent=t;
+  document.getElementById('cSub').textContent=s;
+  document.getElementById('lSearchWrap').style.display=local?'block':'none';
 }
 
-function showLoading() {
-  document.getElementById('tableArea').innerHTML =
-    '<div class="state-center"><div class="spinner"></div></div>';
+function loading() {
+  document.getElementById('ta').innerHTML='<div class="state"><div class="spin"></div></div>';
 }
 
-function fmt(val) {
-  if (val === null || val === undefined) return '<span class="price-null">—</span>';
-  return `<span class="price-private">${Number(val).toLocaleString('el-GR', {minimumFractionDigits: 0, maximumFractionDigits: 2})} €</span>`;
-}
-function fmtE(val) {
-  if (val === null || val === undefined) return '<span class="price-null">—</span>';
-  return `<span class="price-eopyy">${Number(val).toLocaleString('el-GR', {minimumFractionDigits: 0, maximumFractionDigits: 2})} €</span>`;
-}
-function hl(text, q) {
-  if (!q || !text) return text || '';
-  const esc = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return String(text).replace(new RegExp(esc, 'gi'), m => `<mark>${m}</mark>`);
-}
+const f = v => v==null?'<span class="pn">—</span>':`<span class="pv">${(+v).toLocaleString('el-GR',{minimumFractionDigits:0,maximumFractionDigits:2})} €</span>`;
+const fe = v => v==null?'<span class="pn">—</span>':`<span class="pe">${(+v).toLocaleString('el-GR',{minimumFractionDigits:0,maximumFractionDigits:2})} €</span>`;
+const hl = (t,q) => { if(!q||!t) return t||''; return String(t).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),m=>`<mark>${m}</mark>`); };
 
-function renderTable(data, query, showSpecialty) {
+function renderTable(data, q, showSp) {
   if (!data.length) {
-    document.getElementById('tableArea').innerHTML = `
-      <div class="state-center">
-        <div class="state-icon">🔍</div>
-        <div class="state-title">Δεν βρέθηκαν αποτελέσματα</div>
-        <div class="state-sub">Δοκιμάστε διαφορετική αναζήτηση</div>
-      </div>`;
+    document.getElementById('ta').innerHTML=`<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>`;
     return;
   }
-
-  const specCol = showSpecialty ? '<th>Ειδικότητα</th>' : '';
-
+  const spCol = showSp ? '<th class="col-sp">Ειδικότητα</th>' : '';
   const rows = data.map(r => {
-    const specCell = showSpecialty
-      ? `<td><span class="td-specialty">${r.specialty}</span></td>` : '';
+    const spCell = showSp ? `<td class="col-sp"><span class="sp-badge">${r.specialty}</span></td>` : '';
+    const extra = r.price_extra ? `<span class="ex-b" title="${r.price_extra}">${r.price_extra}</span>` : '<span class="pn">—</span>';
+    const notes = r.notes ? `<span title="${r.notes}">${r.notes.substring(0,40)}${r.notes.length>40?'…':''}</span>` : '<span class="pn">—</span>';
     return `<tr>
-      ${specCell}
-      <td class="aa-cell">${r.aa || ''}</td>
-      <td class="td-desc">${hl(r.description, query)}</td>
-      <td class="td-ken">${r.ken || '—'}</td>
-      <td>${r.stay_days ? `<span class="stay-badge">${r.stay_days}</span>` : '<span class="price-null">—</span>'}</td>
-      <td class="num">${fmt(r.price_private_ba3)}</td>
-      <td class="num">${fmt(r.price_private_ba)}</td>
-      <td class="num">${fmtE(r.price_eopyy_ba3)}</td>
-      <td class="num">${fmtE(r.price_eopyy_ba)}</td>
-      <td>${r.price_extra ? `<span class="extra-badge" title="${r.price_extra}">${r.price_extra}</span>` : '<span class="price-null">—</span>'}</td>
+      ${spCell}
+      <td class="col-aa">${r.aa||''}</td>
+      <td class="col-desc">${hl(r.description,q)}</td>
+      <td class="col-ken">${r.ken||'—'}</td>
+      <td class="col-stay">${r.stay_days?`<span class="stay-b">${r.stay_days}</span>`:'<span class="pn">—</span>'}</td>
+      <td class="col-price r">${f(r.price_private_ba3)}</td>
+      <td class="col-price r">${f(r.price_private_ba)}</td>
+      <td class="col-price r">${fe(r.price_eopyy_ba3)}</td>
+      <td class="col-price r">${fe(r.price_eopyy_ba)}</td>
+      <td class="col-extra">${extra}</td>
+      <td class="col-notes">${notes}</td>
     </tr>`;
   }).join('');
 
-  document.getElementById('tableArea').innerHTML = `
+  document.getElementById('ta').innerHTML = `
     <table>
       <thead><tr>
-        ${specCol}
+        ${spCol}
         <th>#</th>
         <th>Περιγραφή Πράξης</th>
         <th>ΚΕΝ</th>
         <th>Νοσηλεία</th>
-        <th class="num">Ιδ. ΒΑ3</th>
-        <th class="num">Ιδ. ΒΑ</th>
-        <th class="num">ΕΟΠΥΥ ΒΑ3</th>
-        <th class="num">ΕΟΠΥΥ ΒΑ</th>
+        <th class="r">Ιδ. ΒΑ3</th>
+        <th class="r">Ιδ. ΒΑ</th>
+        <th class="r">ΕΟΠΥΥ ΒΑ3</th>
+        <th class="r">ΕΟΠΥΥ ΒΑ</th>
         <th>Extra</th>
+        <th>Παρατηρήσεις</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
 
-// Global search
-let timer;
-document.getElementById('globalSearch').addEventListener('input', e => {
-  const q = e.target.value.trim();
-  document.getElementById('globalClear').style.display = q ? 'flex' : 'none';
-  clearTimeout(timer);
-  if (q.length >= 2) {
-    timer = setTimeout(() => doGlobalSearch(q), 400);
-  } else if (!q && !currentSpecialty) {
-    globalMode = false;
-    document.getElementById('contentHeader').style.display = 'none';
-    document.getElementById('tableArea').innerHTML = `
-      <div class="state-center">
-        <div class="state-icon">🏥</div>
-        <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
-        <div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div>
-      </div>`;
-    renderSidebar();
-  }
+// Events
+let t;
+document.getElementById('gSearch').addEventListener('input', e => {
+  const q=e.target.value.trim();
+  document.getElementById('gClr').style.display=q?'flex':'none';
+  clearTimeout(t);
+  if (q.length>=2) t=setTimeout(()=>gSearch(q),400);
+  else if (!q) { globalMode=false; curSp=null; renderSidebar(); document.getElementById('cHeader').style.display='none'; document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🏥</div><div class="state-title">Καλώς ήρθατε στο MediPrice</div><div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div></div>'; }
 });
-
-document.getElementById('globalClear').addEventListener('click', () => {
-  document.getElementById('globalSearch').value = '';
-  document.getElementById('globalClear').style.display = 'none';
-  globalMode = false;
-  currentSpecialty = null;
-  renderSidebar();
-  document.getElementById('contentHeader').style.display = 'none';
-  document.getElementById('tableArea').innerHTML = `
-    <div class="state-center">
-      <div class="state-icon">🏥</div>
-      <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
-      <div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div>
-    </div>`;
+document.getElementById('gClr').addEventListener('click', () => {
+  document.getElementById('gSearch').value='';
+  document.getElementById('gClr').style.display='none';
+  globalMode=false; curSp=null; renderSidebar();
+  document.getElementById('cHeader').style.display='none';
+  document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🏥</div><div class="state-title">Καλώς ήρθατε στο MediPrice</div><div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div></div>';
 });
-
-// Sidebar filter
-document.getElementById('specialtySearch').addEventListener('input', e => {
-  renderSidebar(e.target.value);
-});
-
-// Local search within specialty
-document.getElementById('localSearch').addEventListener('input', e => {
-  const q = e.target.value.toLowerCase();
-  const filtered = currentData.filter(r =>
-    (r.description || '').toLowerCase().includes(q) ||
-    (r.ken || '').toLowerCase().includes(q)
-  );
-  document.getElementById('contentSub').textContent = `· ${filtered.length} από ${currentData.length} πράξεις`;
-  renderTable(filtered, e.target.value, false);
+document.getElementById('spSearch').addEventListener('input', e => renderSidebar(e.target.value));
+document.getElementById('lSearch').addEventListener('input', e => {
+  const q=e.target.value.toLowerCase();
+  const fd=curData.filter(r=>(r.description||'').toLowerCase().includes(q)||(r.ken||'').toLowerCase().includes(q));
+  document.getElementById('cSub').textContent=`· ${fd.length} από ${curData.length} πράξεις`;
+  renderTable(fd,e.target.value,false);
 });
 
 init();
