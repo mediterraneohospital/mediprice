@@ -3,134 +3,300 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MediPrice — Τιμοκατάλογος Mediterraneo</title>
+<title>MediPrice</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
-  :root{--bg:#f5f7fa;--surface:#fff;--s2:#f0f2f5;--border:#e2e6ed;--accent:#1a56db;--text:#111827;--muted:#6b7280;--dim:#374151;--r:8px;}
-  *{box-sizing:border-box;margin:0;padding:0;}
-  html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:13px;background:var(--bg);color:var(--text);}
-
-  header{height:48px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);flex-shrink:0;}
-  .logo{font-size:16px;letter-spacing:-.3px;white-space:nowrap;}
-  .logo .medi{font-weight:700;color:#1a56db;}
-  .logo .price{font-weight:700;color:#e53e3e;}
-  .sep{width:1px;height:20px;background:var(--border);}
-  .hosp{font-size:12px;color:var(--muted);white-space:nowrap;}
-  .badge{background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:2px 10px;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap;margin-left:auto;}
-
-  .sw{position:relative;flex:1;max-width:420px;}
-  .si{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:6px 28px 6px 30px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:all .2s;}
-  .si:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px rgba(26,86,219,.1);}
-  .si::placeholder{color:var(--muted);}
-  .sico{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;}
-  .sclr{position:absolute;right:7px;top:50%;transform:translateY(-50%);background:var(--muted);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:9px;cursor:pointer;display:none;align-items:center;justify-content:center;}
-
-  .main{display:grid;grid-template-columns:220px 1fr;height:calc(100vh - 48px);overflow:hidden;}
-  .sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-  .sb-head{padding:8px 12px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0;}
-  .sb-s{padding:8px;border-bottom:1px solid var(--border);flex-shrink:0;}
-  .sp-list{flex:1;overflow-y:auto;padding:4px;}
-  .sp-list::-webkit-scrollbar{width:3px;}
-  .sp-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
-  .sp-item{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background .12s;gap:6px;border:1px solid transparent;}
-  .sp-item:hover{background:var(--s2);}
-  .sp-item.active{background:#eff6ff;border-color:#bfdbfe;}
-  .sp-item.active .sp-name{color:var(--accent);font-weight:600;}
-  .sp-name{font-size:12px;font-weight:500;color:var(--dim);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .sp-cnt{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);background:var(--s2);padding:1px 5px;border-radius:8px;flex-shrink:0;}
-  .sp-item.active .sp-cnt{background:#dbeafe;color:var(--accent);}
-
-  .content{display:flex;flex-direction:column;overflow:hidden;}
-  .ch{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--surface);flex-shrink:0;min-height:42px;}
-  .ct{font-size:14px;font-weight:600;white-space:nowrap;}
-  .cs{font-size:12px;color:var(--muted);}
-
-  #ta{flex:1;overflow:auto;scroll-behavior:smooth;}
-  #ta::-webkit-scrollbar{width:5px;height:5px;}
-  #ta::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
-
-  table{border-collapse:collapse;font-size:13px;background:var(--surface);table-layout:fixed;width:max-content;}
-  thead{position:sticky;top:0;z-index:10;}
-  th{background:#eef1f6;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.3px;padding:6px 8px;text-align:left;border-bottom:2px solid var(--border);border-right:1px solid var(--border);white-space:normal;word-break:break-word;vertical-align:top;position:relative;min-width:60px;}
-  th:last-child{border-right:none;}
-  .resizer{position:absolute;right:0;top:0;width:6px;height:100%;cursor:col-resize;user-select:none;z-index:2;background:transparent;}
-  .resizer:hover{background:rgba(26,86,219,.35);}
-  td{padding:5px 8px;border-bottom:1px solid #f1f5f9;border-right:1px solid #eef0f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
-  td.wrap{white-space:normal;word-break:break-word;line-height:1.4;}
-  td.num{text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
-  td:last-child{border-right:none;}
-  tbody tr:nth-child(even) td{background:#f7f9fc;}
-  tbody tr:hover td{background:#eef4ff!important;cursor:pointer;}
-  tbody tr.selected td{background:#dbeafe!important;outline:1px solid #93c5fd;}
-
-  .sp-badge{font-size:10px;font-weight:600;color:var(--accent);background:#eff6ff;border-radius:4px;padding:2px 5px;white-space:nowrap;}
-  th.price-col{background:#f0fdf4;color:#166534;}
-  td.price-val{background:#f0fdf4;font-weight:600;color:#166534;text-align:right;font-family:"DM Mono",monospace;font-size:12px;}
-  th.price-col-p{background:#eff6ff;color:#1e40af;}
-  td.price-val-p{background:#eff6ff;font-weight:600;color:#1e40af;text-align:right;font-family:"DM Mono",monospace;font-size:12px;}
-  mark{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px;}
-  td[title]{cursor:default;}
-  #tooltip{position:fixed;background:#1f2937;color:#fff;padding:6px 10px;border-radius:6px;font-size:12px;max-width:340px;white-space:normal;word-break:break-word;z-index:9999;pointer-events:none;line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,.25);display:none;}
-  .state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:80px 40px;height:100%;background:var(--surface);color:var(--muted);}
-  .state-icon{font-size:40px;opacity:.2;}
-  .state-title{font-size:15px;font-weight:600;color:var(--dim);}
-  .state-sub{font-size:13px;text-align:center;max-width:300px;line-height:1.6;}
-  .spin{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto;}
-  @keyframes sp{to{transform:rotate(360deg);}}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+:root{--bg:#f5f7fa;--sur:#fff;--s2:#f0f2f5;--brd:#e2e6ed;--acc:#1a56db;--txt:#111827;--mut:#6b7280;--dim:#374151;--grn:#059669;--r:8px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:13px;background:var(--bg);color:var(--txt);}
+header{height:48px;background:var(--sur);border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:12px;padding:0 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);flex-shrink:0;}
+.logo{font-size:16px;letter-spacing:-.3px;white-space:nowrap;}
+.logo .m{font-weight:700;color:#1a56db;}.logo .p{font-weight:700;color:#e53e3e;}
+.sep{width:1px;height:20px;background:var(--brd);}
+.hosp{font-size:12px;color:var(--mut);white-space:nowrap;}
+.badge{background:var(--s2);border:1px solid var(--brd);border-radius:20px;padding:2px 10px;font-size:11px;color:var(--mut);font-family:'DM Mono',monospace;white-space:nowrap;margin-left:auto;}
+.sw{position:relative;flex:1;max-width:420px;}
+.si{width:100%;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r);padding:6px 28px 6px 30px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;transition:all .2s;}
+.si:focus{border-color:var(--acc);background:var(--sur);box-shadow:0 0 0 3px rgba(26,86,219,.1);}
+.si::placeholder{color:var(--mut);}
+.sico{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--mut);pointer-events:none;}
+.sclr{position:absolute;right:7px;top:50%;transform:translateY(-50%);background:var(--mut);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:9px;cursor:pointer;display:none;align-items:center;justify-content:center;}
+.main{display:grid;grid-template-columns:220px 1fr;height:calc(100vh - 48px);overflow:hidden;}
+.sidebar{background:var(--sur);border-right:1px solid var(--brd);display:flex;flex-direction:column;overflow:hidden;}
+.sbh{padding:8px 12px;border-bottom:1px solid var(--brd);font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0;}
+.sbs{padding:8px;border-bottom:1px solid var(--brd);flex-shrink:0;}
+.spl{flex:1;overflow-y:auto;padding:4px;}
+.spl::-webkit-scrollbar{width:3px;}
+.spl::-webkit-scrollbar-thumb{background:var(--brd);border-radius:3px;}
+.spi{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:6px;cursor:pointer;gap:6px;border:1px solid transparent;transition:background .12s;}
+.spi:hover{background:var(--s2);}
+.spi.active{background:#eff6ff;border-color:#bfdbfe;}
+.spi.active .spn{color:var(--acc);font-weight:600;}
+.spn{font-size:12px;font-weight:500;color:var(--dim);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.spc{font-size:10px;font-family:'DM Mono',monospace;color:var(--mut);background:var(--s2);padding:1px 5px;border-radius:8px;flex-shrink:0;}
+.spi.active .spc{background:#dbeafe;color:var(--acc);}
+.content{display:flex;flex-direction:column;overflow:hidden;}
+.ch{padding:8px 14px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:10px;background:var(--sur);flex-shrink:0;min-height:42px;}
+.ct{font-size:14px;font-weight:600;white-space:nowrap;}
+.cs{font-size:12px;color:var(--mut);}
+#ta{flex:1;overflow:auto;}
+#ta::-webkit-scrollbar{width:5px;height:5px;}
+#ta::-webkit-scrollbar-thumb{background:var(--brd);border-radius:3px;}
+table{border-collapse:collapse;font-size:13px;background:var(--sur);table-layout:fixed;width:max-content;min-width:100%;}
+thead{position:sticky;top:0;z-index:10;}
+th{background:#eef1f6;color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.3px;padding:6px 8px;text-align:left;border-bottom:2px solid var(--brd);border-right:1px solid var(--brd);white-space:normal;word-break:break-word;vertical-align:top;position:relative;}
+th:last-child{border-right:none;}
+th.ec{background:#f0fdf4;color:#166534;}
+th.pc{background:#eff6ff;color:#1e40af;}
+td{padding:5px 8px;border-bottom:1px solid #f1f5f9;border-right:1px solid #eef0f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+td.wrap{white-space:normal;word-break:break-word;line-height:1.4;}
+td.ev{background:#f0fdf4;font-weight:600;color:#166534;text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
+td.pv{background:#eff6ff;font-weight:600;color:#1e40af;text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
+td:last-child{border-right:none;}
+tbody tr:nth-child(even) td{background:#f7f9fc;}
+tbody tr:nth-child(even) td.ev{background:#e8faf0;}
+tbody tr:nth-child(even) td.pv{background:#e8f0fe;}
+tbody tr:hover td{background:#eef4ff!important;cursor:pointer;}
+tbody tr.sel td{background:#dbeafe!important;}
+.spbadge{font-size:10px;font-weight:600;color:var(--acc);background:#eff6ff;border-radius:4px;padding:2px 5px;white-space:nowrap;}
+mark{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px;}
+.state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:80px 40px;height:100%;color:var(--mut);}
+.state-icon{font-size:40px;opacity:.2;}
+.state-title{font-size:15px;font-weight:600;color:var(--dim);}
+.state-sub{font-size:13px;text-align:center;max-width:300px;line-height:1.6;}
+.spin{width:24px;height:24px;border:2px solid var(--brd);border-top-color:var(--acc);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.resizer{position:absolute;right:0;top:0;width:6px;height:100%;cursor:col-resize;z-index:2;}
+.resizer:hover{background:rgba(26,86,219,.3);}
+.tbl-title{background:#1e40af;color:#fff;font-size:12px;font-weight:600;padding:6px 10px;letter-spacing:.3px;}
+#tooltip{position:fixed;background:#1f2937;color:#fff;padding:6px 10px;border-radius:6px;font-size:12px;max-width:340px;white-space:normal;word-break:break-word;z-index:9999;pointer-events:none;line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,.25);display:none;}
 </style>
 </head>
 <body>
 <div id="tooltip"></div>
 <header>
-  <div class="logo"><span class="medi">Medi</span><span class="price">Price</span></div>
+  <div class="logo"><span class="m">Medi</span><span class="p">Price</span></div>
   <div class="sep"></div>
   <div class="hosp">Τιμοκατάλογος Mediterraneo Hospital</div>
   <div class="sw">
     <svg class="sico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input class="si" id="gSearch" placeholder="Αναζήτηση πράξης σε όλες τις ειδικότητες..." type="text">
-    <button class="sclr" id="gClr">✕</button>
+    <input class="si" id="gS" placeholder="Αναζήτηση πράξης σε όλες τις ειδικότητες..." type="text">
+    <button class="sclr" id="gC">✕</button>
   </div>
-  <div class="badge" id="totalBadge">Φόρτωση...</div>
+  <div class="badge" id="badge">Φόρτωση...</div>
 </header>
 <div class="main">
   <div class="sidebar">
-    <div class="sb-head">🏥 Ειδικότητες</div>
-    <div class="sb-s">
-      <div class="sw">
-        <svg class="sico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input class="si" id="spSearch" placeholder="Φιλτράρισμα..." type="text">
-      </div>
-    </div>
-    <div class="sp-list" id="spList"><div style="padding:20px;text-align:center"><div class="spin"></div></div></div>
+    <div class="sbh">🏥 Ειδικότητες</div>
+    <div class="sbs"><div class="sw">
+      <svg class="sico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="si" id="spF" placeholder="Φιλτράρισμα..." type="text">
+    </div></div>
+    <div class="spl" id="spL"><div style="padding:20px;text-align:center"><div class="spin"></div></div></div>
   </div>
   <div class="content">
-    <div class="ch" id="cHeader" style="display:none">
-      <span class="ct" id="cTitle"></span>
-      <span class="cs" id="cSub"></span>
-    </div>
-    <div id="ta"><div class="state"><div class="state-icon">🏥</div><div class="state-title">Φόρτωση...</div></div></div>
+    <div class="ch" id="cH" style="display:none"><span class="ct" id="cT"></span><span class="cs" id="cS"></span></div>
+    <div id="ta"><div class="state"><div class="spin"></div></div></div>
   </div>
 </div>
 <script>
-var DATA={}, curSheet=null, searchMode=false;
+var D={}, cur=null, sMode=false;
 
-// Στήλες με wrap
-var WRAP=['ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ','ΕΙΔΟΣ ΠΡΑΞΗΣ','ΠΡΑΞΗ','ΤΙΤΛΟΣ ΕΠΕΜΒΑΣΗΣ','ΠΕΡΙΓΡΑΦΗ',
-  'ΠΑΡΑΤΗΡΗΣΕΙΣ','ΣΧΟΛΙΑ','EXTRA','ΥΛΙΚΑ ΙΔΙΩΤΗ','ΑΠΟΦΑΣΗ ΚΕΣΥ','ΕΞΕΤΑΣΕΙΣ ΠΑΚΕΤΟΥ',
-  'ΠΑΡΑΤΗΡΗΣΕΙΣ - ΠΑΡΑΔΟΧΕΣ','ΥΛΙΚΑ MEDTRONIC','ΥΛΙΚΟ'];
+var ECOLS=['ΕΟΠΥΥ ΒΑ3','ΕΟΠΥΥ ΒΑ','ΕΟΠΥΥ ΒΑ3 2026','ΕΟΠΥΥ ΒΑ 2026','ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ ΜΕ ΦΠΑ 24%','ΕΟΠΥΥ ΒΑ ΜΕ ΦΠΑ','ODC ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ODC ΕΟΠΥΥ ΜΕ ΦΠΑ','ΒΑ ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ΒΑ ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ Α','ΤΕΛΙΚΟΣ ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ','ΕΟΠΥΥ 2026','ΒΑ NET','Α NET','LUX NET','SUITE NET','ΕΟΠΥΥ ΚΛΙΝΙΚΗ','ΕΟΠΥΥ ΑΝΑΙΣΘ.'];
+var PCOLS=['ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ ΒΑ','ΙΔΙΩΤΗΣ ΒΑ3 2026','ΙΔΙΩΤΗΣ ΒΑ 2026','ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ 24%','ΙΔΙΩΤΗΣ ΒΑ ΜΕ ΦΠΑ','ODC ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ','ODC ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΒΑ ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ','ΒΑ ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΙΔΙΩΤΗΣ Α','ΙΔΙΩΤΗΣ','ΙΔΙΩΤΗΣ 2026','ΒΑ ΜΕ ΦΠΑ','Α ΜΕ ΦΠΑ','LUX ΜΕ ΦΠΑ','SUITE ΜΕ ΦΠΑ','ODC ΜΕ ΦΠΑ','ΒΑ','Α','LUX','SUITE','ODC','ΙΔΙΩΤΗΣ ΚΛΙΝΙΚΗ','ΙΔΙΩΤΗΣ ΑΝΑΙΣΘ.','ΤΟΠΙΚΗ','ΜΕΘΗ','ΓΕΝΙΚΗ'];
+var WCOLS=['ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ','ΠΕΡΙΓΡΑΦΗ','ΕΙΔΟΣ ΠΡΑΞΗΣ','ΠΡΑΞΗ','ΤΙΤΛΟΣ ΕΠΕΜΒΑΣΗΣ','ΠΑΡΑΤΗΡΗΣΕΙΣ','ΣΧΟΛΙΑ','EXTRA','ΥΛΙΚΑ ΙΔΙΩΤΗ','ΑΠΟΦΑΣΗ ΚΕΣΥ','ΕΞΕΤΑΣΕΙΣ ΠΑΚΕΤΟΥ','ΠΑΡΑΤΗΡΗΣΕΙΣ - ΠΑΡΑΔΟΧΕΣ','ΥΛΙΚΑ MEDTRONIC','ΥΛΙΚΟ','ΚΑΤΗΓΟΡΙΑ','ΥΠΟΚΑΤΗΓΟΡΙΑ'];
 
-// Στήλες με αριθμούς
-var NUM=['ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ ΒΑ','ΕΟΠΥΥ ΒΑ3','ΕΟΠΥΥ ΒΑ','ΙΔΙΩΤΗΣ ΒΑ3 2026','ΙΔΙΩΤΗΣ ΒΑ 2026',
-  'ΕΟΠΥΥ ΒΑ3 2026','ΕΟΠΥΥ ΒΑ 2026','ΙΔΙΩΤΗΣ','ΕΟΠΥΥ','ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΕΟΠΥΥ ΜΕ ΦΠΑ',
-  'ΙΔΙΩΤΗΣ ΒΑ ΜΕ ΦΠΑ','ΕΟΠΥΥ ΒΑ ΜΕ ΦΠΑ','ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ 24%','ΕΟΠΥΥ ΜΕ ΦΠΑ 24%',
-  'ODC ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ','ODC ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ODC ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ODC ΕΟΠΥΥ ΜΕ ΦΠΑ',
-  'ΒΑ ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ','ΒΑ ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΒΑ ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ΒΑ ΕΟΠΥΥ ΜΕ ΦΠΑ',
-  'ΕΟΠΥΥ Α','ΙΔΙΩΤΗΣ Α','ΤΕΛΙΚΟΣ ΕΟΠΥΥ ΜΕ ΦΠΑ','ΚΟΣΤΟΣ ΥΛΙΚΟΥ ΧΩΡΙΣ ΦΠΑ',
-  'ΙΔΙΩΤΗΣ 2026','ΕΟΠΥΥ 2026','ΒΑ','ODC','Α','LUX','SUITE',
-  'ODC ΜΕ ΦΠΑ','ΒΑ ΜΕ ΦΠΑ','Α ΜΕ ΦΠΑ','LUX ΜΕ ΦΠΑ','SUITE ΜΕ ΦΠΑ'];
+var ORDER=['ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ','ΓΑΣΤΡΕΝΤΕΡΟΛΟΓΙΚΑ','ΓΝΑΘΟΧΕΙΡΟΥΡΓΙΚΑ','ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ','ΓΥΝΑΙΚΟΛΟΓΙΚΗ','ΕΠΕΜΒΑΤΙΚΗ ΑΚΤΙΝΟΛΟΓΙΑ','ΕΠΕΜΒΑΤΙΚΗ ΚΑΡΔΙΟΛΟΓΙΑ','ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ','ΘΕΡΑΠΕΙΕΣ ΠΟΝΟ ΜΕ ΣΥΣΚΕΥΕΣ','INTERSTIM','ΘΩΡΑΚΟΧΕΙΡΟΥΡΓΙΚΗ','ΚΑΡΔΙΟΧΕΙΡΟΥΡΓΙΚΗ','ΜΟΝΑΔΑ ΜΑΣΤΟΥ','ΝΕΥΡΟΧΕΙΡΟΥΡΓΙΚΗ','ΟΝΠ','ΟΡΘΟΠΕΔΙΚΗ','ΟΥΡΟΛΟΓΙΚΗ','ΟΦΘΑΛΜΟΛΟΓΙΑ','ΠΛΑΣΤΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ','ΠΝΕΥΜΟΝΟΛΟΓΙΚΟ','ΠΟΝΟΣ','ΧΟΛΗΦΟΡΑ','ΣΠΟΝΔΥΛΙΚΗ ΣΤΗΛΗ','ΩΡΛ'];
 
-// Στήλες με μικρό default πλάτος
-var NARROW=['ΚΕΝ','ΗΜ','ΗΜ. ΝΟΣ','HM','Α/Α','ΝΟΣΗΛΕΙΑ ΚΛΙΝΗ ΘΑΛΑΜΟΥ','ΝΟΣΗΛΕΙΑ ΜΑΠ/ΜΕΘ','ΜΕΘ','ΠΑΡΑΜΟΝΗ','ΗΜΕΡΕΣ ΝΟΣΗΛΕΙΑΣ','ΗΜΕΡΕΣ','ODC'];
+function rowCount(d){
+  if(d.__multi__) return d.tables.reduce(function(s,t){return s+t.rows.length;},0);
+  return d.rows.length;
+}
+
+async function init(){
+  try{
+    var r=await fetch('data.json'); D=await r.json();
+    var ks=Object.keys(D), total=ks.reduce(function(s,k){return s+rowCount(D[k]);},0);
+    document.getElementById('badge').textContent=ks.length+' ειδικότητες · '+total+' εγγραφές';
+    renderSB(); welcome();
+  }catch(e){
+    document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">⚠️</div><div class="state-title">'+e.message+'</div></div>';
+  }
+}
+
+function welcome(){
+  document.getElementById('cH').style.display='none';
+  document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🏥</div><div class="state-title">Καλώς ήρθατε στο MediPrice</div><div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div></div>';
+}
+
+function renderSB(f){
+  f=f||''; var el=document.getElementById('spL');
+  var all=Object.keys(D);
+  var keys=ORDER.filter(function(k){return all.indexOf(k)>=0&&k.toLowerCase().indexOf(f.toLowerCase())>=0;});
+  all.forEach(function(k){if(ORDER.indexOf(k)<0&&k.toLowerCase().indexOf(f.toLowerCase())>=0) keys.push(k);});
+  if(!keys.length){el.innerHTML='<div style="padding:12px;text-align:center;color:var(--mut);font-size:12px">Δεν βρέθηκε</div>';return;}
+  el.innerHTML=keys.map(function(k){
+    return '<div class="spi'+(cur===k&&!sMode?' active':'')+'" onclick="showSheet(\''+k.replace(/'/g,"\\'")+'\')">'
+      +'<span class="spn">'+k+'</span><span class="spc">'+rowCount(D[k])+'</span></div>';
+  }).join('');
+}
+
+function showSheet(name){
+  sMode=false;
+  document.getElementById('gS').value='';
+  document.getElementById('gC').style.display='none';
+  cur=name; renderSB(document.getElementById('spF').value);
+  document.getElementById('ta').scrollTop=0;
+  var d=D[name]; if(!d) return;
+  document.getElementById('cH').style.display='flex';
+  document.getElementById('cT').textContent=name;
+  document.getElementById('cS').textContent='· '+rowCount(d)+' εγγραφές';
+  if(d.__multi__) renderMulti(d.tables,'');
+  else renderTbl(d.headers,d.rows.map(function(r){return {row:r};}),false,'');
+}
+
+function hl(v,q){
+  if(!q||!v) return String(v||'');
+  return String(v).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),function(m){return '<mark>'+m+'</mark>';});
+}
+
+function colW(h){
+  if(WCOLS.indexOf(h)>=0) return h==='ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ'||h==='ΠΕΡΙΓΡΑΦΗ'?187:180;
+  if(ECOLS.indexOf(h)>=0||PCOLS.indexOf(h)>=0) return 75;
+  if(h==='ΚΕΝ'||h==='ΚΕΝ/Π.Δ.'||h==='ΚΕΝ (2)') return 47;
+  var w=h.split(' ')[0].length*9+16;
+  return Math.max(40,w);
+}
+function thCls(h){ return ECOLS.indexOf(h)>=0?' ec':PCOLS.indexOf(h)>=0?' pc':''; }
+function tdCls(h,v){
+  if(ECOLS.indexOf(h)>=0) return ' class="ev"';
+  if(PCOLS.indexOf(h)>=0) return ' class="pv"';
+  if(WCOLS.indexOf(h)>=0||String(v).length>45) return ' class="wrap"';
+  return '';
+}
+function fmtH(h){
+  var p=h.trim().split(' ');
+  if(p.length<=1) return h;
+  return p[0]+'<br><span style="font-weight:400;font-size:10px;opacity:.8">'+p.slice(1).join(' ')+'</span>';
+}
+
+function buildTH(headers, showSp){
+  var s=showSp?'<th style="width:120px">Ειδικότητα<div class="resizer"></div></th>':'';
+  return s+headers.map(function(h){
+    return '<th class="'+thCls(h).trim()+'" style="width:'+colW(h)+'px">'+fmtH(h)+'<div class="resizer"></div></th>';
+  }).join('');
+}
+
+function buildRows(headers, items, showSp, q){
+  return items.map(function(item){
+    if(item.row[0]&&String(item.row[0]).startsWith('📌')){
+      var cs=headers.length+(showSp?1:0);
+      return '<tr><td colspan="'+cs+'" style="background:#fffbeb;color:#92400e;font-size:12px;padding:6px 8px;font-style:italic;white-space:normal;word-break:break-word;">'+String(item.row[0]).replace('📌 ','')+'</td></tr>';
+    }
+    var sp=showSp?'<td><span class="spbadge">'+item.sp+'</span></td>':'';
+    var cells=item.row.map(function(cell,ci){
+      var cls=tdCls(headers[ci],cell);
+      var vs=hl(String(cell||''),q);
+      var title=String(cell||'').length>35&&WCOLS.indexOf(headers[ci])<0&&ECOLS.indexOf(headers[ci])<0&&PCOLS.indexOf(headers[ci])<0?' title="'+String(cell||'').replace(/"/g,'&quot;')+'"':'';
+      return '<td'+cls+title+'>'+vs+'</td>';
+    }).join('');
+    return '<tr>'+sp+cells+'</tr>';
+  }).join('');
+}
+
+function renderTbl(headers, items, showSp, q){
+  if(!items.length){
+    document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
+    return;
+  }
+  var html='<table><thead><tr>'+buildTH(headers,showSp)+'</tr></thead><tbody>'+buildRows(headers,items,showSp,q)+'</tbody></table>';
+  document.getElementById('ta').innerHTML=html;
+  addResizers();
+}
+
+function renderMulti(tables, q){
+  var colors=['#e0f2fe','#dcfce7','#fef9c3'];
+  var html='<div style="padding:8px;display:flex;flex-direction:column;gap:16px">';
+  tables.forEach(function(t,ti){
+    var items=t.rows.map(function(r){return {row:r};});
+    var th=buildTH(t.headers,false);
+    var rows=buildRows(t.headers,items,false,q);
+    html+='<div><div class="tbl-title">'+t.title+'</div>'
+         +'<table><thead><tr>'+th+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+  });
+  html+='</div>';
+  document.getElementById('ta').innerHTML=html;
+  addResizers();
+}
+
+function doSearch(q){
+  if(!q||q.length<2) return;
+  sMode=true; cur=null; renderSB(document.getElementById('spF').value);
+  var ql=q.toLowerCase(), grouped={};
+  Object.keys(D).forEach(function(sp){
+    var d=D[sp];
+    if(d.__multi__){
+      d.tables.forEach(function(t){
+        t.rows.forEach(function(row){
+          if(t.title.toLowerCase().indexOf(ql)>=0||row.some(function(c){return String(c).toLowerCase().indexOf(ql)>=0;})){
+            if(!grouped[sp]) grouped[sp]={headers:t.headers,items:[]};
+            grouped[sp].items.push({sp:sp,row:row});
+          }
+        });
+      });
+    } else {
+      d.rows.forEach(function(row){
+        if(row.some(function(c){return String(c).toLowerCase().indexOf(ql)>=0;})){
+          if(!grouped[sp]) grouped[sp]={headers:d.headers,items:[]};
+          grouped[sp].items.push({sp:sp,row:row});
+        }
+      });
+    }
+  });
+  var total=Object.values(grouped).reduce(function(s,g){return s+g.items.length;},0);
+  document.getElementById('cH').style.display='flex';
+  document.getElementById('cT').textContent='"'+q+'"';
+  document.getElementById('cS').textContent='· '+total+' αποτελέσματα';
+  if(!total){
+    document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
+    return;
+  }
+  var html='<div style="padding:8px;display:flex;flex-direction:column;gap:12px">';
+  Object.keys(grouped).forEach(function(sp){
+    var g=grouped[sp];
+    var th='<th style="width:120px;background:#eff6ff;color:var(--acc)">Ειδικότητα<div class="resizer"></div></th>'+g.headers.map(function(h){return '<th class="'+thCls(h).trim()+'" style="width:'+colW(h)+'px">'+fmtH(h)+'<div class="resizer"></div></th>';}).join('');
+    var rows=buildRows(g.headers,g.items,true,q);
+    html+='<table><thead><tr>'+th+'</tr></thead><tbody>'+rows+'</tbody></table>';
+  });
+  html+='</div>';
+  document.getElementById('ta').innerHTML=html;
+  document.getElementById('ta').scrollTop=0;
+  addResizers();
+}
+
+function addResizers(){
+  document.querySelectorAll('thead th').forEach(function(th){
+    var r=th.querySelector('.resizer'); if(!r) return;
+    var sx,sw;
+    r.addEventListener('mousedown',function(e){
+      e.preventDefault(); sx=e.pageX; sw=th.offsetWidth;
+      document.body.style.cursor='col-resize';
+      r.style.background='rgba(26,86,219,.5)';
+      function mv(e){th.style.width=Math.max(30,sw+e.pageX-sx)+'px';}
+      function up(){document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);document.body.style.cursor='';r.style.background='';}
+      document.addEventListener('mousemove',mv);
+      document.addEventListener('mouseup',up);
+    });
+  });
+}
+
+// Row selection
+document.getElementById('ta').addEventListener('click',function(e){
+  var tr=e.target.closest('tbody tr'); if(!tr) return;
+  var was=tr.classList.contains('sel');
+  document.querySelectorAll('#ta tbody tr.sel').forEach(function(r){r.classList.remove('sel');});
+  if(!was) tr.classList.add('sel');
+});
 
 // Tooltip
 var tip=document.getElementById('tooltip');
@@ -144,258 +310,23 @@ document.getElementById('ta').addEventListener('mousemove',function(e){
   tip.style.left=(e.clientX+12)+'px';
   tip.style.top=(e.clientY+12)+'px';
 });
-document.getElementById('ta').addEventListener('mouseout',function(e){
-  if(!e.target.closest('td[title]')) tip.style.display='none';
-});
-
-async function init(){
-  try{
-    var r=await fetch('data.json'); DATA=await r.json();
-    var sheets=Object.keys(DATA);
-    var total=sheets.reduce(function(s,k){var d=DATA[k];return s+(d.__multi__?d.tables.reduce(function(s2,t){return s2+t.rows.length;},0):d.rows.length);},0);
-    document.getElementById('totalBadge').textContent=sheets.length+' ειδικότητες · '+total+' εγγραφές';
-    renderSidebar(); welcome();
-  }catch(e){
-    document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">⚠️</div><div class="state-title">Σφάλμα: '+e.message+'</div></div>';
-  }
-}
-
-function welcome(){
-  document.getElementById('cHeader').style.display='none';
-  document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🏥</div><div class="state-title">Καλώς ήρθατε στο MediPrice</div><div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div></div>';
-}
-
-function renderSidebar(f){
-  f=f||''; var el=document.getElementById('spList');
-  var ORDER=['ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ','ΓΑΣΤΡΕΝΤΕΡΟΛΟΓΙΚΑ','ΓΝΑΘΟΧΕΙΡΟΥΡΓΙΚΑ','ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ','ΓΥΝΑΙΚΟΛΟΓΙΚΗ','ΕΠΕΜΒΑΤΙΚΗ ΑΚΤΙΝΟΛΟΓΙΑ','ΕΠΕΜΒΑΤΙΚΗ ΚΑΡΔΙΟΛΟΓΙΑ','ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ','ΘΕΡΑΠΕΙΕΣ ΠΟΝΟ ΜΕ ΣΥΣΚΕΥΕΣ','INTERSTIM','ΘΩΡΑΚΟΧΕΙΡΟΥΡΓΙΚΗ','ΚΑΡΔΙΟΧΕΙΡΟΥΡΓΙΚΗ','ΜΟΝΑΔΑ ΜΑΣΤΟΥ','ΝΕΥΡΟΧΕΙΡΟΥΡΓΙΚΗ','ΟΝΠ','ΟΡΘΟΠΕΔΙΚΗ','ΟΥΡΟΛΟΓΙΚΗ','ΟΦΘΑΛΜΟΛΟΓΙΑ','ΠΛΑΣΤΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ','ΠΝΕΥΜΟΝΟΛΟΓΙΚΟ','ΠΟΝΟΣ','ΧΟΛΗΦΟΡΑ','ΣΠΟΝΔΥΛΙΚΗ ΣΤΗΛΗ','ΩΡΛ'];
-  var allKeys=Object.keys(DATA);
-  var keys=ORDER.filter(function(k){return allKeys.indexOf(k)>=0&&k.toLowerCase().indexOf(f.toLowerCase())>=0;});
-  // Πρόσθεσε όσα δεν είναι στο ORDER
-  allKeys.forEach(function(k){if(ORDER.indexOf(k)<0&&k.toLowerCase().indexOf(f.toLowerCase())>=0) keys.push(k);});
-  if(!keys.length){el.innerHTML='<div style="padding:12px;text-align:center;color:var(--muted);font-size:12px">Δεν βρέθηκε</div>';return;}
-  el.innerHTML=keys.map(function(k){
-    return '<div class="sp-item'+(curSheet===k&&!searchMode?' active':'')+'" onclick="showSheet(\''+k.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')">' +
-      '<span class="sp-name">'+k+'</span><span class="sp-cnt">'+(DATA[k].__multi__?DATA[k].tables.reduce(function(s,t){return s+t.rows.length;},0):DATA[k].rows.length)+'</span></div>';
-  }).join('');
-}
-
-function showSheet(name){
-  searchMode=false;
-  document.getElementById('gSearch').value='';
-  document.getElementById('gClr').style.display='none';
-  curSheet=name;
-  renderSidebar(document.getElementById('spSearch').value);
-  document.getElementById('ta').scrollTop=0;
-  var d=DATA[name];
-  if(!d) return;
-  document.getElementById('cHeader').style.display='flex';
-  document.getElementById('cTitle').textContent=name;
-  // Multi-table sheet (π.χ. ΓΝΑΘΟΧΕΙΡΟΥΡΓΙΚΑ)
-  if(d.__multi__){
-    var total=d.tables.reduce(function(s,t){return s+t.rows.length;},0);
-    document.getElementById('cSub').textContent='· '+total+' εγγραφές';
-    renderMulti(d.tables,'');
-    return;
-  }
-  document.getElementById('cSub').textContent='· '+d.rows.length+' εγγραφές';
-  renderTable(d.headers, d.rows.map(function(r){return {row:r};}), '');
-}
-
-function renderMulti(tables, query){
-  var colors=['#e0f2fe','#dcfce7','#fef9c3'];
-  var html='<div style="padding:8px;display:flex;flex-direction:column;gap:20px">';
-  tables.forEach(function(t,ti){
-    var bg=colors[ti%colors.length];
-    var thHtml=t.headers.map(function(h){return '<th'+thCls(h)+colWidth(h)+'>'+fmtHeader(h)+'<div class="resizer"></div></th>';}).join('');
-    var rowsHtml=t.rows.map(function(row){
-      if(row[0]&&row[0].startsWith('📌')){
-        var colspan=t.headers.length;
-        return '<tr><td colspan="'+colspan+'" style="background:#fffbeb;color:#92400e;font-size:12px;padding:6px 8px;font-style:italic;white-space:normal;word-break:break-word;">'+row[0].replace('📌 ','')+'</td></tr>';
-      }
-      var cells=row.map(function(cell,ci){
-        var cls=tdClass(t.headers[ci],cell);
-        return '<td'+cls+'>'+hl(String(cell||''),query)+'</td>';
-      }).join('');
-      return '<tr>'+cells+'</tr>';
-    }).join('');
-    html+='<div>';
-    html+='<div style="background:#1e40af;color:#fff;font-size:12px;font-weight:600;padding:6px 10px;border-radius:4px 4px 0 0;letter-spacing:.3px">'+t.title+'</div>';
-    html+='<table style="border-top:none"><thead><tr>'+thHtml+'</tr></thead><tbody>'+rowsHtml+'</tbody></table>';
-    html+='</div>';
-  });
-  html+='</div>';
-  document.getElementById('ta').innerHTML=html;
-  addResizers();
-}
-
-function hl(v,q){
-  if(!q||!v) return v||'';
-  return String(v).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),function(m){return '<mark>'+m+'</mark>';});
-}
-
-var EOPYY_COLS=['ΕΟΠΥΥ ΒΑ3','ΕΟΠΥΥ ΒΑ','ΕΟΠΥΥ ΒΑ3 2026','ΕΟΠΥΥ ΒΑ 2026','ΕΟΠΥΥ ΜΕ ΦΠΑ',
-  'ΕΟΠΥΥ ΜΕ ΦΠΑ 24%','ΕΟΠΥΥ ΒΑ ΜΕ ΦΠΑ','ODC ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ODC ΕΟΠΥΥ ΜΕ ΦΠΑ',
-  'ΒΑ ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ΒΑ ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ Α','ΤΕΛΙΚΟΣ ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ',
-  'ΕΟΠΥΥ 2026','ΒΑ NET','Α NET','LUX NET','SUITE NET'];
-var PRIV_COLS=['ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ ΒΑ','ΙΔΙΩΤΗΣ ΒΑ3 2026','ΙΔΙΩΤΗΣ ΒΑ 2026','ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ',
-  'ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ 24%','ΙΔΙΩΤΗΣ ΒΑ ΜΕ ΦΠΑ','ODC ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ','ODC ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ',
-  'ΒΑ ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ','ΒΑ ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΙΔΙΩΤΗΣ Α','ΙΔΙΩΤΗΣ',
-  'ΙΔΙΩΤΗΣ 2026','ΒΑ ΜΕ ΦΠΑ','Α ΜΕ ΦΠΑ','LUX ΜΕ ΦΠΑ','SUITE ΜΕ ΦΠΑ','ODC ΜΕ ΦΠΑ',
-  'ΒΑ','Α','LUX','SUITE','ODC'];
-
-function fmtHeader(h){
-  var parts=h.trim().split(' ');
-  if(parts.length<=1) return h;
-  return parts[0]+'<br><span style="font-weight:500;font-size:10px;opacity:.85">'+parts.slice(1).join(' ')+'</span>';
-}
-function thCls(h){
-  if(EOPYY_COLS.indexOf(h)>=0) return ' class="price-col"';
-  if(PRIV_COLS.indexOf(h)>=0) return ' class="price-col-p"';
-  return '';
-}
-function colWidth(h){
-  if(WRAP.indexOf(h)>=0) return ' style="width:'+( (h==='ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ'||h==='ΠΕΡΙΓΡΑΦΗ'||h==='ΕΙΔΟΣ ΠΡΑΞΗΣ'||h==='ΠΡΑΞΗ'||h==='ΤΙΤΛΟΣ ΕΠΕΜΒΑΣΗΣ') ? 187 : 180)+'px"';
-  if(EOPYY_COLS.indexOf(h)>=0||PRIV_COLS.indexOf(h)>=0) return ' style="width:75px"';
-  if(h==='ΚΕΝ'||h==='ΚΕΝ/Π.Δ.'||h==='ΚΕΝ (2)') return ' style="width:47px"';
-  var firstWord = h.split(' ')[0];
-  var extra = (h==='ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ'||h==='ΠΕΡΙΓΡΑΦΗ') ? 7 : 0;
-  var w = Math.max(40, firstWord.length * 9 + 16 + extra);
-  return ' style="width:'+w+'px"';
-}
-function tdClass(h,val){
-  if(EOPYY_COLS.indexOf(h)>=0) return ' class="price-val"';
-  if(PRIV_COLS.indexOf(h)>=0) return ' class="price-val-p"';
-  if(h==='ΚΕΝ'||h==='ΚΕΝ/Π.Δ.'||h==='ΚΕΝ (2)') return ' class="wrap" style="width:45px;min-width:45px;max-width:45px"';
-  if(WRAP.indexOf(h)>=0||String(val).length>45) return ' class="wrap"';
-  return '';
-}
-
-function renderTable(headers, items, query){
-  if(!items.length){
-    document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
-    return;
-  }
-  var spCol=items[0].sp?'<th>Ειδικότητα<div class="resizer"></div></th>':'';
-  var thHtml=spCol+headers.map(function(h){
-    return '<th'+thCls(h)+colWidth(h)+'>'+fmtHeader(h)+'<div class="resizer"></div></th>';
-  }).join('');
-  var rowsHtml=items.map(function(item){
-    var spTd=item.sp?'<td><span class="sp-badge">'+item.sp+'</span></td>':'';
-    var cells=item.row.map(function(cell,ci){
-      var cls=tdClass(headers[ci],cell);
-      var cellStr=String(cell||'');
-      var titleAttr=(cellStr.length>30&&WRAP.indexOf(headers[ci])<0&&EOPYY_COLS.indexOf(headers[ci])<0&&PRIV_COLS.indexOf(headers[ci])<0)?' title="'+cellStr.replace(/"/g,'&quot;')+'"':'';
-      return '<td'+cls+titleAttr+'>'+hl(cellStr,query)+'</td>';
-    }).join('');
-    return '<tr>'+spTd+cells+'</tr>';
-  }).join('');
-  document.getElementById('ta').innerHTML='<table><thead><tr>'+thHtml+'</tr></thead><tbody>'+rowsHtml+'</tbody></table>';
-  addResizers();
-}
-
-function addResizers(){
-  document.querySelectorAll('thead th').forEach(function(th){
-    var r=th.querySelector('.resizer');
-    if(!r) return;
-    var startX, startW;
-    r.addEventListener('mousedown',function(e){
-      e.preventDefault();
-      startX=e.pageX; startW=th.offsetWidth;
-      document.body.style.cursor='col-resize';
-      r.style.background='rgba(26,86,219,.5)';
-      function onMove(e){
-        var w=Math.max(40, startW+e.pageX-startX);
-        th.style.width=w+'px';
-      }
-      function onUp(){
-        document.removeEventListener('mousemove',onMove);
-        document.removeEventListener('mouseup',onUp);
-        document.body.style.cursor='';
-        r.style.background='';
-      }
-      document.addEventListener('mousemove',onMove);
-      document.addEventListener('mouseup',onUp);
-    });
-  });
-}
-
-// Click για επιλογή γραμμής
-document.getElementById('ta').addEventListener('click',function(e){
-  var tr=e.target.closest('tbody tr');
-  if(!tr) return;
-  var was=tr.classList.contains('selected');
-  document.querySelectorAll('#ta tbody tr.selected').forEach(function(r){r.classList.remove('selected');});
-  if(!was) tr.classList.add('selected');
-});
-
-function doSearch(query){
-  if(!query||query.length<2) return;
-  searchMode=true; curSheet=null;
-  renderSidebar(document.getElementById('spSearch').value);
-  var q=query.toLowerCase(), grouped={};
-  Object.keys(DATA).forEach(function(sp){
-    var d=DATA[sp];
-    if(d.__multi__){
-      d.tables.forEach(function(t){
-        t.rows.forEach(function(row){
-          if(row.some(function(c){return String(c).toLowerCase().indexOf(q)>=0;})||t.title.toLowerCase().indexOf(q)>=0){
-            if(!grouped[sp]) grouped[sp]={headers:['ΠΙΝΑΚΑΣ'].concat(t.headers),items:[]};
-            grouped[sp].items.push({sp:sp,row:[t.title].concat(row)});
-          }
-        });
-      });
-      return;
-    }
-    d.rows.forEach(function(row){
-      if(row.some(function(c){return String(c).toLowerCase().indexOf(q)>=0;})){
-        if(!grouped[sp]) grouped[sp]={headers:d.headers,items:[]};
-        grouped[sp].items.push({sp:sp,row:row});
-      }
-    });
-  });
-  var total=Object.values(grouped).reduce(function(s,g){return s+g.items.length;},0);
-  document.getElementById('cHeader').style.display='flex';
-  document.getElementById('cTitle').textContent='"'+query+'"';
-  document.getElementById('cSub').textContent='· '+total+' αποτελέσματα';
-  if(!total){
-    document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
-    return;
-  }
-  var html='<div style="padding:8px;display:flex;flex-direction:column;gap:12px">';
-  Object.keys(grouped).forEach(function(sp){
-    var g=grouped[sp];
-    var spTh='<th style="background:#eff6ff;color:var(--accent)">Ειδικότητα<div class="resizer"></div></th>';
-    var thHtml=spTh+g.headers.map(function(h){return '<th'+thCls(h)+colWidth(h)+'>'+fmtHeader(h)+'<div class="resizer"></div></th>';}).join('');
-    var rowsHtml=g.items.map(function(item){
-      var spTd='<td><span class="sp-badge">'+sp+'</span></td>';
-      var cells=item.row.map(function(cell,ci){
-        var cls=tdClass(g.headers[ci],cell);
-        return '<td'+cls+'>'+hl(String(cell||''),query)+'</td>';
-      }).join('');
-      return '<tr>'+spTd+cells+'</tr>';
-    }).join('');
-    html+='<table><thead><tr>'+thHtml+'</tr></thead><tbody>'+rowsHtml+'</tbody></table>';
-  });
-  html+='</div>';
-  document.getElementById('ta').innerHTML=html;
-  document.getElementById('ta').scrollTop=0;
-  addResizers();
-}
+document.getElementById('ta').addEventListener('mouseleave',function(){tip.style.display='none';});
 
 var st;
-document.getElementById('gSearch').addEventListener('input',function(e){
+document.getElementById('gS').addEventListener('input',function(e){
   var q=e.target.value.trim();
-  document.getElementById('gClr').style.display=q?'flex':'none';
+  document.getElementById('gC').style.display=q?'flex':'none';
   clearTimeout(st);
   if(q.length>=2) st=setTimeout(function(){doSearch(q);},350);
-  else if(!q){searchMode=false;curSheet=null;renderSidebar();welcome();}
+  else if(!q){sMode=false;cur=null;renderSB();welcome();}
 });
-document.getElementById('gClr').addEventListener('click',function(){
-  document.getElementById('gSearch').value='';
-  document.getElementById('gClr').style.display='none';
-  searchMode=false;curSheet=null;renderSidebar();welcome();
+document.getElementById('gC').addEventListener('click',function(){
+  document.getElementById('gS').value='';
+  document.getElementById('gC').style.display='none';
+  sMode=false;cur=null;renderSB();welcome();
 });
-document.getElementById('spSearch').addEventListener('input',function(e){renderSidebar(e.target.value);});
+document.getElementById('spF').addEventListener('input',function(e){renderSB(e.target.value);});
+
 init();
 </script>
 </body>
