@@ -8,85 +8,71 @@
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
   :root {
-    --bg:#f5f7fa; --surface:#fff; --surface2:#f0f2f5; --border:#e2e6ed;
+    --bg:#f5f7fa; --surface:#fff; --s2:#f0f2f5; --border:#e2e6ed;
     --accent:#1a56db; --text:#111827; --muted:#6b7280; --dim:#374151;
     --green:#059669; --amber:#d97706; --r:8px;
   }
   * { box-sizing:border-box; margin:0; padding:0; }
   html,body { height:100%; overflow:hidden; font-family:'Inter',sans-serif; font-size:14px; background:var(--bg); color:var(--text); }
 
-  /* HEADER */
   header { height:48px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; padding:0 16px; box-shadow:0 1px 3px rgba(0,0,0,.06); flex-shrink:0; }
   .logo { font-size:16px; font-weight:700; color:var(--accent); letter-spacing:-.3px; white-space:nowrap; }
   .logo span { font-weight:300; color:var(--muted); }
   .sep { width:1px; height:20px; background:var(--border); }
-  .hospital { font-size:12px; color:var(--muted); white-space:nowrap; }
-  .badge { background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:2px 10px; font-size:12px; color:var(--muted); font-family:'DM Mono',monospace; white-space:nowrap; margin-left:auto; }
+  .hosp { font-size:12px; color:var(--muted); white-space:nowrap; }
+  .badge { background:var(--s2); border:1px solid var(--border); border-radius:20px; padding:2px 10px; font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; white-space:nowrap; margin-left:auto; }
 
-  /* SEARCH */
   .sw { position:relative; flex:1; max-width:400px; }
-  .si { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--r); padding:6px 28px 6px 30px; color:var(--text); font-size:13px; font-family:inherit; outline:none; transition:all .2s; }
+  .si { width:100%; background:var(--s2); border:1px solid var(--border); border-radius:var(--r); padding:6px 28px 6px 30px; color:var(--text); font-size:13px; font-family:inherit; outline:none; transition:all .2s; }
   .si:focus { border-color:var(--accent); background:var(--surface); box-shadow:0 0 0 3px rgba(26,86,219,.1); }
   .si::placeholder { color:var(--muted); }
   .sico { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; }
   .sclr { position:absolute; right:7px; top:50%; transform:translateY(-50%); background:var(--muted); color:#fff; border:none; border-radius:50%; width:15px; height:15px; font-size:8px; cursor:pointer; display:none; align-items:center; justify-content:center; }
 
-  /* LAYOUT */
   .main { display:grid; grid-template-columns:220px 1fr; height:calc(100vh - 48px); overflow:hidden; }
 
-  /* SIDEBAR */
   .sidebar { background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
   .sb-head { padding:8px 12px; border-bottom:1px solid var(--border); font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; flex-shrink:0; }
-  .sb-search { padding:8px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .sb-s { padding:8px; border-bottom:1px solid var(--border); flex-shrink:0; }
   .sp-list { flex:1; overflow-y:auto; padding:4px; }
   .sp-list::-webkit-scrollbar { width:3px; }
   .sp-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
 
   .sp-item { display:flex; align-items:center; justify-content:space-between; padding:6px 8px; border-radius:6px; cursor:pointer; transition:background .12s; gap:6px; border:1px solid transparent; }
-  .sp-item:hover { background:var(--surface2); }
+  .sp-item:hover { background:var(--s2); }
   .sp-item.active { background:#eff6ff; border-color:#bfdbfe; }
   .sp-item.active .sp-name { color:var(--accent); font-weight:600; }
   .sp-name { font-size:12px; font-weight:500; color:var(--dim); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .sp-cnt { font-size:10px; font-family:'DM Mono',monospace; color:var(--muted); background:var(--surface2); padding:1px 5px; border-radius:8px; flex-shrink:0; }
+  .sp-cnt { font-size:10px; font-family:'DM Mono',monospace; color:var(--muted); background:var(--s2); padding:1px 5px; border-radius:8px; flex-shrink:0; }
   .sp-item.active .sp-cnt { background:#dbeafe; color:var(--accent); }
 
-  /* CONTENT */
   .content { display:flex; flex-direction:column; overflow:hidden; }
   .ch { padding:8px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; background:var(--surface); flex-shrink:0; }
   .ct { font-size:14px; font-weight:600; white-space:nowrap; }
   .cs { font-size:12px; color:var(--muted); white-space:nowrap; }
 
-  /* TABLE */
   #ta { flex:1; overflow:auto; }
   #ta::-webkit-scrollbar { width:5px; height:5px; }
   #ta::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
 
-  table { width:100%; border-collapse:collapse; font-size:13px; background:var(--surface); table-layout:fixed; }
+  table { width:100%; border-collapse:collapse; font-size:13px; background:var(--surface); }
   thead { position:sticky; top:0; z-index:10; }
-  th { background:#f8fafc; color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.4px; padding:8px 8px; text-align:left; border-bottom:2px solid var(--border); white-space:nowrap; overflow:hidden; }
+  th { background:#f8fafc; color:var(--muted); font-weight:600; font-size:10.5px; text-transform:uppercase; letter-spacing:.4px; padding:8px 10px; text-align:left; border-bottom:2px solid var(--border); white-space:nowrap; }
   th.r { text-align:right; }
-  td { padding:8px 8px; border-bottom:1px solid #f1f5f9; vertical-align:top; }
+  td { padding:7px 10px; border-bottom:1px solid #f1f5f9; vertical-align:top; }
   td.r { text-align:right; font-family:'DM Mono',monospace; font-size:12px; }
   tr:hover td { background:#f8faff; }
 
-  /* Column widths — table-layout:fixed */
-  .c-aa   { width:30px; color:var(--muted); font-size:11px; font-family:'DM Mono',monospace; }
-  .c-desc { width:22%; word-break:break-word; line-height:1.4; font-size:13px; }
-  .c-ken  { width:70px; font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
-  .c-stay { width:60px; }
-  .c-p    { width:78px; }
-  .c-ext  { width:14%; word-break:break-word; font-size:12px; }
-  .c-not  { width:18%; word-break:break-word; font-size:12px; color:var(--muted); line-height:1.35; }
-  .c-sp   { width:120px; }
-
-  .sp-badge { font-size:11px; font-weight:600; color:var(--accent); background:#eff6ff; border-radius:4px; padding:2px 5px; white-space:nowrap; }
-  .stay-b { background:var(--surface2); border:1px solid var(--border); border-radius:3px; padding:1px 5px; font-size:11px; font-family:'DM Mono',monospace; color:var(--dim); }
+  .td-sp { font-size:10.5px; font-weight:600; color:var(--accent); background:#eff6ff; border-radius:4px; padding:2px 5px; white-space:nowrap; }
+  .td-ken { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+  .td-desc { max-width:280px; line-height:1.4; word-break:break-word; }
   .pv { color:var(--text); font-weight:500; }
   .pe { color:var(--green); font-weight:500; }
   .pn { color:#d1d5db; }
-  .ex-b { display:inline; color:var(--amber); font-size:12px; }
+  .stay-b { background:var(--s2); border:1px solid var(--border); border-radius:3px; padding:1px 6px; font-size:11px; font-family:'DM Mono',monospace; color:var(--dim); }
+  .ex { color:var(--amber); font-size:12px; word-break:break-word; }
+  .nt { font-size:11.5px; color:var(--muted); word-break:break-word; line-height:1.35; }
 
-  /* STATE */
   .state { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:80px 40px; height:100%; background:var(--surface); color:var(--muted); }
   .state-icon { font-size:36px; opacity:.2; }
   .state-title { font-size:15px; font-weight:600; color:var(--dim); }
@@ -94,7 +80,6 @@
   .spin { width:22px; height:22px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:sp .8s linear infinite; margin:0 auto; }
   @keyframes sp { to { transform:rotate(360deg); } }
   mark { background:#fef08a; color:#713f12; border-radius:2px; padding:0 1px; }
-  .nr { padding:20px; text-align:center; color:var(--muted); font-size:13px; }
 </style>
 </head>
 <body>
@@ -102,7 +87,7 @@
 <header>
   <div class="logo">Medi<span>Price</span></div>
   <div class="sep"></div>
-  <div class="hospital">Τιμοκατάλογος Mediterraneo Hospital</div>
+  <div class="hosp">Τιμοκατάλογος Mediterraneo Hospital</div>
   <div class="sw">
     <svg class="sico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input class="si" id="gSearch" placeholder="Αναζήτηση πράξης σε όλες τις ειδικότητες..." type="text">
@@ -114,7 +99,7 @@
 <div class="main">
   <div class="sidebar">
     <div class="sb-head">🏥 Ειδικότητες</div>
-    <div class="sb-search">
+    <div class="sb-s">
       <div class="sw">
         <svg class="sico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input class="si" id="spSearch" placeholder="Φιλτράρισμα..." type="text">
@@ -127,10 +112,6 @@
     <div class="ch" id="cHeader" style="display:none">
       <span class="ct" id="cTitle"></span>
       <span class="cs" id="cSub"></span>
-      <div class="sw" style="max-width:260px;margin-left:auto" id="lWrap">
-        <svg class="sico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input class="si" id="lSearch" placeholder="Αναζήτηση στην ειδικότητα..." type="text">
-      </div>
     </div>
     <div id="ta">
       <div class="state">
@@ -145,6 +126,175 @@
 <script>
 const URL_='https://odtbtugzilxsfqxlpofq.supabase.co', KEY='sb_publishable_ch-7C1ihpZRrxEhXFqV1xA_hXPwq61S';
 let specialties={}, curSp=null, curData=[], globalMode=false;
+
+// ============================================================
+// SCHEMA: δυναμικά headers ανά ειδικότητα
+// Κάθε entry: { headers: [...], cells: fn(r, q) }
+// ============================================================
+const SCHEMAS = {
+  // Τυπικό schema: ΒΑ3/ΒΑ ιδιώτη + ΕΟΠΥΥ + stay κλίνη/ΜΑΠ
+  'ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ': {
+    headers: ['#','Περιγραφή Πράξης','ΚΕΝ','Νοσηλεία','ΜΑΠ/ΜΕΘ','Ιδ. ΒΑ3','Ιδ. ΒΑ','ΕΟΠΥΥ ΒΑ3','ΕΟΠΥΥ ΒΑ','Extra','Παρατηρήσεις'],
+    cells: (r,q) => [
+      aa(r), desc(r,q), ken(r), stay(r.stay_days), stay(r.stay_icu),
+      priv(r.price_private_ba3), priv(r.price_private_ba),
+      eopyy(r.price_eopyy_ba3), eopyy(r.price_eopyy_ba),
+      extra(r.price_extra), notes(r.notes)
+    ]
+  },
+  'ΘΩΡΑΚΟΧΕΙΡΟΥΡΓΙΚΗ': {
+    headers: ['#','Περιγραφή Πράξης','ΚΕΝ','Διάρκεια','Νοσηλεία','ΜΑΠ/ΜΕΘ','Ιδ. ΒΑ3','Ιδ. ΒΑ','ΕΟΠΥΥ ΒΑ3','ΕΟΠΥΥ ΒΑ','Extra'],
+    cells: (r,q) => [
+      aa(r), desc(r,q), ken(r), dur(r.duration_h), stay(r.stay_days), stay(r.stay_icu),
+      priv(r.price_private_ba3), priv(r.price_private_ba),
+      eopyy(r.price_eopyy_ba3), eopyy(r.price_eopyy_ba),
+      extra(r.price_extra)
+    ]
+  },
+  'ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ': {
+    headers: ['#','Περιγραφή Πράξης','ΚΕΝ','Διάρκεια','Νοσηλεία','ΜΑΠ/ΜΕΘ','ΕΟΠΥΥ ΒΑ3','ΕΟΠΥΥ ΒΑ','Ιδ. ΒΑ3','Ιδ. ΒΑ','Extra','Παρατηρήσεις'],
+    cells: (r,q) => [
+      aa(r), desc(r,q), ken(r), dur(r.duration_h), stay(r.stay_days), stay(r.stay_icu),
+      eopyy(r.price_eopyy_ba3), eopyy(r.price_eopyy_ba),
+      priv(r.price_private_ba3), priv(r.price_private_ba),
+      extra(r.price_extra), notes(r.notes)
+    ]
+  },
+  'ΟΡΘΟΠΕΔΙΚΗ': {
+    headers: ['#','Περιγραφή Πράξης','ΚΕΝ','Νοσηλεία','Ιδ. ΒΑ3','Ιδ. ΒΑ','ΕΟΠΥΥ ΒΑ3','ΕΟΠΥΥ ΒΑ','Extra','Παρατηρήσεις'],
+    cells: (r,q) => [
+      aa(r), desc(r,q), ken(r), stay(r.stay_days),
+      priv(r.price_private_ba3), priv(r.price_private_ba),
+      eopyy(r.price_eopyy_ba3), eopyy(r.price_eopyy_ba),
+      extra(r.price_extra), notes(r.notes)
+    ]
+  },
+  'ΓΥΝΑΙΚΟΛΟΓΙΚΗ': {
+    headers: ['#','Περιγραφή Πράξης','ΚΕΝ','Διάρκεια','Νοσηλεία','Ιδ. ΠΡΟ ΦΠΑ','Ιδ. ΜΕ ΦΠΑ','ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ΕΟΠΥΥ ΜΕ ΦΠΑ','Ιδ. ΒΑ ΜΕ ΦΠΑ','ΕΟΠΥΥ ΒΑ ΜΕ ΦΠΑ','Extra','Παρατηρήσεις'],
+    cells: (r,q) => [
+      aa(r), desc(r,q), ken(r), dur(r.duration_h), stay(r.stay_days),
+      priv(r.price_private_ba3), priv(r.price_private_ba),
+      eopyy(r.price_eopyy_ba3), eopyy(r.price_eopyy_ba),
+      priv(null), eopyy(null),
+      extra(r.price_extra), notes(r.notes)
+    ]
+  },
+  'ΕΠΕΜΒΑΤΙΚΗ ΑΚΤΙΝΟΛΟΓΙΑ': {
+    headers: ['#','Περιγραφή Πράξης','ΚΕΝ','Διάρκεια','Νοσηλεία','ΜΑΠ/ΜΕΘ','ΒΑ NET','ΒΑ ΜΕ ΦΠΑ','Α NET','Α ΜΕ ΦΠΑ','Extra','Παρατηρήσεις'],
+    cells: (r,q) => [
+      aa(r), desc(r,q), ken(r), dur(r.duration_h), stay(r.stay_days), stay(r.stay_icu),
+      priv(r.price_private_ba3), priv(r.price_private_ba),
+      eopyy(r.price_eopyy_ba3), eopyy(r.price_eopyy_ba),
+      extra(r.price_extra), notes(r.notes)
+    ]
+  },
+  'ΕΠΕΜΒΑΤΙΚΗ ΚΑΡΔΙΟΛΟΓΙΑ': {
+    headers: ['Πράξη','ΚΕΝ','Νοσηλεία','ΜΑΠ/ΜΕΘ','Ιδιώτης ΒΑ3','ΕΟΠΥΥ ΒΑ3','Extra','Σχόλια'],
+    cells: (r,q) => [
+      desc(r,q), ken(r), stay(r.stay_days), stay(r.stay_icu),
+      priv(r.price_private_ba3),
+      eopyy(r.price_eopyy_ba3),
+      extra(r.price_extra), notes(r.notes)
+    ]
+  },
+  'ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ': {
+    headers: ['Περιγραφή','ΚΕΝ','ΗΜ. ΝΟΣ','ΕΟΠΥΥ NET','ΕΟΠΥΥ ΜΕ ΦΠΑ','Υλικά Medtronic','Σημειώσεις'],
+    cells: (r,q) => [
+      desc(r,q), ken(r), stay(r.stay_days),
+      eopyy(r.price_eopyy_ba3), eopyy(r.price_eopyy_ba),
+      extra(r.price_extra), notes(r.notes)
+    ]
+  },
+  'ΘΕΡΑΠΕΙΕΣ ΠΟΝΟ ΜΕ ΣΥΣΚΕΥΕΣ': {
+    headers: ['Περιγραφή Πράξης','Νοσηλεία','Ιδιώτης','ΕΟΠΥΥ','Σημειώσεις'],
+    cells: (r,q) => [
+      desc(r,q), stay(r.stay_days),
+      priv(r.price_private_ba3),
+      eopyy(r.price_eopyy_ba3),
+      notes(r.notes)
+    ]
+  },
+  'ΚΑΡΔΙΟΧΕΙΡΟΥΡΓΙΚΗ': {
+    headers: ['#','Είδος Πράξης','ΚΕΝ','Νοσηλεία','ΜΑΠ/ΜΕΘ','ΕΟΠΥΥ ΒΑ3','ΕΟΠΥΥ ΒΑ','Ιδ. ΒΑ3','Ιδ. ΒΑ','Extra','Παρατηρήσεις'],
+    cells: (r,q) => [
+      aa(r), desc(r,q), ken(r), stay(r.stay_days), stay(r.stay_icu),
+      eopyy(r.price_eopyy_ba3), eopyy(r.price_eopyy_ba),
+      priv(r.price_private_ba3), priv(r.price_private_ba),
+      extra(r.price_extra), notes(r.notes)
+    ]
+  },
+  'ΜΟΝΑΔΑ ΜΑΣΤΟΥ': {
+    headers: ['Είδος Επέμβασης','ΚΕΝ','Νοσηλεία','ΕΟΠΥΥ','Ιδιώτης','Παρατηρήσεις'],
+    cells: (r,q) => [
+      desc(r,q), ken(r), stay(r.stay_days),
+      eopyy(r.price_eopyy_ba3),
+      priv(r.price_private_ba3),
+      notes(r.notes)
+    ]
+  },
+  'ΝΕΥΡΟΧΕΙΡΟΥΡΓΙΚΗ': {
+    headers: ['Περιγραφή Πράξης','ΚΕΝ','ΗΜ','ΜΕΘ','Ιδιώτης','ΕΟΠΥΥ','Extra','Σημειώσεις'],
+    cells: (r,q) => [
+      desc(r,q), ken(r), stay(r.stay_days), stay(r.stay_icu),
+      priv(r.price_private_ba3),
+      eopyy(r.price_eopyy_ba3),
+      extra(r.price_extra), notes(r.notes)
+    ]
+  },
+  'ΟΝΠ': {
+    headers: ['Περιγραφή Πράξης','Παραμονή','Ιδιώτης ΜΕ ΦΠΑ','ΕΟΠΥΥ ΜΕ ΦΠΑ','Σημειώσεις'],
+    cells: (r,q) => [
+      desc(r,q), stay(r.stay_days),
+      priv(r.price_private_ba3),
+      eopyy(r.price_eopyy_ba3),
+      notes(r.notes)
+    ]
+  },
+  'ΓΑΣΤΡΕΝΤΕΡΟΛΟΓΙΚΑ': {
+    headers: ['Περιγραφή Πράξης','ΚΕΝ','ΗΜ','Δωμάτιο','ΕΟΠΥΥ','Ιδιώτης','Extra','Παρατηρήσεις'],
+    cells: (r,q) => [
+      desc(r,q), ken(r), stay(r.stay_days), dur(r.duration_h),
+      eopyy(r.price_eopyy_ba3),
+      priv(r.price_private_ba3),
+      extra(r.price_extra), notes(r.notes)
+    ]
+  },
+  'ΓΝΑΘΟΧΕΙΡΟΥΡΓΙΚΑ': {
+    headers: ['Περιγραφή','Διάρκεια','Τοπική/ΒΑ3','Μέθη/ΒΑ','Γενική/ΕΟΠΥΥ','Extra','Σημειώσεις'],
+    cells: (r,q) => [
+      desc(r,q), dur(r.duration_h),
+      priv(r.price_private_ba3), priv(r.price_private_ba),
+      eopyy(r.price_eopyy_ba3),
+      extra(r.price_extra), notes(r.notes)
+    ]
+  },
+};
+
+// Default schema για ειδικότητες χωρίς custom schema
+const DEFAULT_SCHEMA = {
+  headers: ['#','Περιγραφή Πράξης','ΚΕΝ','Νοσηλεία','Ιδ. ΒΑ3','Ιδ. ΒΑ','ΕΟΠΥΥ ΒΑ3','ΕΟΠΥΥ ΒΑ','Extra','Παρατηρήσεις'],
+  cells: (r,q) => [
+    aa(r), desc(r,q), ken(r), stay(r.stay_days),
+    priv(r.price_private_ba3), priv(r.price_private_ba),
+    eopyy(r.price_eopyy_ba3), eopyy(r.price_eopyy_ba),
+    extra(r.price_extra), notes(r.notes)
+  ]
+};
+
+// Cell helpers
+const fp = v => v==null ? '<span class="pn">—</span>' : `<span class="pv">${(+v).toLocaleString('el-GR',{minimumFractionDigits:0,maximumFractionDigits:2})} €</span>`;
+const fe = v => v==null ? '<span class="pn">—</span>' : `<span class="pe">${(+v).toLocaleString('el-GR',{minimumFractionDigits:0,maximumFractionDigits:2})} €</span>`;
+const hl = (t,q) => { if(!q||!t) return t||''; return String(t).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),m=>`<mark>${m}</mark>`); };
+
+function aa(r) { return `<td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;width:28px">${r.aa||''}</td>`; }
+function desc(r,q) { return `<td class="td-desc">${hl(r.description,q)}</td>`; }
+function ken(r) { return `<td class="td-ken">${r.ken||'—'}</td>`; }
+function stay(v) { return v ? `<td><span class="stay-b">${v}</span></td>` : '<td><span class="pn">—</span></td>'; }
+function dur(v) { return v ? `<td style="font-size:11px;color:var(--muted)">${v}</td>` : '<td><span class="pn">—</span></td>'; }
+function priv(v) { return `<td class="r">${fp(v)}</td>`; }
+function eopyy(v) { return `<td class="r">${fe(v)}</td>`; }
+function extra(v) { return v ? `<td style="max-width:130px;word-break:break-word"><span class="ex">${v}</span></td>` : '<td><span class="pn">—</span></td>'; }
+function notes(v) { return v ? `<td style="max-width:180px"><span class="nt">${v}</span></td>` : '<td><span class="pn">—</span></td>'; }
 
 async function api(p) {
   const r=await fetch(`${URL_}/rest/v1/procedures?${p}`,{headers:{apikey:KEY,Authorization:`Bearer ${KEY}`}});
@@ -161,7 +311,7 @@ async function init() {
 function renderSidebar(f='') {
   const el=document.getElementById('spList');
   const entries=Object.entries(specialties).filter(([n])=>n.toLowerCase().includes(f.toLowerCase())).sort((a,b)=>a[0].localeCompare(b[0],'el'));
-  if (!entries.length){el.innerHTML='<div class="nr">Δεν βρέθηκε</div>';return;}
+  if (!entries.length){el.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Δεν βρέθηκε</div>';return;}
   el.innerHTML=entries.map(([n,c])=>`
     <div class="sp-item ${!globalMode&&curSp===n?'active':''}" onclick="loadSp('${n.replace(/'/g,"\\'")}')">
       <span class="sp-name">${n}</span><span class="sp-cnt">${c}</span>
@@ -172,82 +322,62 @@ async function loadSp(sp) {
   globalMode=false; curSp=sp;
   document.getElementById('gSearch').value='';
   document.getElementById('gClr').style.display='none';
-  document.getElementById('lSearch').value='';
   renderSidebar(document.getElementById('spSearch').value);
-  showH(sp,'',true); loading();
+  showH(sp,''); loading();
   const d=await api(`specialty=eq.${encodeURIComponent(sp)}&order=aa&select=*`);
   curData=d;
-  document.getElementById('cSub').textContent=`· ${d.length} πράξεις`;
+  document.getElementById('cSub').textContent=`· ${d.length} εγγραφές`;
   renderTable(d,'',false);
 }
 
 async function doGSearch(q) {
-  if (!q||q.length<2)return;
+  if (!q||q.length<2) return;
   globalMode=true; curSp=null;
   renderSidebar(document.getElementById('spSearch').value);
-  showH(`"${q}"`,'',false); loading();
+  showH(`"${q}"`,''); loading();
   const d=await api(`description=ilike.*${encodeURIComponent(q)}*&order=specialty&select=*`);
   curData=d;
   document.getElementById('cSub').textContent=`· ${d.length} αποτελέσματα`;
   renderTable(d,q,true);
 }
 
-function showH(t,s,local){
+function showH(t,s){
   document.getElementById('cHeader').style.display='flex';
   document.getElementById('cTitle').textContent=t;
   document.getElementById('cSub').textContent=s;
-  document.getElementById('lWrap').style.display=local?'block':'none';
 }
 function loading(){document.getElementById('ta').innerHTML='<div class="state"><div class="spin"></div></div>';}
 function empty(){document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🏥</div><div class="state-title">Καλώς ήρθατε στο MediPrice</div><div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div></div>';}
 
-const fp=v=>v==null?'<span class="pn">—</span>':`<span class="pv">${(+v).toLocaleString('el-GR',{minimumFractionDigits:0,maximumFractionDigits:2})} €</span>`;
-const fe=v=>v==null?'<span class="pn">—</span>':`<span class="pe">${(+v).toLocaleString('el-GR',{minimumFractionDigits:0,maximumFractionDigits:2})} €</span>`;
-const hl=(t,q)=>{if(!q||!t)return t||'';return String(t).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),m=>`<mark>${m}</mark>`);};
-
-function renderTable(data,q,showSp) {
-  if (!data.length){
+function renderTable(data, q, showSp) {
+  if (!data.length) {
     document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
     return;
   }
-  const spCol=showSp?'<col class="c-sp">':'';
-  const spTh=showSp?'<th class="c-sp">Ειδικότητα</th>':'';
-  const rows=data.map(r=>{
-    const spCell=showSp?`<td class="c-sp"><span class="sp-badge">${r.specialty}</span></td>`:'';
-    const ext=r.price_extra?`<span class="ex-b" title="${r.price_extra}">${r.price_extra}</span>`:'<span class="pn">—</span>';
-    const not=r.notes?`<span title="${r.notes}">${r.notes}</span>`:'<span class="pn">—</span>';
-    return `<tr>
-      ${spCell}
-      <td class="c-aa">${r.aa||''}</td>
-      <td class="c-desc">${hl(r.description,q)}</td>
-      <td class="c-ken">${r.ken||'—'}</td>
-      <td class="c-stay">${r.stay_days?`<span class="stay-b">${r.stay_days}</span>`:'<span class="pn">—</span>'}</td>
-      <td class="c-p r">${fp(r.price_private_ba3)}</td>
-      <td class="c-p r">${fp(r.price_private_ba)}</td>
-      <td class="c-p r">${fe(r.price_eopyy_ba3)}</td>
-      <td class="c-p r">${fe(r.price_eopyy_ba)}</td>
-      <td class="c-ext">${ext}</td>
-      <td class="c-not">${not}</td>
-    </tr>`;
+
+  // Global search: χρησιμοποιούμε default schema με στήλη ειδικότητας
+  if (showSp) {
+    const headers = ['Ειδικότητα','#','Περιγραφή Πράξης','ΚΕΝ','Νοσηλεία','Ιδ. ΒΑ3','Ιδ. ΒΑ','ΕΟΠΥΥ ΒΑ3','ΕΟΠΥΥ ΒΑ','Extra','Παρατηρήσεις'];
+    const rows = data.map(r => `<tr>
+      <td><span class="td-sp">${r.specialty}</span></td>
+      ${aa(r)}${desc(r,q)}${ken(r)}${stay(r.stay_days)}
+      ${priv(r.price_private_ba3)}${priv(r.price_private_ba)}
+      ${eopyy(r.price_eopyy_ba3)}${eopyy(r.price_eopyy_ba)}
+      ${extra(r.price_extra)}${notes(r.notes)}
+    </tr>`).join('');
+    document.getElementById('ta').innerHTML=`<table><thead><tr>${headers.map((h,i)=>`<th ${i>=5&&i<=8?'class="r"':''}>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>`;
+    return;
+  }
+
+  // Ειδικότητα: χρησιμοποιούμε το custom schema
+  const schema = SCHEMAS[curSp] || DEFAULT_SCHEMA;
+  const thHtml = schema.headers.map(h => {
+    const isNum = ['ΒΑ3','ΒΑ','ΦΠΑ','NET','Ιδιώτης','Ιδ.','ΕΟΠΥΥ'].some(k=>h.includes(k));
+    return `<th ${isNum?'class="r"':''}>${h}</th>`;
   }).join('');
 
-  document.getElementById('ta').innerHTML=`
-    <table>
-      <colgroup>
-        ${spCol}
-        <col class="c-aa"><col class="c-desc"><col class="c-ken"><col class="c-stay">
-        <col class="c-p"><col class="c-p"><col class="c-p"><col class="c-p">
-        <col class="c-ext"><col class="c-not">
-      </colgroup>
-      <thead><tr>
-        ${spTh}
-        <th>#</th><th>Περιγραφή Πράξης</th><th>ΚΕΝ</th><th>Νοσηλεία</th>
-        <th class="r">Ιδ. ΒΑ3</th><th class="r">Ιδ. ΒΑ</th>
-        <th class="r">ΕΟΠΥΥ ΒΑ3</th><th class="r">ΕΟΠΥΥ ΒΑ</th>
-        <th>Extra</th><th>Παρατηρήσεις</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+  const rows = data.map(r => `<tr>${schema.cells(r,q).join('')}</tr>`).join('');
+  document.getElementById('ta').innerHTML=`<table><thead><tr>${thHtml}</tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 let t;
@@ -265,12 +395,6 @@ document.getElementById('gClr').addEventListener('click',()=>{
   document.getElementById('cHeader').style.display='none';empty();
 });
 document.getElementById('spSearch').addEventListener('input',e=>renderSidebar(e.target.value));
-document.getElementById('lSearch').addEventListener('input',e=>{
-  const q=e.target.value.toLowerCase();
-  const fd=curData.filter(r=>(r.description||'').toLowerCase().includes(q)||(r.ken||'').toLowerCase().includes(q));
-  document.getElementById('cSub').textContent=`· ${fd.length} από ${curData.length} πράξεις`;
-  renderTable(fd,e.target.value,false);
-});
 
 init();
 </script>
