@@ -14,7 +14,7 @@
     --green:#059669; --amber:#d97706; --r:8px;
   }
   * { box-sizing:border-box; margin:0; padding:0; }
-  html,body { height:100%; overflow:hidden; font-family:'Inter',sans-serif; font-size:14px; background:var(--bg); color:var(--text); }
+  html,body { height:100%; overflow:hidden; font-family:'Inter',sans-serif; font-size:13px; background:var(--bg); color:var(--text); }
 
   header { height:48px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; padding:0 16px; box-shadow:0 1px 3px rgba(0,0,0,.06); flex-shrink:0; }
   .logo { font-size:16px; font-weight:700; color:var(--accent); letter-spacing:-.3px; white-space:nowrap; }
@@ -30,7 +30,7 @@
   .sico { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; }
   .sclr { position:absolute; right:7px; top:50%; transform:translateY(-50%); background:var(--muted); color:#fff; border:none; border-radius:50%; width:16px; height:16px; font-size:9px; cursor:pointer; display:none; align-items:center; justify-content:center; line-height:1; }
 
-  .main { display:grid; grid-template-columns:230px 1fr; height:calc(100vh - 48px); overflow:hidden; }
+  .main { display:grid; grid-template-columns:220px 1fr; height:calc(100vh - 48px); overflow:hidden; }
 
   .sidebar { background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
   .sb-head { padding:8px 12px; border-bottom:1px solid var(--border); font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; flex-shrink:0; }
@@ -38,7 +38,7 @@
   .sp-list { flex:1; overflow-y:auto; padding:4px; }
   .sp-list::-webkit-scrollbar { width:3px; }
   .sp-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
-  .sp-item { display:flex; align-items:center; justify-content:space-between; padding:7px 9px; border-radius:6px; cursor:pointer; transition:background .12s; gap:6px; border:1px solid transparent; }
+  .sp-item { display:flex; align-items:center; justify-content:space-between; padding:6px 8px; border-radius:6px; cursor:pointer; transition:background .12s; gap:6px; border:1px solid transparent; }
   .sp-item:hover { background:var(--s2); }
   .sp-item.active { background:#eff6ff; border-color:#bfdbfe; }
   .sp-item.active .sp-name { color:var(--accent); font-weight:600; }
@@ -47,7 +47,7 @@
   .sp-item.active .sp-cnt { background:#dbeafe; color:var(--accent); }
 
   .content { display:flex; flex-direction:column; overflow:hidden; }
-  .ch { padding:8px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; background:var(--surface); flex-shrink:0; min-height:44px; }
+  .ch { padding:8px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; background:var(--surface); flex-shrink:0; min-height:42px; }
   .ct { font-size:14px; font-weight:600; white-space:nowrap; }
   .cs { font-size:12px; color:var(--muted); }
 
@@ -55,12 +55,17 @@
   #ta::-webkit-scrollbar { width:5px; height:5px; }
   #ta::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
 
-  table { border-collapse:collapse; font-size:12.5px; background:var(--surface); min-width:100%; }
+  table { border-collapse:collapse; font-size:12px; background:var(--surface); }
   thead { position:sticky; top:0; z-index:10; }
-  th { background:#f8fafc; color:var(--muted); font-weight:600; font-size:10.5px; text-transform:uppercase; letter-spacing:.4px; padding:8px 10px; text-align:left; border-bottom:2px solid var(--border); white-space:nowrap; border-right:1px solid var(--border); }
+
+  /* Αυτόματο πλάτος στήλης βάσει περιεχομένου */
+  table { width:max-content; min-width:100%; }
+
+  th { background:#f8fafc; color:var(--muted); font-weight:600; font-size:10.5px; text-transform:uppercase; letter-spacing:.3px; padding:6px 8px; text-align:left; border-bottom:2px solid var(--border); border-right:1px solid var(--border); white-space:nowrap; }
   th:last-child { border-right:none; }
-  td { padding:7px 10px; border-bottom:1px solid #f1f5f9; vertical-align:top; border-right:1px solid #f5f7fa; white-space:nowrap; max-width:320px; overflow:hidden; text-overflow:ellipsis; }
-  td.wrap { white-space:normal; word-break:break-word; }
+
+  td { padding:6px 8px; border-bottom:1px solid #f1f5f9; border-right:1px solid #f5f7fa; white-space:nowrap; }
+  td.wrap { white-space:normal; min-width:160px; max-width:300px; word-break:break-word; line-height:1.4; }
   td:last-child { border-right:none; }
   tr:hover td { background:#f8faff; }
 
@@ -74,8 +79,8 @@
   .spin { width:24px; height:24px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:sp .8s linear infinite; margin:0 auto; }
   @keyframes sp { to { transform:rotate(360deg); } }
 
-  .load-bar { position:fixed; top:48px; left:230px; right:0; height:3px; background:var(--border); z-index:200; }
-  .load-fill { height:100%; background:var(--accent); width:0; transition:width .3s; border-radius:0 2px 2px 0; }
+  .load-bar { position:fixed; top:48px; left:0; right:0; height:3px; background:var(--border); z-index:200; }
+  .load-fill { height:100%; background:var(--accent); width:0; transition:width .3s; }
 </style>
 </head>
 <body>
@@ -114,8 +119,8 @@
     <div id="ta">
       <div class="state">
         <div class="state-icon">🏥</div>
-        <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
-        <div class="state-sub">Φόρτωση τιμοκαταλόγου...</div>
+        <div class="state-title">Φόρτωση τιμοκαταλόγου...</div>
+        <div class="state-sub">Παρακαλώ περιμένετε</div>
       </div>
     </div>
   </div>
@@ -123,104 +128,115 @@
 
 <script>
 const EXCEL_URL = 'ΤΙΜΟΚΑΤΑΛΟΓΟΣ 25-05-2026.xlsx';
-
 let workbook = null;
+let sheetData = {}; // { name: { headers: [], rows: [] } }
 let curSheet = null;
-let allData = {}; // { sheetName: { headers: [], rows: [[...]] } }
 
-// Φόρτωση Excel
 async function loadExcel() {
   try {
     setLoad(20);
     const resp = await fetch(EXCEL_URL);
+    if (!resp.ok) throw new Error('Δεν βρέθηκε το αρχείο');
     setLoad(50);
     const ab = await resp.arrayBuffer();
     setLoad(70);
-    workbook = XLSX.read(ab, { type: 'array', cellDates: true });
+    workbook = XLSX.read(ab, { type:'array', cellDates:true, cellStyles:true });
     setLoad(90);
-    parseAllSheets();
+    parseSheets();
     setLoad(100);
-    setTimeout(() => document.getElementById('loadFill').style.width = '0', 500);
+    setTimeout(()=>document.getElementById('loadFill').style.width='0', 600);
     renderSidebar();
     document.getElementById('totalBadge').textContent = `${workbook.SheetNames.length} ειδικότητες`;
-    document.getElementById('ta').innerHTML = `<div class="state">
-      <div class="state-icon">🏥</div>
-      <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
-      <div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div>
-    </div>`;
+    showWelcome();
   } catch(e) {
-    document.getElementById('ta').innerHTML = `<div class="state">
-      <div class="state-icon">⚠️</div>
-      <div class="state-title">Σφάλμα φόρτωσης</div>
-      <div class="state-sub">${e.message}</div>
-    </div>`;
+    document.getElementById('ta').innerHTML = `<div class="state"><div class="state-icon">⚠️</div><div class="state-title">Σφάλμα φόρτωσης</div><div class="state-sub">${e.message}</div></div>`;
   }
 }
 
-function setLoad(pct) {
-  document.getElementById('loadFill').style.width = pct + '%';
-}
+function setLoad(p) { document.getElementById('loadFill').style.width = p+'%'; }
 
-function parseAllSheets() {
+function parseSheets() {
   workbook.SheetNames.forEach(name => {
     const ws = workbook.Sheets[name];
-    const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
-    // Βρες την πρώτη γραμμή με περιεχόμενο (header)
-    let headerRow = 0;
-    for (let i = 0; i < Math.min(raw.length, 6); i++) {
-      const nonEmpty = raw[i].filter(c => c !== '').length;
-      if (nonEmpty >= 2) { headerRow = i; break; }
+    // Διαβάζουμε ως array of arrays
+    const raw = XLSX.utils.sheet_to_json(ws, { header:1, defval:'', blankrows:false });
+    if (!raw.length) { sheetData[name] = { headers:[], rows:[] }; return; }
+
+    // Βρες τη header γραμμή: η πρώτη με >=2 non-empty text cells
+    let hRow = 0;
+    for (let i=0; i<Math.min(raw.length,8); i++) {
+      const texts = raw[i].filter(c=>c!=='' && isNaN(c) && String(c).length>0);
+      if (texts.length >= 2) { hRow = i; break; }
     }
 
-    // Βρες το πλάτος (πόσες στήλες)
-    let maxCols = 0;
-    raw.forEach(r => { if (r.length > maxCols) maxCols = r.length; });
+    // Βρες αν υπάρχει 2η header γραμμή (sub-headers)
+    // Κριτήριο: η γραμμή hRow+1 έχει text cells ΚΑΙ η hRow+2 έχει αριθμούς
+    let hRow2 = -1;
+    if (hRow+1 < raw.length && hRow+2 < raw.length) {
+      const nextTexts = raw[hRow+1].filter(c=>c!=='' && isNaN(c)).length;
+      const nextNums = raw[hRow+2].filter(c=>c!=='' && !isNaN(c) && c!==0).length;
+      if (nextTexts >= 2 && nextNums >= 1) hRow2 = hRow+1;
+    }
 
-    // Headers: συνδυασμός 1ης και 2ης header γραμμής (για merged cells)
-    const h1 = raw[headerRow] || [];
-    const h2 = raw[headerRow + 1] || [];
+    // Κατασκευή headers
+    // Για merged cells: το XLSX επαναλαμβάνει την τιμή — ανιχνεύουμε duplicates
+    const h1 = (raw[hRow] || []).map(c=>String(c).trim());
+    const h2 = hRow2>=0 ? (raw[hRow2] || []).map(c=>String(c).trim()) : [];
 
-    // Αν η 2η γραμμή έχει περισσότερα στοιχεία, είναι sub-header
-    const h2HasData = h2.filter(c => c !== '' && isNaN(c)).length > 2;
-
+    // Dedup: αν h1[i] === h1[i-1], είναι merged — βάλε κενό
+    const h1clean = h1.map((v,i) => (i>0 && v===h1[i-1]) ? '' : v);
+    // Αν h2 υπάρχει: συνδύασε h1+h2 για sub-headers
     let headers = [];
-    for (let c = 0; c < maxCols; c++) {
-      const top = String(h1[c] || '').trim();
-      const sub = h2HasData ? String(h2[c] || '').trim() : '';
-      if (top && sub) headers.push(`${top}\n${sub}`);
+    const maxCols = Math.max(h1clean.length, h2.length);
+    // Track τελευταίο non-empty h1 για την ομπρέλα
+    let lastParent = '';
+    for (let c=0; c<maxCols; c++) {
+      const top = h1clean[c] || '';
+      const sub = h2[c] || '';
+      if (top) lastParent = top;
+      if (top && sub) headers.push(top + ' ' + sub);
+      else if (!top && sub && lastParent) headers.push(lastParent + ' ' + sub);
       else if (top) headers.push(top);
       else if (sub) headers.push(sub);
       else headers.push('');
     }
 
-    // Δεδομένα: όλες οι γραμμές μετά τον header
-    const dataStart = h2HasData ? headerRow + 2 : headerRow + 1;
-    const rows = raw.slice(dataStart).filter(r => r.some(c => c !== ''));
+    // Αφαίρεσε trailing κενές στήλες
+    while (headers.length && !headers[headers.length-1]) headers.pop();
 
-    allData[name] = { headers, rows };
+    // Data rows
+    const dataStart = hRow2>=0 ? hRow2+1 : hRow+1;
+    const rows = raw.slice(dataStart).map(r => {
+      // Pad/trim στο ίδιο μήκος με headers
+      const out = [];
+      for (let c=0; c<headers.length; c++) out.push(r[c]!==undefined ? r[c] : '');
+      return out;
+    }).filter(r => r.some(c=>c!==''));
+
+    sheetData[name] = { headers, rows };
   });
 }
 
-function renderSidebar(f = '') {
+function renderSidebar(f='') {
   const el = document.getElementById('spList');
   if (!workbook) return;
-  const names = workbook.SheetNames.filter(n => n.toLowerCase().includes(f.toLowerCase()));
-  el.innerHTML = names.map(n => `
-    <div class="sp-item ${curSheet === n ? 'active' : ''}" onclick="showSheet('${n.replace(/'/g,"\\'")}')">
+  const names = workbook.SheetNames.filter(n=>n.trim().toLowerCase().includes(f.toLowerCase()));
+  el.innerHTML = names.map(n=>`
+    <div class="sp-item ${curSheet===n?'active':''}" onclick="showSheet('${n.replace(/'/g,"\\'")}')">
       <span class="sp-name">${n.trim()}</span>
-      <span class="sp-cnt">${allData[n]?.rows.length || 0}</span>
+      <span class="sp-cnt">${sheetData[n]?.rows.length||0}</span>
     </div>`).join('');
 }
 
 function showSheet(name) {
   curSheet = name;
-  document.getElementById('gSearch').value = '';
-  document.getElementById('gClr').style.display = 'none';
+  document.getElementById('gSearch').value='';
+  document.getElementById('gClr').style.display='none';
   renderSidebar(document.getElementById('spSearch').value);
-  const d = allData[name];
+  const d = sheetData[name];
   if (!d) return;
-  document.getElementById('cHeader').style.display = 'flex';
+  document.getElementById('cHeader').style.display='flex';
   document.getElementById('cTitle').textContent = name.trim();
   document.getElementById('cSub').textContent = `· ${d.rows.length} εγγραφές`;
   renderTable(d.headers, d.rows, '');
@@ -228,113 +244,108 @@ function showSheet(name) {
 
 function renderTable(headers, rows, query) {
   if (!rows.length) {
-    document.getElementById('ta').innerHTML = '<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
+    document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
     return;
   }
 
-  const thHtml = headers.map(h => {
-    const label = String(h).replace(/\n/g, '<br>');
-    return `<th>${label}</th>`;
-  }).join('');
+  const esc = q => q ? q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') : '';
+  const hl = (val, q) => {
+    if (!q || !val) return val;
+    return String(val).replace(new RegExp(esc(q),'gi'), m=>`<mark>${m}</mark>`);
+  };
 
-  const rowsHtml = rows.map(row => {
-    const cells = headers.map((_, ci) => {
-      let val = String(row[ci] ?? '');
-      if (query && val.toLowerCase().includes(query.toLowerCase())) {
-        val = val.replace(new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi'), m => `<mark>${m}</mark>`);
-      }
-      // Μεγάλο κείμενο = wrap
-      const isLong = String(row[ci] ?? '').length > 40;
-      return `<td ${isLong ? 'class="wrap"' : ''}>${val}</td>`;
+  const thHtml = headers.map(h=>`<th>${String(h).replace(/\n/g,'<br>')}</th>`).join('');
+
+  const rowsHtml = rows.map(row=>{
+    const cells = row.map((cell,ci)=>{
+      const val = String(cell??'');
+      const isDesc = val.length > 35;
+      const display = hl(val, query);
+      return `<td${isDesc?' class="wrap"':''}>${display}</td>`;
     }).join('');
     return `<tr>${cells}</tr>`;
   }).join('');
 
-  document.getElementById('ta').innerHTML = `
-    <table>
-      <thead><tr>${thHtml}</tr></thead>
-      <tbody>${rowsHtml}</tbody>
-    </table>`;
+  document.getElementById('ta').innerHTML=`<table><thead><tr>${thHtml}</tr></thead><tbody>${rowsHtml}</tbody></table>`;
 }
 
 function doGlobalSearch(query) {
-  if (!query || query.length < 2) return;
-  document.getElementById('cHeader').style.display = 'flex';
-  document.getElementById('cTitle').textContent = `"${query}"`;
+  if (!query || query.length<2) return;
   curSheet = null;
   renderSidebar(document.getElementById('spSearch').value);
+  document.getElementById('cHeader').style.display='flex';
+  document.getElementById('cTitle').textContent=`"${query}"`;
 
-  // Αναζήτηση σε όλα τα sheets
   const results = [];
-  workbook.SheetNames.forEach(name => {
-    const d = allData[name];
+  workbook.SheetNames.forEach(name=>{
+    const d = sheetData[name];
     if (!d) return;
-    d.rows.forEach(row => {
-      if (row.some(cell => String(cell).toLowerCase().includes(query.toLowerCase()))) {
-        results.push({ sheet: name, row, headers: d.headers });
+    d.rows.forEach(row=>{
+      if (row.some(c=>String(c).toLowerCase().includes(query.toLowerCase()))) {
+        results.push({ sheet:name, headers:d.headers, row });
       }
     });
   });
 
-  document.getElementById('cSub').textContent = `· ${results.length} αποτελέσματα`;
+  document.getElementById('cSub').textContent=`· ${results.length} αποτελέσματα`;
 
   if (!results.length) {
-    document.getElementById('ta').innerHTML = '<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
+    document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
     return;
   }
 
-  // Εμφάνιση με ειδικότητα + τιμές
-  const rowsHtml = results.map(({ sheet, row }) => {
-    const cells = row.map(cell => {
-      let val = String(cell ?? '');
-      if (query && val.toLowerCase().includes(query.toLowerCase())) {
-        val = val.replace(new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi'), m => `<mark>${m}</mark>`);
-      }
-      const isLong = String(cell ?? '').length > 40;
-      return `<td ${isLong ? 'class="wrap"' : ''}>${val}</td>`;
-    }).join('');
-    return `<tr><td><span class="sp-badge">${sheet.trim()}</span></td>${cells}</tr>`;
-  }).join('');
+  const esc = q=>q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const hl = (val,q)=>val?String(val).replace(new RegExp(esc(q),'gi'),m=>`<mark>${m}</mark>`):val;
 
-  document.getElementById('ta').innerHTML = `
-    <table>
-      <thead><tr><th>Ειδικότητα</th><th colspan="20">Δεδομένα</th></tr></thead>
-      <tbody>${rowsHtml}</tbody>
-    </table>`;
+  // Ομαδοποίηση ανά sheet για να δείχνουμε headers ανά ομάδα
+  const grouped = {};
+  results.forEach(r=>{
+    if (!grouped[r.sheet]) grouped[r.sheet]=[];
+    grouped[r.sheet].push(r);
+  });
+
+  let html = '';
+  Object.entries(grouped).forEach(([sheet, items])=>{
+    const headers = items[0].headers;
+    const thHtml = `<th style="background:#eff6ff;color:var(--accent)">Ειδικότητα</th>` +
+      headers.map(h=>`<th>${String(h).replace(/\n/g,'<br>')}</th>`).join('');
+    const rowsHtml = items.map(({row})=>{
+      const cells = row.map((cell,ci)=>{
+        const val = String(cell??'');
+        const isDesc = val.length>35;
+        return `<td${isDesc?' class="wrap"':''}>${hl(val,query)}</td>`;
+      }).join('');
+      return `<tr><td><span class="sp-badge">${sheet.trim()}</span></td>${cells}</tr>`;
+    }).join('');
+    html += `<table style="margin-bottom:16px"><thead><tr>${thHtml}</tr></thead><tbody>${rowsHtml}</tbody></table>`;
+  });
+
+  document.getElementById('ta').innerHTML=`<div style="padding:8px">${html}</div>`;
 }
 
-// Events
-let t;
-document.getElementById('gSearch').addEventListener('input', e => {
-  const q = e.target.value.trim();
-  document.getElementById('gClr').style.display = q ? 'flex' : 'none';
-  clearTimeout(t);
-  if (q.length >= 2) t = setTimeout(() => doGlobalSearch(q), 350);
-  else if (!q) {
-    curSheet = null;
-    renderSidebar();
-    document.getElementById('cHeader').style.display = 'none';
-    document.getElementById('ta').innerHTML = `<div class="state">
-      <div class="state-icon">🏥</div>
-      <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
-      <div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div>
-    </div>`;
-  }
-});
-
-document.getElementById('gClr').addEventListener('click', () => {
-  document.getElementById('gSearch').value = '';
-  document.getElementById('gClr').style.display = 'none';
-  curSheet = null; renderSidebar();
-  document.getElementById('cHeader').style.display = 'none';
-  document.getElementById('ta').innerHTML = `<div class="state">
+function showWelcome() {
+  document.getElementById('ta').innerHTML=`<div class="state">
     <div class="state-icon">🏥</div>
     <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
     <div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div>
   </div>`;
-});
+}
 
-document.getElementById('spSearch').addEventListener('input', e => renderSidebar(e.target.value));
+let t;
+document.getElementById('gSearch').addEventListener('input',e=>{
+  const q=e.target.value.trim();
+  document.getElementById('gClr').style.display=q?'flex':'none';
+  clearTimeout(t);
+  if (q.length>=2) t=setTimeout(()=>doGlobalSearch(q),350);
+  else if (!q) { curSheet=null; renderSidebar(); document.getElementById('cHeader').style.display='none'; showWelcome(); }
+});
+document.getElementById('gClr').addEventListener('click',()=>{
+  document.getElementById('gSearch').value='';
+  document.getElementById('gClr').style.display='none';
+  curSheet=null; renderSidebar();
+  document.getElementById('cHeader').style.display='none'; showWelcome();
+});
+document.getElementById('spSearch').addEventListener('input',e=>renderSidebar(e.target.value));
 
 loadExcel();
 </script>
