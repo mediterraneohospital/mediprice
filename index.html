@@ -189,6 +189,7 @@ function buildTH(headers, showSp){
 
 function buildRows(headers, items, showSp, q){
   return items.map(function(item){
+    if(!Array.isArray(item.row)) return '';
     if(item.row[0]&&String(item.row[0]).startsWith('📌')){
       var cs=headers.length+(showSp?1:0);
       return '<tr><td colspan="'+cs+'" style="background:#fffbeb;color:#92400e;font-size:12px;padding:6px 8px;font-style:italic;white-space:normal;word-break:break-word;">'+String(item.row[0]).replace('📌 ','')+'</td></tr>';
@@ -238,6 +239,7 @@ function doSearch(q){
     if(d.__multi__){
       d.tables.forEach(function(t){
         t.rows.forEach(function(row){
+          if(!Array.isArray(row)) return;
           if(t.title.toLowerCase().indexOf(ql)>=0||row.some(function(c){return String(c).toLowerCase().indexOf(ql)>=0;})){
             if(!grouped[sp]) grouped[sp]={headers:t.headers,items:[]};
             grouped[sp].items.push({sp:sp,row:row});
@@ -246,6 +248,7 @@ function doSearch(q){
       });
     } else {
       d.rows.forEach(function(row){
+        if(!Array.isArray(row)) return;
         if(row.some(function(c){return String(c).toLowerCase().indexOf(ql)>=0;})){
           if(!grouped[sp]) grouped[sp]={headers:d.headers,items:[]};
           grouped[sp].items.push({sp:sp,row:row});
