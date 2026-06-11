@@ -70,7 +70,7 @@
   td.price-val-p{background:#eff6ff;font-weight:600;color:#1e40af;text-align:right;font-family:"DM Mono",monospace;font-size:12px;}
   mark{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px;}
   td[title]{cursor:default;}
-  td[title]:hover::after{content:attr(title);position:fixed;background:#1f2937;color:#fff;padding:6px 10px;border-radius:6px;font-size:12px;max-width:320px;white-space:normal;word-break:break-word;z-index:999;pointer-events:none;line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,.2);}
+  #tooltip{position:fixed;background:#1f2937;color:#fff;padding:6px 10px;border-radius:6px;font-size:12px;max-width:340px;white-space:normal;word-break:break-word;z-index:9999;pointer-events:none;line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,.25);display:none;}
   .state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:80px 40px;height:100%;background:var(--surface);color:var(--muted);}
   .state-icon{font-size:40px;opacity:.2;}
   .state-title{font-size:15px;font-weight:600;color:var(--dim);}
@@ -80,6 +80,7 @@
 </style>
 </head>
 <body>
+<div id="tooltip"></div>
 <header>
   <div class="logo"><span class="medi">Medi</span><span class="price">Price</span></div>
   <div class="sep"></div>
@@ -131,6 +132,22 @@ var NUM=['ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ ΒΑ','ΕΟΠΥΥ ΒΑ3','ΕΟΠ
 // Στήλες με μικρό default πλάτος
 var NARROW=['ΚΕΝ','ΗΜ','ΗΜ. ΝΟΣ','HM','Α/Α','ΝΟΣΗΛΕΙΑ ΚΛΙΝΗ ΘΑΛΑΜΟΥ','ΝΟΣΗΛΕΙΑ ΜΑΠ/ΜΕΘ','ΜΕΘ','ΠΑΡΑΜΟΝΗ','ΗΜΕΡΕΣ ΝΟΣΗΛΕΙΑΣ','ΗΜΕΡΕΣ','ODC'];
 
+// Tooltip
+var tip=document.getElementById('tooltip');
+document.getElementById('ta').addEventListener('mouseover',function(e){
+  var td=e.target.closest('td[title]');
+  if(!td){tip.style.display='none';return;}
+  tip.textContent=td.getAttribute('title');
+  tip.style.display='block';
+});
+document.getElementById('ta').addEventListener('mousemove',function(e){
+  tip.style.left=(e.clientX+12)+'px';
+  tip.style.top=(e.clientY+12)+'px';
+});
+document.getElementById('ta').addEventListener('mouseout',function(e){
+  if(!e.target.closest('td[title]')) tip.style.display='none';
+});
+
 async function init(){
   try{
     var r=await fetch('data.json'); DATA=await r.json();
@@ -150,7 +167,11 @@ function welcome(){
 
 function renderSidebar(f){
   f=f||''; var el=document.getElementById('spList');
-  var keys=Object.keys(DATA).filter(function(k){return k.toLowerCase().indexOf(f.toLowerCase())>=0;});
+  var ORDER=['ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ','ΓΑΣΤΡΕΝΤΕΡΟΛΟΓΙΚΑ','ΓΝΑΘΟΧΕΙΡΟΥΡΓΙΚΑ','ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ','ΓΥΝΑΙΚΟΛΟΓΙΚΗ','ΕΠΕΜΒΑΤΙΚΗ ΑΚΤΙΝΟΛΟΓΙΑ','ΕΠΕΜΒΑΤΙΚΗ ΚΑΡΔΙΟΛΟΓΙΑ','ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ','ΘΕΡΑΠΕΙΕΣ ΠΟΝΟ ΜΕ ΣΥΣΚΕΥΕΣ','INTERSTIM','ΘΩΡΑΚΟΧΕΙΡΟΥΡΓΙΚΗ','ΚΑΡΔΙΟΧΕΙΡΟΥΡΓΙΚΗ','ΜΟΝΑΔΑ ΜΑΣΤΟΥ','ΝΕΥΡΟΧΕΙΡΟΥΡΓΙΚΗ','ΟΝΠ','ΟΡΘΟΠΕΔΙΚΗ','ΟΥΡΟΛΟΓΙΚΗ','ΟΦΘΑΛΜΟΛΟΓΙΑ','ΠΛΑΣΤΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ','ΠΝΕΥΜΟΝΟΛΟΓΙΚΟ','ΠΟΝΟΣ','ΧΟΛΗΦΟΡΑ','ΣΠΟΝΔΥΛΙΚΗ ΣΤΗΛΗ','ΩΡΛ'];
+  var allKeys=Object.keys(DATA);
+  var keys=ORDER.filter(function(k){return allKeys.indexOf(k)>=0&&k.toLowerCase().indexOf(f.toLowerCase())>=0;});
+  // Πρόσθεσε όσα δεν είναι στο ORDER
+  allKeys.forEach(function(k){if(ORDER.indexOf(k)<0&&k.toLowerCase().indexOf(f.toLowerCase())>=0) keys.push(k);});
   if(!keys.length){el.innerHTML='<div style="padding:12px;text-align:center;color:var(--muted);font-size:12px">Δεν βρέθηκε</div>';return;}
   el.innerHTML=keys.map(function(k){
     return '<div class="sp-item'+(curSheet===k&&!searchMode?' active':'')+'" onclick="showSheet(\''+k.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')">' +
@@ -235,7 +256,7 @@ function thCls(h){
 function colWidth(h){
   if(WRAP.indexOf(h)>=0) return ' style="width:'+( (h==='ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ'||h==='ΠΕΡΙΓΡΑΦΗ'||h==='ΕΙΔΟΣ ΠΡΑΞΗΣ'||h==='ΠΡΑΞΗ'||h==='ΤΙΤΛΟΣ ΕΠΕΜΒΑΣΗΣ') ? 187 : 180)+'px"';
   if(EOPYY_COLS.indexOf(h)>=0||PRIV_COLS.indexOf(h)>=0) return ' style="width:75px"';
-  if(h==='ΚΕΝ'||h==='ΚΕΝ/Π.Δ.'||h==='ΚΕΝ (2)') return ' style="width:'+(3*9+16+2)+'px"';
+  if(h==='ΚΕΝ'||h==='ΚΕΝ/Π.Δ.'||h==='ΚΕΝ (2)') return ' style="width:47px"';
   var firstWord = h.split(' ')[0];
   var extra = (h==='ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ'||h==='ΠΕΡΙΓΡΑΦΗ') ? 7 : 0;
   var w = Math.max(40, firstWord.length * 9 + 16 + extra);
@@ -314,7 +335,17 @@ function doSearch(query){
   var q=query.toLowerCase(), grouped={};
   Object.keys(DATA).forEach(function(sp){
     var d=DATA[sp];
-    if(d.__multi__) return;
+    if(d.__multi__){
+      d.tables.forEach(function(t){
+        t.rows.forEach(function(row){
+          if(row.some(function(c){return String(c).toLowerCase().indexOf(q)>=0;})||t.title.toLowerCase().indexOf(q)>=0){
+            if(!grouped[sp]) grouped[sp]={headers:['ΠΙΝΑΚΑΣ'].concat(t.headers),items:[]};
+            grouped[sp].items.push({sp:sp,row:[t.title].concat(row)});
+          }
+        });
+      });
+      return;
+    }
     d.rows.forEach(function(row){
       if(row.some(function(c){return String(c).toLowerCase().indexOf(q)>=0;})){
         if(!grouped[sp]) grouped[sp]={headers:d.headers,items:[]};
