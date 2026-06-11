@@ -199,6 +199,7 @@ function thCls(h){
   return '';
 }
 function colWidth(h){
+  if(h==='ΚΕΝ'||h==='ΚΕΝ/Π.Δ.'||h==='ΚΕΝ (2)') return ' style="width:45px;min-width:45px"';
   if(NARROW.indexOf(h)>=0) return ' style="width:60px"';
   if(EOPYY_COLS.indexOf(h)>=0||PRIV_COLS.indexOf(h)>=0) return ' style="width:80px"';
   if(WRAP.indexOf(h)>=0) return ' style="width:190px"';
@@ -207,6 +208,7 @@ function colWidth(h){
 function tdClass(h,val){
   if(EOPYY_COLS.indexOf(h)>=0) return ' class="price-val"';
   if(PRIV_COLS.indexOf(h)>=0) return ' class="price-val-p"';
+  if(h==='ΚΕΝ'||h==='ΚΕΝ/Π.Δ.'||h==='ΚΕΝ (2)') return ' class="wrap" style="width:45px;min-width:45px;max-width:45px"';
   if(WRAP.indexOf(h)>=0||String(val).length>45) return ' class="wrap"';
   return '';
 }
