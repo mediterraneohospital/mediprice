@@ -45,17 +45,17 @@
   .ct{font-size:14px;font-weight:600;white-space:nowrap;}
   .cs{font-size:12px;color:var(--muted);}
 
-  #ta{flex:1;overflow:auto;}
+  #ta{flex:1;overflow:auto;scroll-behavior:smooth;}
   #ta::-webkit-scrollbar{width:5px;height:5px;}
   #ta::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 
   table{border-collapse:collapse;font-size:13px;background:var(--surface);table-layout:fixed;width:max-content;min-width:100%;}
   thead{position:sticky;top:0;z-index:10;}
-  th{background:#eef1f6;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.3px;padding:6px 8px;text-align:left;border-bottom:2px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;position:relative;overflow:hidden;}
+  th{background:#eef1f6;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.3px;padding:6px 8px;text-align:left;border-bottom:2px solid var(--border);border-right:1px solid var(--border);white-space:normal;word-break:break-word;vertical-align:top;position:relative;min-width:60px;}
   th:last-child{border-right:none;}
   .resizer{position:absolute;right:0;top:0;width:6px;height:100%;cursor:col-resize;user-select:none;z-index:2;background:transparent;}
   .resizer:hover{background:rgba(26,86,219,.35);}
-  td{padding:5px 8px;border-bottom:1px solid #f1f5f9;border-right:1px solid #eef0f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  td{padding:5px 8px;border-bottom:1px solid #f1f5f9;border-right:1px solid #eef0f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
   td.wrap{white-space:normal;word-break:break-word;line-height:1.4;}
   td.num{text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
   td:last-child{border-right:none;}
@@ -64,7 +64,13 @@
   tbody tr.selected td{background:#dbeafe!important;outline:1px solid #93c5fd;}
 
   .sp-badge{font-size:10px;font-weight:600;color:var(--accent);background:#eff6ff;border-radius:4px;padding:2px 5px;white-space:nowrap;}
+  th.price-col{background:#f0fdf4;color:#166534;}
+  td.price-val{background:#f0fdf4;font-weight:600;color:#166534;text-align:right;font-family:"DM Mono",monospace;font-size:12px;}
+  th.price-col-p{background:#eff6ff;color:#1e40af;}
+  td.price-val-p{background:#eff6ff;font-weight:600;color:#1e40af;text-align:right;font-family:"DM Mono",monospace;font-size:12px;}
   mark{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px;}
+  td[title]{cursor:default;}
+  td[title]:hover::after{content:attr(title);position:fixed;background:#1f2937;color:#fff;padding:6px 10px;border-radius:6px;font-size:12px;max-width:320px;white-space:normal;word-break:break-word;z-index:999;pointer-events:none;line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,.2);}
   .state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:80px 40px;height:100%;background:var(--surface);color:var(--muted);}
   .state-icon{font-size:40px;opacity:.2;}
   .state-title{font-size:15px;font-weight:600;color:var(--dim);}
@@ -172,16 +178,36 @@ function hl(v,q){
   return String(v).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),function(m){return '<mark>'+m+'</mark>';});
 }
 
-function colWidth(h){
-  if(NARROW.indexOf(h)>=0) return ' style="width:70px"';
-  if(NUM.indexOf(h)>=0) return ' style="width:90px"';
-  if(WRAP.indexOf(h)>=0) return ' style="width:200px"';
-  return ' style="width:120px"';
-}
+var EOPYY_COLS=['ΕΟΠΥΥ ΒΑ3','ΕΟΠΥΥ ΒΑ','ΕΟΠΥΥ ΒΑ3 2026','ΕΟΠΥΥ ΒΑ 2026','ΕΟΠΥΥ ΜΕ ΦΠΑ',
+  'ΕΟΠΥΥ ΜΕ ΦΠΑ 24%','ΕΟΠΥΥ ΒΑ ΜΕ ΦΠΑ','ODC ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ODC ΕΟΠΥΥ ΜΕ ΦΠΑ',
+  'ΒΑ ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ΒΑ ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ Α','ΤΕΛΙΚΟΣ ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ',
+  'ΕΟΠΥΥ 2026','ΒΑ NET','Α NET','LUX NET','SUITE NET'];
+var PRIV_COLS=['ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ ΒΑ','ΙΔΙΩΤΗΣ ΒΑ3 2026','ΙΔΙΩΤΗΣ ΒΑ 2026','ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ',
+  'ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ 24%','ΙΔΙΩΤΗΣ ΒΑ ΜΕ ΦΠΑ','ODC ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ','ODC ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ',
+  'ΒΑ ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ','ΒΑ ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΙΔΙΩΤΗΣ Α','ΙΔΙΩΤΗΣ',
+  'ΙΔΙΩΤΗΣ 2026','ΒΑ ΜΕ ΦΠΑ','Α ΜΕ ΦΠΑ','LUX ΜΕ ΦΠΑ','SUITE ΜΕ ΦΠΑ','ODC ΜΕ ΦΠΑ',
+  'ΒΑ','Α','LUX','SUITE','ODC'];
 
+function fmtHeader(h){
+  var parts=h.trim().split(' ');
+  if(parts.length<=1) return h;
+  return parts[0]+'<br><span style="font-weight:500;font-size:10px;opacity:.85">'+parts.slice(1).join(' ')+'</span>';
+}
+function thCls(h){
+  if(EOPYY_COLS.indexOf(h)>=0) return ' class="price-col"';
+  if(PRIV_COLS.indexOf(h)>=0) return ' class="price-col-p"';
+  return '';
+}
+function colWidth(h){
+  if(NARROW.indexOf(h)>=0) return ' style="width:60px"';
+  if(EOPYY_COLS.indexOf(h)>=0||PRIV_COLS.indexOf(h)>=0) return ' style="width:80px"';
+  if(WRAP.indexOf(h)>=0) return ' style="width:190px"';
+  return ' style="width:100px"';
+}
 function tdClass(h,val){
+  if(EOPYY_COLS.indexOf(h)>=0) return ' class="price-val"';
+  if(PRIV_COLS.indexOf(h)>=0) return ' class="price-val-p"';
   if(WRAP.indexOf(h)>=0||String(val).length>45) return ' class="wrap"';
-  if(NUM.indexOf(h)>=0) return ' class="num"';
   return '';
 }
 
@@ -190,15 +216,17 @@ function renderTable(headers, items, query){
     document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
     return;
   }
-  var spCol=items[0].sp?'<th style="width:130px">Ειδικότητα<div class="resizer"></div></th>':'';
+  var spCol=items[0].sp?'<th style="width:120px">Ειδικότητα<div class="resizer"></div></th>':'';
   var thHtml=spCol+headers.map(function(h){
-    return '<th'+colWidth(h)+'>'+h+'<div class="resizer"></div></th>';
+    return '<th'+thCls(h)+colWidth(h)+'>'+fmtHeader(h)+'<div class="resizer"></div></th>';
   }).join('');
   var rowsHtml=items.map(function(item){
     var spTd=item.sp?'<td><span class="sp-badge">'+item.sp+'</span></td>':'';
     var cells=item.row.map(function(cell,ci){
       var cls=tdClass(headers[ci],cell);
-      return '<td'+cls+'>'+hl(String(cell||''),query)+'</td>';
+      var cellStr=String(cell||'');
+      var titleAttr=(cellStr.length>30&&WRAP.indexOf(headers[ci])<0&&EOPYY_COLS.indexOf(headers[ci])<0&&PRIV_COLS.indexOf(headers[ci])<0)?' title="'+cellStr.replace(/"/g,'&quot;')+'"':'';
+      return '<td'+cls+titleAttr+'>'+hl(cellStr,query)+'</td>';
     }).join('');
     return '<tr>'+spTd+cells+'</tr>';
   }).join('');
@@ -266,8 +294,8 @@ function doSearch(query){
   var html='<div style="padding:8px;display:flex;flex-direction:column;gap:12px">';
   Object.keys(grouped).forEach(function(sp){
     var g=grouped[sp];
-    var spTh='<th style="width:130px;background:#eff6ff;color:var(--accent)">Ειδικότητα<div class="resizer"></div></th>';
-    var thHtml=spTh+g.headers.map(function(h){return '<th'+colWidth(h)+'>'+h+'<div class="resizer"></div></th>';}).join('');
+    var spTh='<th style="width:120px;background:#eff6ff;color:var(--accent)">Ειδικότητα<div class="resizer"></div></th>';
+    var thHtml=spTh+g.headers.map(function(h){return '<th'+thCls(h)+colWidth(h)+'>'+fmtHeader(h)+'<div class="resizer"></div></th>';}).join('');
     var rowsHtml=g.items.map(function(item){
       var spTd='<td><span class="sp-badge">'+sp+'</span></td>';
       var cells=item.row.map(function(cell,ci){
