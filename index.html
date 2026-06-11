@@ -49,7 +49,7 @@
   #ta::-webkit-scrollbar{width:5px;height:5px;}
   #ta::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 
-  table{border-collapse:collapse;font-size:13px;background:var(--surface);table-layout:fixed;width:max-content;min-width:100%;}
+  table{border-collapse:collapse;font-size:13px;background:var(--surface);table-layout:fixed;width:max-content;}
   thead{position:sticky;top:0;z-index:10;}
   th{background:#eef1f6;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.3px;padding:6px 8px;text-align:left;border-bottom:2px solid var(--border);border-right:1px solid var(--border);white-space:normal;word-break:break-word;vertical-align:top;position:relative;min-width:60px;}
   th:last-child{border-right:none;}
@@ -199,18 +199,12 @@ function thCls(h){
   return '';
 }
 function colWidth(h){
-  // Μία λέξη ή σύντομα: ΚΕΝ, ΗΜ, ODC, Α/Α, ΒΑ, Α, LUX κλπ
-  var oneWord=['ΚΕΝ','ΚΕΝ/Π.Δ.','ΚΕΝ (2)','ΗΜ','HM','Α/Α','ODC','ΜΕΘ','ΠΑΡΑΜΟΝΗ','REF','ΦΠΑ','ICD10','ΒΑ','Α','LUX','SUITE','ΗΜΕΡΕΣ','ΗΜΕΡΕΣ ΝΟΣΗΛΕΙΑΣ','ΧΡΟΝΟΣ','ΔΩΜΑΤΙΟ'];
-  if(oneWord.indexOf(h)>=0) return ' style="width:50px"';
-  // Τιμές (αριθμοί ~6ψήφιο): 75px
-  if(EOPYY_COLS.indexOf(h)>=0||PRIV_COLS.indexOf(h)>=0) return ' style="width:75px"';
-  // 2 λέξεις (ΝΟΣΗΛΕΙΑ, ΔΙΑΡΚΕΙΑ, κλπ)
-  var twoWord=['ΝΟΣΗΛΕΙΑ ΚΛΙΝΗ ΘΑΛΑΜΟΥ','ΝΟΣΗΛΕΙΑ ΜΑΠ/ΜΕΘ','ΔΙΑΡΚΕΙΑ ΩΡΕΣ','ΗΜ. ΝΟΣ','ΧΕΙΡ. ΧΡΟΝΟΣ','ΧΡΟΝΟΙ Χ/ΓΕΙΟΥ','ΧΡΟΝΟΙ Χ/ΓΕΙΟΥ ΕΝΔΕΙΚΤΙΚΑ','ΩΡΕΣ ΧΕΙΡΟΥΡΓΕΙΟΥ','ΑΜΟΙΒΗ ΑΝΑΙΣΘΗΣΙΟΛΟΓΟΥ'];
-  if(twoWord.indexOf(h)>=0) return ' style="width:70px"';
-  // Κείμενο με wrap
   if(WRAP.indexOf(h)>=0) return ' style="width:180px"';
-  // Default
-  return ' style="width:90px"';
+  if(EOPYY_COLS.indexOf(h)>=0||PRIV_COLS.indexOf(h)>=0) return ' style="width:75px"';
+  // Πλάτος = πρώτη λέξη × 9px + 16px padding
+  var firstWord = h.split(' ')[0];
+  var w = Math.max(40, firstWord.length * 9 + 16);
+  return ' style="width:'+w+'px"';
 }
 function tdClass(h,val){
   if(EOPYY_COLS.indexOf(h)>=0) return ' class="price-val"';
@@ -225,7 +219,7 @@ function renderTable(headers, items, query){
     document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
     return;
   }
-  var spCol=items[0].sp?'<th style="width:120px">Ειδικότητα<div class="resizer"></div></th>':'';
+  var spCol=items[0].sp?'<th>Ειδικότητα<div class="resizer"></div></th>':'';
   var thHtml=spCol+headers.map(function(h){
     return '<th'+thCls(h)+colWidth(h)+'>'+fmtHeader(h)+'<div class="resizer"></div></th>';
   }).join('');
@@ -303,7 +297,7 @@ function doSearch(query){
   var html='<div style="padding:8px;display:flex;flex-direction:column;gap:12px">';
   Object.keys(grouped).forEach(function(sp){
     var g=grouped[sp];
-    var spTh='<th style="width:120px;background:#eff6ff;color:var(--accent)">Ειδικότητα<div class="resizer"></div></th>';
+    var spTh='<th style="background:#eff6ff;color:var(--accent)">Ειδικότητα<div class="resizer"></div></th>';
     var thHtml=spTh+g.headers.map(function(h){return '<th'+thCls(h)+colWidth(h)+'>'+fmtHeader(h)+'<div class="resizer"></div></th>';}).join('');
     var rowsHtml=g.items.map(function(item){
       var spTd='<td><span class="sp-badge">'+sp+'</span></td>';
