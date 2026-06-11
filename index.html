@@ -135,7 +135,7 @@ async function init(){
   try{
     var r=await fetch('data.json'); DATA=await r.json();
     var sheets=Object.keys(DATA);
-    var total=sheets.reduce(function(s,k){return s+DATA[k].rows.length;},0);
+    var total=sheets.reduce(function(s,k){var d=DATA[k];return s+(d.__multi__?d.tables.reduce(function(s2,t){return s2+t.rows.length;},0):d.rows.length);},0);
     document.getElementById('totalBadge').textContent=sheets.length+' ειδικότητες · '+total+' εγγραφές';
     renderSidebar(); welcome();
   }catch(e){
@@ -314,6 +314,7 @@ function doSearch(query){
   var q=query.toLowerCase(), grouped={};
   Object.keys(DATA).forEach(function(sp){
     var d=DATA[sp];
+    if(d.__multi__) return;
     d.rows.forEach(function(row){
       if(row.some(function(c){return String(c).toLowerCase().indexOf(q)>=0;})){
         if(!grouped[sp]) grouped[sp]={headers:d.headers,items:[]};
