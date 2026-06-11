@@ -169,8 +169,42 @@ function showSheet(name){
   if(!d) return;
   document.getElementById('cHeader').style.display='flex';
   document.getElementById('cTitle').textContent=name;
+  // Multi-table sheet (π.χ. ΓΝΑΘΟΧΕΙΡΟΥΡΓΙΚΑ)
+  if(d.__multi__){
+    var total=d.tables.reduce(function(s,t){return s+t.rows.length;},0);
+    document.getElementById('cSub').textContent='· '+total+' εγγραφές';
+    renderMulti(d.tables,'');
+    return;
+  }
   document.getElementById('cSub').textContent='· '+d.rows.length+' εγγραφές';
   renderTable(d.headers, d.rows.map(function(r){return {row:r};}), '');
+}
+
+function renderMulti(tables, query){
+  var colors=['#e0f2fe','#dcfce7','#fef9c3'];
+  var html='<div style="padding:8px;display:flex;flex-direction:column;gap:20px">';
+  tables.forEach(function(t,ti){
+    var bg=colors[ti%colors.length];
+    var thHtml=t.headers.map(function(h){return '<th'+thCls(h)+colWidth(h)+'>'+fmtHeader(h)+'<div class="resizer"></div></th>';}).join('');
+    var rowsHtml=t.rows.map(function(row){
+      if(row[0]&&row[0].startsWith('📌')){
+        var colspan=t.headers.length;
+        return '<tr><td colspan="'+colspan+'" style="background:#fffbeb;color:#92400e;font-size:12px;padding:6px 8px;font-style:italic;white-space:normal;word-break:break-word;">'+row[0].replace('📌 ','')+'</td></tr>';
+      }
+      var cells=row.map(function(cell,ci){
+        var cls=tdClass(t.headers[ci],cell);
+        return '<td'+cls+'>'+hl(String(cell||''),query)+'</td>';
+      }).join('');
+      return '<tr>'+cells+'</tr>';
+    }).join('');
+    html+='<div>';
+    html+='<div style="background:#1e40af;color:#fff;font-size:12px;font-weight:600;padding:6px 10px;border-radius:4px 4px 0 0;letter-spacing:.3px">'+t.title+'</div>';
+    html+='<table style="border-top:none"><thead><tr>'+thHtml+'</tr></thead><tbody>'+rowsHtml+'</tbody></table>';
+    html+='</div>';
+  });
+  html+='</div>';
+  document.getElementById('ta').innerHTML=html;
+  addResizers();
 }
 
 function hl(v,q){
@@ -199,11 +233,12 @@ function thCls(h){
   return '';
 }
 function colWidth(h){
-  if(WRAP.indexOf(h)>=0) return ' style="width:180px"';
+  if(WRAP.indexOf(h)>=0) return ' style="width:'+( (h==='ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ'||h==='ΠΕΡΙΓΡΑΦΗ'||h==='ΕΙΔΟΣ ΠΡΑΞΗΣ'||h==='ΠΡΑΞΗ'||h==='ΤΙΤΛΟΣ ΕΠΕΜΒΑΣΗΣ') ? 187 : 180)+'px"';
   if(EOPYY_COLS.indexOf(h)>=0||PRIV_COLS.indexOf(h)>=0) return ' style="width:75px"';
-  // Πλάτος = πρώτη λέξη × 9px + 16px padding
+  if(h==='ΚΕΝ'||h==='ΚΕΝ/Π.Δ.'||h==='ΚΕΝ (2)') return ' style="width:'+(3*9+16+2)+'px"';
   var firstWord = h.split(' ')[0];
-  var w = Math.max(40, firstWord.length * 9 + 16);
+  var extra = (h==='ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ'||h==='ΠΕΡΙΓΡΑΦΗ') ? 7 : 0;
+  var w = Math.max(40, firstWord.length * 9 + 16 + extra);
   return ' style="width:'+w+'px"';
 }
 function tdClass(h,val){
