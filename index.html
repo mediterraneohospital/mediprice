@@ -154,7 +154,7 @@ function renderSidebar(f){
   if(!keys.length){el.innerHTML='<div style="padding:12px;text-align:center;color:var(--muted);font-size:12px">Δεν βρέθηκε</div>';return;}
   el.innerHTML=keys.map(function(k){
     return '<div class="sp-item'+(curSheet===k&&!searchMode?' active':'')+'" onclick="showSheet(\''+k.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')">' +
-      '<span class="sp-name">'+k+'</span><span class="sp-cnt">'+DATA[k].rows.length+'</span></div>';
+      '<span class="sp-name">'+k+'</span><span class="sp-cnt">'+(DATA[k].__multi__?DATA[k].tables.reduce(function(s,t){return s+t.rows.length;},0):DATA[k].rows.length)+'</span></div>';
   }).join('');
 }
 
