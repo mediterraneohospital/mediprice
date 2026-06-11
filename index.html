@@ -6,85 +6,62 @@
 <title>MediPrice — Τιμοκατάλογος Mediterraneo</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
-
-  :root {
-    --bg:#f5f7fa; --surface:#fff; --s2:#f0f2f5; --border:#e2e6ed;
-    --accent:#1a56db; --text:#111827; --muted:#6b7280; --dim:#374151;
-    --r:8px;
-  }
-  * { box-sizing:border-box; margin:0; padding:0; }
-  html,body { height:100%; overflow:hidden; font-family:'Inter',sans-serif; font-size:13px; background:var(--bg); color:var(--text); }
-
-  header { height:48px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; padding:0 16px; box-shadow:0 1px 3px rgba(0,0,0,.06); flex-shrink:0; }
-  .logo { font-size:16px; font-weight:700; color:var(--accent); letter-spacing:-.3px; white-space:nowrap; }
-  .logo span { font-weight:300; color:var(--muted); }
-  .sep { width:1px; height:20px; background:var(--border); }
-  .hosp { font-size:12px; color:var(--muted); white-space:nowrap; }
-  .badge { background:var(--s2); border:1px solid var(--border); border-radius:20px; padding:2px 10px; font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; white-space:nowrap; margin-left:auto; }
-
-  .sw { position:relative; flex:1; max-width:420px; }
-  .si { width:100%; background:var(--s2); border:1px solid var(--border); border-radius:var(--r); padding:6px 28px 6px 30px; color:var(--text); font-size:13px; font-family:inherit; outline:none; transition:all .2s; }
-  .si:focus { border-color:var(--accent); background:var(--surface); box-shadow:0 0 0 3px rgba(26,86,219,.1); }
-  .si::placeholder { color:var(--muted); }
-  .sico { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; }
-  .sclr { position:absolute; right:7px; top:50%; transform:translateY(-50%); background:var(--muted); color:#fff; border:none; border-radius:50%; width:16px; height:16px; font-size:9px; cursor:pointer; display:none; align-items:center; justify-content:center; }
-
-  .main { display:grid; grid-template-columns:220px 1fr; height:calc(100vh - 48px); overflow:hidden; }
-
-  .sidebar { background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
-  .sb-head { padding:8px 12px; border-bottom:1px solid var(--border); font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; flex-shrink:0; }
-  .sb-s { padding:8px; border-bottom:1px solid var(--border); flex-shrink:0; }
-  .sp-list { flex:1; overflow-y:auto; padding:4px; }
-  .sp-list::-webkit-scrollbar { width:3px; }
-  .sp-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
-  .sp-item { display:flex; align-items:center; justify-content:space-between; padding:6px 8px; border-radius:6px; cursor:pointer; transition:background .12s; gap:6px; border:1px solid transparent; }
-  .sp-item:hover { background:var(--s2); }
-  .sp-item.active { background:#eff6ff; border-color:#bfdbfe; }
-  .sp-item.active .sp-name { color:var(--accent); font-weight:600; }
-  .sp-name { font-size:12px; font-weight:500; color:var(--dim); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .sp-cnt { font-size:10px; font-family:'DM Mono',monospace; color:var(--muted); background:var(--s2); padding:1px 5px; border-radius:8px; flex-shrink:0; }
-  .sp-item.active .sp-cnt { background:#dbeafe; color:var(--accent); }
-
-  .content { display:flex; flex-direction:column; overflow:hidden; }
-  .ch { padding:8px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; background:var(--surface); flex-shrink:0; min-height:42px; }
-  .ct { font-size:14px; font-weight:600; white-space:nowrap; }
-  .cs { font-size:12px; color:var(--muted); }
-
-  #ta { flex:1; overflow:auto; }
-  #ta::-webkit-scrollbar { width:5px; height:5px; }
-  #ta::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
-
-  table { border-collapse:collapse; font-size:12px; background:var(--surface); width:max-content; min-width:100%; }
-  thead { position:sticky; top:0; z-index:10; }
-  th {
-    background:#f8fafc; color:var(--muted); font-weight:600; font-size:10.5px;
-    text-transform:uppercase; letter-spacing:.3px;
-    padding:7px 8px; text-align:left;
-    border-bottom:2px solid var(--border); border-right:1px solid var(--border);
-    white-space:nowrap;
-  }
-  th:last-child { border-right:none; }
-  td {
-    padding:6px 8px; border-bottom:1px solid #f1f5f9; border-right:1px solid #f5f7fa;
-    white-space:nowrap; max-width:260px; overflow:hidden; text-overflow:ellipsis;
-  }
-  td.wrap { white-space:normal; min-width:140px; word-break:break-word; line-height:1.4; }
-  td:last-child { border-right:none; }
-  tr:hover td { background:#f8faff; }
-
-  .sp-badge { font-size:10px; font-weight:600; color:var(--accent); background:#eff6ff; border-radius:4px; padding:2px 5px; white-space:nowrap; }
-  mark { background:#fef08a; color:#713f12; border-radius:2px; padding:0 1px; }
-
-  .state { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:80px 40px; height:100%; background:var(--surface); color:var(--muted); }
-  .state-icon { font-size:40px; opacity:.2; }
-  .state-title { font-size:15px; font-weight:600; color:var(--dim); }
-  .state-sub { font-size:13px; text-align:center; max-width:300px; line-height:1.6; }
-  .spin { width:24px; height:24px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:sp .8s linear infinite; margin:0 auto; }
-  @keyframes sp { to { transform:rotate(360deg); } }
+  :root { --bg:#f5f7fa;--surface:#fff;--s2:#f0f2f5;--border:#e2e6ed;--accent:#1a56db;--text:#111827;--muted:#6b7280;--dim:#374151;--r:8px; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:13px;background:var(--bg);color:var(--text);}
+  header{height:48px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);flex-shrink:0;}
+  .logo{font-size:16px;font-weight:700;color:var(--accent);letter-spacing:-.3px;white-space:nowrap;}
+  .logo span{font-weight:300;color:var(--muted);}
+  .sep{width:1px;height:20px;background:var(--border);}
+  .hosp{font-size:12px;color:var(--muted);white-space:nowrap;}
+  .badge{background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:2px 10px;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap;margin-left:auto;}
+  .sw{position:relative;flex:1;max-width:420px;}
+  .si{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:6px 28px 6px 30px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:all .2s;}
+  .si:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px rgba(26,86,219,.1);}
+  .si::placeholder{color:var(--muted);}
+  .sico{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;}
+  .sclr{position:absolute;right:7px;top:50%;transform:translateY(-50%);background:var(--muted);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:9px;cursor:pointer;display:none;align-items:center;justify-content:center;}
+  .main{display:grid;grid-template-columns:220px 1fr;height:calc(100vh - 48px);overflow:hidden;}
+  .sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+  .sb-head{padding:8px 12px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0;}
+  .sb-s{padding:8px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .sp-list{flex:1;overflow-y:auto;padding:4px;}
+  .sp-list::-webkit-scrollbar{width:3px;}
+  .sp-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+  .sp-item{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background .12s;gap:6px;border:1px solid transparent;}
+  .sp-item:hover{background:var(--s2);}
+  .sp-item.active{background:#eff6ff;border-color:#bfdbfe;}
+  .sp-item.active .sp-name{color:var(--accent);font-weight:600;}
+  .sp-name{font-size:12px;font-weight:500;color:var(--dim);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sp-cnt{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);background:var(--s2);padding:1px 5px;border-radius:8px;flex-shrink:0;}
+  .sp-item.active .sp-cnt{background:#dbeafe;color:var(--accent);}
+  .content{display:flex;flex-direction:column;overflow:hidden;}
+  .ch{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--surface);flex-shrink:0;min-height:42px;}
+  .ct{font-size:14px;font-weight:600;white-space:nowrap;}
+  .cs{font-size:12px;color:var(--muted);}
+  #ta{flex:1;overflow:auto;}
+  #ta::-webkit-scrollbar{width:5px;height:5px;}
+  #ta::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+  table{border-collapse:collapse;font-size:11.5px;background:var(--surface);width:max-content;min-width:100%;}
+  thead{position:sticky;top:0;z-index:10;}
+  th{background:#f0f4f8;color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px;padding:6px 7px;text-align:left;border-bottom:2px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;}
+  th:last-child{border-right:none;}
+  td{padding:5px 7px;border-bottom:1px solid #f1f5f9;border-right:1px solid #eef0f5;white-space:nowrap;max-width:240px;overflow:hidden;text-overflow:ellipsis;}
+  td.wrap{white-space:normal;min-width:120px;word-break:break-word;line-height:1.35;}
+  td:last-child{border-right:none;}
+  tbody tr:nth-child(even) td{background:#f8fafc;}
+  tbody tr:hover td{background:#eef4ff !important;}
+  .sp-badge{font-size:10px;font-weight:600;color:var(--accent);background:#eff6ff;border-radius:4px;padding:2px 5px;white-space:nowrap;}
+  mark{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px;}
+  .state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:80px 40px;height:100%;background:var(--surface);color:var(--muted);}
+  .state-icon{font-size:40px;opacity:.2;}
+  .state-title{font-size:15px;font-weight:600;color:var(--dim);}
+  .state-sub{font-size:13px;text-align:center;max-width:300px;line-height:1.6;}
+  .spin{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto;}
+  @keyframes sp{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo">Medi<span>Price</span></div>
   <div class="sep"></div>
@@ -96,7 +73,6 @@
   </div>
   <div class="badge" id="totalBadge">Φόρτωση...</div>
 </header>
-
 <div class="main">
   <div class="sidebar">
     <div class="sb-head">🏥 Ειδικότητες</div>
@@ -108,165 +84,172 @@
     </div>
     <div class="sp-list" id="spList"><div style="padding:20px;text-align:center"><div class="spin"></div></div></div>
   </div>
-
   <div class="content">
     <div class="ch" id="cHeader" style="display:none">
       <span class="ct" id="cTitle"></span>
       <span class="cs" id="cSub"></span>
     </div>
     <div id="ta">
-      <div class="state">
-        <div class="state-icon">🏥</div>
-        <div class="state-title">Φόρτωση...</div>
-      </div>
+      <div class="state"><div class="state-icon">🏥</div><div class="state-title">Φόρτωση...</div></div>
     </div>
   </div>
 </div>
-
 <script>
-let data = {};
+let DATA = {};
 let curSheet = null;
+let searchMode = false;
 
 async function init() {
   try {
-    const resp = await fetch('data.json');
-    data = await resp.json();
-    const sheets = Object.keys(data);
-    const totalRows = sheets.reduce((s,k)=>s+data[k].rows.length, 0);
-    document.getElementById('totalBadge').textContent = `${sheets.length} ειδικότητες · ${totalRows} εγγραφές`;
+    const r = await fetch('data.json');
+    DATA = await r.json();
+    const sheets = Object.keys(DATA);
+    const total = sheets.reduce((s,k)=>s+DATA[k].rows.length,0);
+    document.getElementById('totalBadge').textContent = sheets.length+' ειδικότητες · '+total+' εγγραφές';
     renderSidebar();
     welcome();
   } catch(e) {
-    document.getElementById('ta').innerHTML=`<div class="state"><div class="state-icon">⚠️</div><div class="state-title">Σφάλμα φόρτωσης</div><div class="state-sub">${e.message}</div></div>`;
+    document.getElementById('ta').innerHTML = '<div class="state"><div class="state-icon">⚠️</div><div class="state-title">Σφάλμα: '+e.message+'</div></div>';
   }
 }
 
 function welcome() {
-  document.getElementById('cHeader').style.display='none';
-  document.getElementById('ta').innerHTML=`<div class="state">
-    <div class="state-icon">🏥</div>
-    <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
-    <div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div>
-  </div>`;
+  document.getElementById('cHeader').style.display = 'none';
+  document.getElementById('ta').innerHTML = '<div class="state"><div class="state-icon">🏥</div><div class="state-title">Καλώς ήρθατε στο MediPrice</div><div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div></div>';
 }
 
-function renderSidebar(f='') {
+function renderSidebar(f) {
+  f = f || '';
   const el = document.getElementById('spList');
-  const keys = Object.keys(data).filter(k=>k.toLowerCase().includes(f.toLowerCase()));
-  el.innerHTML = keys.map(k=>`
-    <div class="sp-item ${curSheet===k?'active':''}" onclick="showSheet('${k.replace(/'/g,"\\'")}')">
-      <span class="sp-name">${k}</span>
-      <span class="sp-cnt">${data[k].rows.length}</span>
-    </div>`).join('');
+  const keys = Object.keys(DATA).filter(k => k.toLowerCase().includes(f.toLowerCase()));
+  if (!keys.length) { el.innerHTML = '<div style="padding:12px;text-align:center;color:var(--muted);font-size:12px">Δεν βρέθηκε</div>'; return; }
+  el.innerHTML = keys.map(k =>
+    '<div class="sp-item'+(curSheet===k&&!searchMode?' active':'')+'" onclick="showSheet(\''+k.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')">' +
+    '<span class="sp-name">'+k+'</span><span class="sp-cnt">'+DATA[k].rows.length+'</span></div>'
+  ).join('');
 }
 
 function showSheet(name) {
+  // Καθαρισμός αναζήτησης
+  searchMode = false;
+  document.getElementById('gSearch').value = '';
+  document.getElementById('gClr').style.display = 'none';
+
   curSheet = name;
-  document.getElementById('gSearch').value='';
-  document.getElementById('gClr').style.display='none';
   renderSidebar(document.getElementById('spSearch').value);
-  const d = data[name];
-  document.getElementById('cHeader').style.display='flex';
+
+  const d = DATA[name];
+  if (!d) { document.getElementById('ta').innerHTML='<div class="state"><div class="state-title">Δεν βρέθηκαν δεδομένα</div></div>'; return; }
+
+  document.getElementById('cHeader').style.display = 'flex';
   document.getElementById('cTitle').textContent = name;
-  document.getElementById('cSub').textContent = `· ${d.rows.length} εγγραφές`;
-  renderTable(d.headers, d.rows, '');
+  document.getElementById('cSub').textContent = '· ' + d.rows.length + ' εγγραφές';
+
+  renderTable(d.headers, d.rows.map(r=>({row:r})), '');
 }
 
-const hl = (v,q) => {
-  if (!q||!v) return v||'';
-  return String(v).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),m=>`<mark>${m}</mark>`);
-};
+const WRAP = ['ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ','ΕΙΔΟΣ ΠΡΑΞΗΣ','ΠΡΑΞΗ','ΤΙΤΛΟΣ ΕΠΕΜΒΑΣΗΣ','ΠΕΡΙΓΡΑΦΗ',
+              'ΠΑΡΑΤΗΡΗΣΕΙΣ','ΣΧΟΛΙΑ','EXTRA','ΥΛΙΚΑ ΙΔΙΩΤΗ','ΑΠΟΦΑΣΗ ΚΕΣΥ',
+              'ΕΞΕΤΑΣΕΙΣ ΠΑΚΕΤΟΥ','ΠΑΡΑΤΗΡΗΣΕΙΣ - ΠΑΡΑΔΟΧΕΣ','ΥΛΙΚΑ MEDTRONIC'];
 
-// Στήλες που χρειάζονται wrap (μεγάλο κείμενο)
-const WRAP_COLS = ['ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ','ΕΙΔΟΣ ΠΡΑΞΗΣ','ΠΡΑΞΗ','ΤΙΤΛΟΣ ΕΠΕΜΒΑΣΗΣ','ΠΕΡΙΓΡΑΦΗ','ΠΑΡΑΤΗΡΗΣΕΙΣ','ΣΧΟΛΙΑ','EXTRA','ΥΛΙΚΑ ΙΔΙΩΤΗ','ΑΠΟΦΑΣΗ ΚΕΣΥ','ΕΞΕΤΑΣΕΙΣ ΠΑΚΕΤΟΥ','ΠΑΡΑΤΗΡΗΣΕΙΣ - ΠΑΡΑΔΟΧΕΣ'];
+function hl(v, q) {
+  if (!q || !v) return v || '';
+  var esc = q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return String(v).replace(new RegExp(esc,'gi'), function(m){ return '<mark>'+m+'</mark>'; });
+}
 
-function renderTable(headers, rows, query, showSp=false) {
-  if (!rows.length) {
-    document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
+function renderTable(headers, items, query) {
+  if (!items.length) {
+    document.getElementById('ta').innerHTML = '<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
     return;
   }
-
-  const spTh = showSp ? '<th>Ειδικότητα</th>' : '';
-  const thHtml = spTh + headers.map(h=>`<th>${h}</th>`).join('');
-
-  const rowsHtml = rows.map(({sp, row})=>{
-    const spTd = showSp ? `<td><span class="sp-badge">${sp}</span></td>` : '';
-    const cells = row.map((cell,ci)=>{
-      const isWrap = WRAP_COLS.includes(headers[ci]) || String(cell).length > 40;
-      const val = hl(String(cell??''), query);
-      return `<td${isWrap?' class="wrap"':''}>${val}</td>`;
+  var spCol = items[0].sp ? '<th>Ειδικότητα</th>' : '';
+  var thHtml = spCol + headers.map(function(h){ return '<th>'+h+'</th>'; }).join('');
+  var rowsHtml = items.map(function(item) {
+    var spTd = item.sp ? '<td><span class="sp-badge">'+item.sp+'</span></td>' : '';
+    var cells = item.row.map(function(cell, ci) {
+      var isW = WRAP.indexOf(headers[ci]) >= 0 || String(cell).length > 45;
+      return '<td'+(isW?' class="wrap"':'')+'>'+hl(String(cell||''), query)+'</td>';
     }).join('');
-    return `<tr>${spTd}${cells}</tr>`;
+    return '<tr>'+spTd+cells+'</tr>';
   }).join('');
-
-  document.getElementById('ta').innerHTML=`<table><thead><tr>${thHtml}</tr></thead><tbody>${rowsHtml}</tbody></table>`;
+  document.getElementById('ta').innerHTML = '<table><thead><tr>'+thHtml+'</tr></thead><tbody>'+rowsHtml+'</tbody></table>';
 }
 
 function doSearch(query) {
-  if (!query||query.length<2) return;
+  if (!query || query.length < 2) return;
+  searchMode = true;
   curSheet = null;
   renderSidebar(document.getElementById('spSearch').value);
-  document.getElementById('cHeader').style.display='flex';
-  document.getElementById('cTitle').textContent=`"${query}"`;
 
-  const results = [];
-  const q = query.toLowerCase();
-  Object.entries(data).forEach(([sp,d])=>{
-    d.rows.forEach(row=>{
-      if (row.some(c=>String(c).toLowerCase().includes(q))) {
-        results.push({ sp, headers:d.headers, row });
+  var q = query.toLowerCase();
+  var grouped = {};
+  Object.keys(DATA).forEach(function(sp) {
+    var d = DATA[sp];
+    d.rows.forEach(function(row) {
+      if (row.some(function(c){ return String(c).toLowerCase().indexOf(q) >= 0; })) {
+        if (!grouped[sp]) grouped[sp] = { headers: d.headers, items: [] };
+        grouped[sp].items.push({ sp: sp, row: row });
       }
     });
   });
 
-  document.getElementById('cSub').textContent=`· ${results.length} αποτελέσματα`;
+  var total = Object.values(grouped).reduce(function(s,g){ return s+g.items.length; }, 0);
+  document.getElementById('cHeader').style.display = 'flex';
+  document.getElementById('cTitle').textContent = '"' + query + '"';
+  document.getElementById('cSub').textContent = '· ' + total + ' αποτελέσματα';
 
-  if (!results.length) {
-    document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
+  if (!total) {
+    document.getElementById('ta').innerHTML = '<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
     return;
   }
 
-  // Ομαδοποίηση ανά sheet — με σωστά headers
-  const grouped = {};
-  results.forEach(r=>{
-    if (!grouped[r.sp]) grouped[r.sp]=[];
-    grouped[r.sp].push(r);
-  });
-
-  let html = '<div style="padding:8px;display:flex;flex-direction:column;gap:16px">';
-  Object.entries(grouped).forEach(([sp,items])=>{
-    const headers = items[0].headers;
-    const spTh = `<th style="background:#eff6ff;color:var(--accent)">Ειδικότητα</th>`;
-    const thHtml = spTh + headers.map(h=>`<th>${h}</th>`).join('');
-    const rowsHtml = items.map(({row})=>{
-      const spTd = `<td><span class="sp-badge">${sp}</span></td>`;
-      const cells = row.map((cell,ci)=>{
-        const isWrap = WRAP_COLS.includes(headers[ci]) || String(cell).length>40;
-        const val = hl(String(cell??''), query);
-        return `<td${isWrap?' class="wrap"':''}>${val}</td>`;
+  var html = '<div style="padding:8px;display:flex;flex-direction:column;gap:12px">';
+  Object.keys(grouped).forEach(function(sp) {
+    var g = grouped[sp];
+    var spTh = '<th style="background:#eff6ff;color:var(--accent)">Ειδικότητα</th>';
+    var thHtml = spTh + g.headers.map(function(h){ return '<th>'+h+'</th>'; }).join('');
+    var rowsHtml = g.items.map(function(item) {
+      var spTd = '<td><span class="sp-badge">'+sp+'</span></td>';
+      var cells = item.row.map(function(cell, ci) {
+        var isW = WRAP.indexOf(g.headers[ci]) >= 0 || String(cell).length > 45;
+        return '<td'+(isW?' class="wrap"':'')+'>'+hl(String(cell||''), query)+'</td>';
       }).join('');
-      return `<tr>${spTd}${cells}</tr>`;
+      return '<tr>'+spTd+cells+'</tr>';
     }).join('');
-    html += `<table><thead><tr>${thHtml}</tr></thead><tbody>${rowsHtml}</tbody></table>`;
+    html += '<table><thead><tr>'+thHtml+'</tr></thead><tbody>'+rowsHtml+'</tbody></table>';
   });
   html += '</div>';
   document.getElementById('ta').innerHTML = html;
 }
 
-let t;
-document.getElementById('gSearch').addEventListener('input',e=>{
-  const q=e.target.value.trim();
-  document.getElementById('gClr').style.display=q?'flex':'none';
-  clearTimeout(t);
-  if (q.length>=2) t=setTimeout(()=>doSearch(q),350);
-  else if (!q) { curSheet=null; renderSidebar(); welcome(); }
+var searchTimer;
+document.getElementById('gSearch').addEventListener('input', function(e) {
+  var q = e.target.value.trim();
+  document.getElementById('gClr').style.display = q ? 'flex' : 'none';
+  clearTimeout(searchTimer);
+  if (q.length >= 2) {
+    searchTimer = setTimeout(function(){ doSearch(q); }, 350);
+  } else if (!q) {
+    searchMode = false;
+    curSheet = null;
+    renderSidebar();
+    welcome();
+  }
 });
-document.getElementById('gClr').addEventListener('click',()=>{
-  document.getElementById('gSearch').value='';
-  document.getElementById('gClr').style.display='none';
-  curSheet=null; renderSidebar(); welcome();
+
+document.getElementById('gClr').addEventListener('click', function() {
+  document.getElementById('gSearch').value = '';
+  document.getElementById('gClr').style.display = 'none';
+  searchMode = false;
+  curSheet = null;
+  renderSidebar();
+  welcome();
 });
-document.getElementById('spSearch').addEventListener('input',e=>renderSidebar(e.target.value));
+
+document.getElementById('spSearch').addEventListener('input', function(e) {
+  renderSidebar(e.target.value);
+});
 
 init();
 </script>
