@@ -4,14 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MediPrice — Τιμοκατάλογος Mediterraneo</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
   :root {
     --bg:#f5f7fa; --surface:#fff; --s2:#f0f2f5; --border:#e2e6ed;
     --accent:#1a56db; --text:#111827; --muted:#6b7280; --dim:#374151;
-    --green:#059669; --amber:#d97706; --r:8px;
+    --r:8px;
   }
   * { box-sizing:border-box; margin:0; padding:0; }
   html,body { height:100%; overflow:hidden; font-family:'Inter',sans-serif; font-size:13px; background:var(--bg); color:var(--text); }
@@ -28,7 +27,7 @@
   .si:focus { border-color:var(--accent); background:var(--surface); box-shadow:0 0 0 3px rgba(26,86,219,.1); }
   .si::placeholder { color:var(--muted); }
   .sico { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; }
-  .sclr { position:absolute; right:7px; top:50%; transform:translateY(-50%); background:var(--muted); color:#fff; border:none; border-radius:50%; width:16px; height:16px; font-size:9px; cursor:pointer; display:none; align-items:center; justify-content:center; line-height:1; }
+  .sclr { position:absolute; right:7px; top:50%; transform:translateY(-50%); background:var(--muted); color:#fff; border:none; border-radius:50%; width:16px; height:16px; font-size:9px; cursor:pointer; display:none; align-items:center; justify-content:center; }
 
   .main { display:grid; grid-template-columns:220px 1fr; height:calc(100vh - 48px); overflow:hidden; }
 
@@ -55,21 +54,25 @@
   #ta::-webkit-scrollbar { width:5px; height:5px; }
   #ta::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
 
-  table { border-collapse:collapse; font-size:12px; background:var(--surface); }
+  table { border-collapse:collapse; font-size:12px; background:var(--surface); width:max-content; min-width:100%; }
   thead { position:sticky; top:0; z-index:10; }
-
-  /* Αυτόματο πλάτος στήλης βάσει περιεχομένου */
-  table { width:max-content; min-width:100%; }
-
-  th { background:#f8fafc; color:var(--muted); font-weight:600; font-size:10.5px; text-transform:uppercase; letter-spacing:.3px; padding:6px 8px; text-align:left; border-bottom:2px solid var(--border); border-right:1px solid var(--border); white-space:nowrap; }
+  th {
+    background:#f8fafc; color:var(--muted); font-weight:600; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.3px;
+    padding:7px 8px; text-align:left;
+    border-bottom:2px solid var(--border); border-right:1px solid var(--border);
+    white-space:nowrap;
+  }
   th:last-child { border-right:none; }
-
-  td { padding:6px 8px; border-bottom:1px solid #f1f5f9; border-right:1px solid #f5f7fa; white-space:nowrap; }
-  td.wrap { white-space:normal; min-width:160px; max-width:300px; word-break:break-word; line-height:1.4; }
+  td {
+    padding:6px 8px; border-bottom:1px solid #f1f5f9; border-right:1px solid #f5f7fa;
+    white-space:nowrap; max-width:260px; overflow:hidden; text-overflow:ellipsis;
+  }
+  td.wrap { white-space:normal; min-width:140px; word-break:break-word; line-height:1.4; }
   td:last-child { border-right:none; }
   tr:hover td { background:#f8faff; }
 
-  .sp-badge { font-size:10.5px; font-weight:600; color:var(--accent); background:#eff6ff; border-radius:4px; padding:2px 6px; white-space:nowrap; }
+  .sp-badge { font-size:10px; font-weight:600; color:var(--accent); background:#eff6ff; border-radius:4px; padding:2px 5px; white-space:nowrap; }
   mark { background:#fef08a; color:#713f12; border-radius:2px; padding:0 1px; }
 
   .state { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:80px 40px; height:100%; background:var(--surface); color:var(--muted); }
@@ -78,9 +81,6 @@
   .state-sub { font-size:13px; text-align:center; max-width:300px; line-height:1.6; }
   .spin { width:24px; height:24px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:sp .8s linear infinite; margin:0 auto; }
   @keyframes sp { to { transform:rotate(360deg); } }
-
-  .load-bar { position:fixed; top:48px; left:0; right:0; height:3px; background:var(--border); z-index:200; }
-  .load-fill { height:100%; background:var(--accent); width:0; transition:width .3s; }
 </style>
 </head>
 <body>
@@ -96,8 +96,6 @@
   </div>
   <div class="badge" id="totalBadge">Φόρτωση...</div>
 </header>
-
-<div class="load-bar"><div class="load-fill" id="loadFill"></div></div>
 
 <div class="main">
   <div class="sidebar">
@@ -119,113 +117,46 @@
     <div id="ta">
       <div class="state">
         <div class="state-icon">🏥</div>
-        <div class="state-title">Φόρτωση τιμοκαταλόγου...</div>
-        <div class="state-sub">Παρακαλώ περιμένετε</div>
+        <div class="state-title">Φόρτωση...</div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-const EXCEL_URL = 'ΤΙΜΟΚΑΤΑΛΟΓΟΣ 25-05-2026.xlsx';
-let workbook = null;
-let sheetData = {}; // { name: { headers: [], rows: [] } }
+let data = {};
 let curSheet = null;
 
-async function loadExcel() {
+async function init() {
   try {
-    setLoad(20);
-    const resp = await fetch(EXCEL_URL);
-    if (!resp.ok) throw new Error('Δεν βρέθηκε το αρχείο');
-    setLoad(50);
-    const ab = await resp.arrayBuffer();
-    setLoad(70);
-    workbook = XLSX.read(ab, { type:'array', cellDates:true, cellStyles:true });
-    setLoad(90);
-    parseSheets();
-    setLoad(100);
-    setTimeout(()=>document.getElementById('loadFill').style.width='0', 600);
+    const resp = await fetch('data.json');
+    data = await resp.json();
+    const sheets = Object.keys(data);
+    const totalRows = sheets.reduce((s,k)=>s+data[k].rows.length, 0);
+    document.getElementById('totalBadge').textContent = `${sheets.length} ειδικότητες · ${totalRows} εγγραφές`;
     renderSidebar();
-    document.getElementById('totalBadge').textContent = `${workbook.SheetNames.length} ειδικότητες`;
-    showWelcome();
+    welcome();
   } catch(e) {
-    document.getElementById('ta').innerHTML = `<div class="state"><div class="state-icon">⚠️</div><div class="state-title">Σφάλμα φόρτωσης</div><div class="state-sub">${e.message}</div></div>`;
+    document.getElementById('ta').innerHTML=`<div class="state"><div class="state-icon">⚠️</div><div class="state-title">Σφάλμα φόρτωσης</div><div class="state-sub">${e.message}</div></div>`;
   }
 }
 
-function setLoad(p) { document.getElementById('loadFill').style.width = p+'%'; }
-
-function parseSheets() {
-  workbook.SheetNames.forEach(name => {
-    const ws = workbook.Sheets[name];
-
-    // Διαβάζουμε ως array of arrays
-    const raw = XLSX.utils.sheet_to_json(ws, { header:1, defval:'', blankrows:false });
-    if (!raw.length) { sheetData[name] = { headers:[], rows:[] }; return; }
-
-    // Βρες τη header γραμμή: η πρώτη με >=2 non-empty text cells
-    let hRow = 0;
-    for (let i=0; i<Math.min(raw.length,8); i++) {
-      const texts = raw[i].filter(c=>c!=='' && isNaN(c) && String(c).length>0);
-      if (texts.length >= 2) { hRow = i; break; }
-    }
-
-    // Βρες αν υπάρχει 2η header γραμμή (sub-headers)
-    // Κριτήριο: η γραμμή hRow+1 έχει text cells ΚΑΙ η hRow+2 έχει αριθμούς
-    let hRow2 = -1;
-    if (hRow+1 < raw.length && hRow+2 < raw.length) {
-      const nextTexts = raw[hRow+1].filter(c=>c!=='' && isNaN(c)).length;
-      const nextNums = raw[hRow+2].filter(c=>c!=='' && !isNaN(c) && c!==0).length;
-      if (nextTexts >= 2 && nextNums >= 1) hRow2 = hRow+1;
-    }
-
-    // Κατασκευή headers
-    // Για merged cells: το XLSX επαναλαμβάνει την τιμή — ανιχνεύουμε duplicates
-    const h1 = (raw[hRow] || []).map(c=>String(c).trim());
-    const h2 = hRow2>=0 ? (raw[hRow2] || []).map(c=>String(c).trim()) : [];
-
-    // Dedup: αν h1[i] === h1[i-1], είναι merged — βάλε κενό
-    const h1clean = h1.map((v,i) => (i>0 && v===h1[i-1]) ? '' : v);
-    // Αν h2 υπάρχει: συνδύασε h1+h2 για sub-headers
-    let headers = [];
-    const maxCols = Math.max(h1clean.length, h2.length);
-    // Track τελευταίο non-empty h1 για την ομπρέλα
-    let lastParent = '';
-    for (let c=0; c<maxCols; c++) {
-      const top = h1clean[c] || '';
-      const sub = h2[c] || '';
-      if (top) lastParent = top;
-      if (top && sub) headers.push(top + ' ' + sub);
-      else if (!top && sub && lastParent) headers.push(lastParent + ' ' + sub);
-      else if (top) headers.push(top);
-      else if (sub) headers.push(sub);
-      else headers.push('');
-    }
-
-    // Αφαίρεσε trailing κενές στήλες
-    while (headers.length && !headers[headers.length-1]) headers.pop();
-
-    // Data rows
-    const dataStart = hRow2>=0 ? hRow2+1 : hRow+1;
-    const rows = raw.slice(dataStart).map(r => {
-      // Pad/trim στο ίδιο μήκος με headers
-      const out = [];
-      for (let c=0; c<headers.length; c++) out.push(r[c]!==undefined ? r[c] : '');
-      return out;
-    }).filter(r => r.some(c=>c!==''));
-
-    sheetData[name] = { headers, rows };
-  });
+function welcome() {
+  document.getElementById('cHeader').style.display='none';
+  document.getElementById('ta').innerHTML=`<div class="state">
+    <div class="state-icon">🏥</div>
+    <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
+    <div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div>
+  </div>`;
 }
 
 function renderSidebar(f='') {
   const el = document.getElementById('spList');
-  if (!workbook) return;
-  const names = workbook.SheetNames.filter(n=>n.trim().toLowerCase().includes(f.toLowerCase()));
-  el.innerHTML = names.map(n=>`
-    <div class="sp-item ${curSheet===n?'active':''}" onclick="showSheet('${n.replace(/'/g,"\\'")}')">
-      <span class="sp-name">${n.trim()}</span>
-      <span class="sp-cnt">${sheetData[n]?.rows.length||0}</span>
+  const keys = Object.keys(data).filter(k=>k.toLowerCase().includes(f.toLowerCase()));
+  el.innerHTML = keys.map(k=>`
+    <div class="sp-item ${curSheet===k?'active':''}" onclick="showSheet('${k.replace(/'/g,"\\'")}')">
+      <span class="sp-name">${k}</span>
+      <span class="sp-cnt">${data[k].rows.length}</span>
     </div>`).join('');
 }
 
@@ -234,55 +165,56 @@ function showSheet(name) {
   document.getElementById('gSearch').value='';
   document.getElementById('gClr').style.display='none';
   renderSidebar(document.getElementById('spSearch').value);
-  const d = sheetData[name];
-  if (!d) return;
+  const d = data[name];
   document.getElementById('cHeader').style.display='flex';
-  document.getElementById('cTitle').textContent = name.trim();
+  document.getElementById('cTitle').textContent = name;
   document.getElementById('cSub').textContent = `· ${d.rows.length} εγγραφές`;
   renderTable(d.headers, d.rows, '');
 }
 
-function renderTable(headers, rows, query) {
+const hl = (v,q) => {
+  if (!q||!v) return v||'';
+  return String(v).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),m=>`<mark>${m}</mark>`);
+};
+
+// Στήλες που χρειάζονται wrap (μεγάλο κείμενο)
+const WRAP_COLS = ['ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ','ΕΙΔΟΣ ΠΡΑΞΗΣ','ΠΡΑΞΗ','ΤΙΤΛΟΣ ΕΠΕΜΒΑΣΗΣ','ΠΕΡΙΓΡΑΦΗ','ΠΑΡΑΤΗΡΗΣΕΙΣ','ΣΧΟΛΙΑ','EXTRA','ΥΛΙΚΑ ΙΔΙΩΤΗ','ΑΠΟΦΑΣΗ ΚΕΣΥ','ΕΞΕΤΑΣΕΙΣ ΠΑΚΕΤΟΥ','ΠΑΡΑΤΗΡΗΣΕΙΣ - ΠΑΡΑΔΟΧΕΣ'];
+
+function renderTable(headers, rows, query, showSp=false) {
   if (!rows.length) {
     document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
     return;
   }
 
-  const esc = q => q ? q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') : '';
-  const hl = (val, q) => {
-    if (!q || !val) return val;
-    return String(val).replace(new RegExp(esc(q),'gi'), m=>`<mark>${m}</mark>`);
-  };
+  const spTh = showSp ? '<th>Ειδικότητα</th>' : '';
+  const thHtml = spTh + headers.map(h=>`<th>${h}</th>`).join('');
 
-  const thHtml = headers.map(h=>`<th>${String(h).replace(/\n/g,'<br>')}</th>`).join('');
-
-  const rowsHtml = rows.map(row=>{
+  const rowsHtml = rows.map(({sp, row})=>{
+    const spTd = showSp ? `<td><span class="sp-badge">${sp}</span></td>` : '';
     const cells = row.map((cell,ci)=>{
-      const val = String(cell??'');
-      const isDesc = val.length > 35;
-      const display = hl(val, query);
-      return `<td${isDesc?' class="wrap"':''}>${display}</td>`;
+      const isWrap = WRAP_COLS.includes(headers[ci]) || String(cell).length > 40;
+      const val = hl(String(cell??''), query);
+      return `<td${isWrap?' class="wrap"':''}>${val}</td>`;
     }).join('');
-    return `<tr>${cells}</tr>`;
+    return `<tr>${spTd}${cells}</tr>`;
   }).join('');
 
   document.getElementById('ta').innerHTML=`<table><thead><tr>${thHtml}</tr></thead><tbody>${rowsHtml}</tbody></table>`;
 }
 
-function doGlobalSearch(query) {
-  if (!query || query.length<2) return;
+function doSearch(query) {
+  if (!query||query.length<2) return;
   curSheet = null;
   renderSidebar(document.getElementById('spSearch').value);
   document.getElementById('cHeader').style.display='flex';
   document.getElementById('cTitle').textContent=`"${query}"`;
 
   const results = [];
-  workbook.SheetNames.forEach(name=>{
-    const d = sheetData[name];
-    if (!d) return;
+  const q = query.toLowerCase();
+  Object.entries(data).forEach(([sp,d])=>{
     d.rows.forEach(row=>{
-      if (row.some(c=>String(c).toLowerCase().includes(query.toLowerCase()))) {
-        results.push({ sheet:name, headers:d.headers, row });
+      if (row.some(c=>String(c).toLowerCase().includes(q))) {
+        results.push({ sp, headers:d.headers, row });
       }
     });
   });
@@ -294,41 +226,31 @@ function doGlobalSearch(query) {
     return;
   }
 
-  const esc = q=>q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  const hl = (val,q)=>val?String(val).replace(new RegExp(esc(q),'gi'),m=>`<mark>${m}</mark>`):val;
-
-  // Ομαδοποίηση ανά sheet για να δείχνουμε headers ανά ομάδα
+  // Ομαδοποίηση ανά sheet — με σωστά headers
   const grouped = {};
   results.forEach(r=>{
-    if (!grouped[r.sheet]) grouped[r.sheet]=[];
-    grouped[r.sheet].push(r);
+    if (!grouped[r.sp]) grouped[r.sp]=[];
+    grouped[r.sp].push(r);
   });
 
-  let html = '';
-  Object.entries(grouped).forEach(([sheet, items])=>{
+  let html = '<div style="padding:8px;display:flex;flex-direction:column;gap:16px">';
+  Object.entries(grouped).forEach(([sp,items])=>{
     const headers = items[0].headers;
-    const thHtml = `<th style="background:#eff6ff;color:var(--accent)">Ειδικότητα</th>` +
-      headers.map(h=>`<th>${String(h).replace(/\n/g,'<br>')}</th>`).join('');
+    const spTh = `<th style="background:#eff6ff;color:var(--accent)">Ειδικότητα</th>`;
+    const thHtml = spTh + headers.map(h=>`<th>${h}</th>`).join('');
     const rowsHtml = items.map(({row})=>{
+      const spTd = `<td><span class="sp-badge">${sp}</span></td>`;
       const cells = row.map((cell,ci)=>{
-        const val = String(cell??'');
-        const isDesc = val.length>35;
-        return `<td${isDesc?' class="wrap"':''}>${hl(val,query)}</td>`;
+        const isWrap = WRAP_COLS.includes(headers[ci]) || String(cell).length>40;
+        const val = hl(String(cell??''), query);
+        return `<td${isWrap?' class="wrap"':''}>${val}</td>`;
       }).join('');
-      return `<tr><td><span class="sp-badge">${sheet.trim()}</span></td>${cells}</tr>`;
+      return `<tr>${spTd}${cells}</tr>`;
     }).join('');
-    html += `<table style="margin-bottom:16px"><thead><tr>${thHtml}</tr></thead><tbody>${rowsHtml}</tbody></table>`;
+    html += `<table><thead><tr>${thHtml}</tr></thead><tbody>${rowsHtml}</tbody></table>`;
   });
-
-  document.getElementById('ta').innerHTML=`<div style="padding:8px">${html}</div>`;
-}
-
-function showWelcome() {
-  document.getElementById('ta').innerHTML=`<div class="state">
-    <div class="state-icon">🏥</div>
-    <div class="state-title">Καλώς ήρθατε στο MediPrice</div>
-    <div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div>
-  </div>`;
+  html += '</div>';
+  document.getElementById('ta').innerHTML = html;
 }
 
 let t;
@@ -336,18 +258,17 @@ document.getElementById('gSearch').addEventListener('input',e=>{
   const q=e.target.value.trim();
   document.getElementById('gClr').style.display=q?'flex':'none';
   clearTimeout(t);
-  if (q.length>=2) t=setTimeout(()=>doGlobalSearch(q),350);
-  else if (!q) { curSheet=null; renderSidebar(); document.getElementById('cHeader').style.display='none'; showWelcome(); }
+  if (q.length>=2) t=setTimeout(()=>doSearch(q),350);
+  else if (!q) { curSheet=null; renderSidebar(); welcome(); }
 });
 document.getElementById('gClr').addEventListener('click',()=>{
   document.getElementById('gSearch').value='';
   document.getElementById('gClr').style.display='none';
-  curSheet=null; renderSidebar();
-  document.getElementById('cHeader').style.display='none'; showWelcome();
+  curSheet=null; renderSidebar(); welcome();
 });
 document.getElementById('spSearch').addEventListener('input',e=>renderSidebar(e.target.value));
 
-loadExcel();
+init();
 </script>
 </body>
 </html>
