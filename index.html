@@ -199,11 +199,18 @@ function thCls(h){
   return '';
 }
 function colWidth(h){
-  if(h==='ΚΕΝ'||h==='ΚΕΝ/Π.Δ.'||h==='ΚΕΝ (2)') return ' style="width:45px;min-width:45px"';
-  if(NARROW.indexOf(h)>=0) return ' style="width:60px"';
-  if(EOPYY_COLS.indexOf(h)>=0||PRIV_COLS.indexOf(h)>=0) return ' style="width:80px"';
-  if(WRAP.indexOf(h)>=0) return ' style="width:190px"';
-  return ' style="width:100px"';
+  // Μία λέξη ή σύντομα: ΚΕΝ, ΗΜ, ODC, Α/Α, ΒΑ, Α, LUX κλπ
+  var oneWord=['ΚΕΝ','ΚΕΝ/Π.Δ.','ΚΕΝ (2)','ΗΜ','HM','Α/Α','ODC','ΜΕΘ','ΠΑΡΑΜΟΝΗ','REF','ΦΠΑ','ICD10','ΒΑ','Α','LUX','SUITE','ΗΜΕΡΕΣ','ΗΜΕΡΕΣ ΝΟΣΗΛΕΙΑΣ','ΧΡΟΝΟΣ','ΔΩΜΑΤΙΟ'];
+  if(oneWord.indexOf(h)>=0) return ' style="width:50px"';
+  // Τιμές (αριθμοί ~6ψήφιο): 75px
+  if(EOPYY_COLS.indexOf(h)>=0||PRIV_COLS.indexOf(h)>=0) return ' style="width:75px"';
+  // 2 λέξεις (ΝΟΣΗΛΕΙΑ, ΔΙΑΡΚΕΙΑ, κλπ)
+  var twoWord=['ΝΟΣΗΛΕΙΑ ΚΛΙΝΗ ΘΑΛΑΜΟΥ','ΝΟΣΗΛΕΙΑ ΜΑΠ/ΜΕΘ','ΔΙΑΡΚΕΙΑ ΩΡΕΣ','ΗΜ. ΝΟΣ','ΧΕΙΡ. ΧΡΟΝΟΣ','ΧΡΟΝΟΙ Χ/ΓΕΙΟΥ','ΧΡΟΝΟΙ Χ/ΓΕΙΟΥ ΕΝΔΕΙΚΤΙΚΑ','ΩΡΕΣ ΧΕΙΡΟΥΡΓΕΙΟΥ','ΑΜΟΙΒΗ ΑΝΑΙΣΘΗΣΙΟΛΟΓΟΥ'];
+  if(twoWord.indexOf(h)>=0) return ' style="width:70px"';
+  // Κείμενο με wrap
+  if(WRAP.indexOf(h)>=0) return ' style="width:180px"';
+  // Default
+  return ' style="width:90px"';
 }
 function tdClass(h,val){
   if(EOPYY_COLS.indexOf(h)>=0) return ' class="price-val"';
