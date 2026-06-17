@@ -148,9 +148,13 @@ var UNDO_STACK=[];
 var SEL_COL=null;
 
 function pushUndo(){
-  if(!cur||!D[cur]||D[cur].__multi__) return;
-  var d=D[cur];
-  UNDO_STACK.push({sheet:cur,headers:JSON.parse(JSON.stringify(d.headers)),rows:JSON.parse(JSON.stringify(d.rows))});
+  if(!cur||!D[cur]) return;
+  if(D[cur].__multi__){
+    UNDO_STACK.push({sheet:cur,multi:true,tables:JSON.parse(JSON.stringify(D[cur].tables))});
+  } else {
+    var d=D[cur];
+    UNDO_STACK.push({sheet:cur,multi:false,headers:JSON.parse(JSON.stringify(d.headers)),rows:JSON.parse(JSON.stringify(d.rows))});
+  }
   if(UNDO_STACK.length>20) UNDO_STACK.shift();
   document.getElementById('undoBtn').disabled=false;
 }
@@ -159,8 +163,8 @@ function undo(){
   if(!UNDO_STACK.length) return;
   var state=UNDO_STACK.pop();
   if(D[state.sheet]){
-    D[state.sheet].headers=state.headers;
-    D[state.sheet].rows=state.rows;
+    if(state.multi) D[state.sheet].tables=state.tables;
+    else{D[state.sheet].headers=state.headers;D[state.sheet].rows=state.rows;}
     if(cur===state.sheet) showSheet(cur);
     markPending();
   }
@@ -198,6 +202,18 @@ async function sbSave(sheet, headers, rows){
   });
 }
 
+async function sbSaveMulti(sheet){
+  var d=D[sheet]; if(!d||!d.__multi__) return;
+  var existing=await sbGet(sheet);
+  var method=existing?'PATCH':'POST';
+  var url=SB_URL+'/rest/v1/mediprice_sheets'+(existing?'?sheet_name=eq.'+encodeURIComponent(sheet):'');
+  await fetch(url,{
+    method:method,
+    headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+    body:JSON.stringify({sheet_name:sheet,headers:JSON.stringify(d.tables),rows:[],updated_at:new Date().toISOString()})
+  });
+}
+
 function markPending(){
   PENDING=true;
   document.getElementById('saveBtn').style.background='#f59e0b';
@@ -206,10 +222,14 @@ function markPending(){
 }
 
 async function saveAll(){
-  if(!cur||!D[cur]||D[cur].__multi__) return;
-  var d=D[cur];
+  if(!cur||!D[cur]) return;
   document.getElementById('saveBtn').textContent='⏳ Αποθήκευση...';
-  await sbSave(cur, d.headers, d.rows);
+  if(D[cur].__multi__){
+    await sbSaveMulti(cur);
+  } else {
+    var d=D[cur];
+    await sbSave(cur, d.headers, d.rows);
+  }
   PENDING=false;
   document.getElementById('saveBtn').style.background='#059669';
   document.getElementById('saveBtn').textContent='✓ Αποθηκεύτηκε';
@@ -223,7 +243,12 @@ async function saveAll(){
 async function loadSheetFromSB(sheet){
   var d=await sbGet(sheet);
   if(d){
-    if(D[sheet]&&!D[sheet].__multi__){
+    if(D[sheet]&&D[sheet].__multi__&&d.headers){
+      try{
+        var tables=typeof d.headers==='string'?JSON.parse(d.headers):d.headers;
+        if(Array.isArray(tables)) D[sheet].tables=tables;
+      }catch(e){}
+    } else if(D[sheet]&&!D[sheet].__multi__){
       D[sheet].headers=d.headers;
       D[sheet].rows=d.rows;
     }
@@ -261,8 +286,12 @@ function toggleEdit(){
   if(cur) showSheet(cur);
 }
 
-function getCurrentData(){
-  if(!cur||!D[cur]||D[cur].__multi__) return null;
+function getCurrentData(tableIdx){
+  if(!cur||!D[cur]) return null;
+  if(D[cur].__multi__){
+    if(tableIdx===undefined) return null;
+    return D[cur].tables[tableIdx]||null;
+  }
   return D[cur];
 }
 
@@ -330,29 +359,40 @@ function addRow(){
 }
 
 function delRow(){
-  var d=getCurrentData(); if(!d) return;
   var selTr=document.querySelector('#ta tbody tr.sel');
   if(!selTr){alert('Επιλέξτε γραμμή πρώτα!');return;}
   var ri=parseInt(selTr.dataset.ri);
   if(isNaN(ri)) return;
-  if(!confirm('Διαγραφή γραμμής '+ri+'?')) return;
+  if(!confirm('Διαγραφή γραμμής;')) return;
   pushUndo();
-  d.rows.splice(ri,1);
+  if(D[cur].__multi__){
+    var ti=parseInt(selTr.dataset.ti);
+    D[cur].tables[ti].rows.splice(ri,1);
+  } else {
+    var d=getCurrentData(); if(!d) return;
+    d.rows.splice(ri,1);
+  }
   showSheet(cur);
   markPending();
 }
 
 function addColumn(){
-  var d=getCurrentData(); if(!d) return;
   var name=prompt('Όνομα νέας στήλης:');
   if(!name) return;
   pushUndo();
-  if(SEL_COL!==null && SEL_COL<d.headers.length){
-    d.headers.splice(SEL_COL+1,0,name);
-    d.rows.forEach(function(r){r.splice(SEL_COL+1,0,'');});
+  if(D[cur].__multi__){
+    // Βρες ποιος πίνακας είναι επιλεγμένος
+    var selTh=document.querySelector('#ta thead th.col-selected');
+    var ti=selTh?parseInt(selTh.closest('[data-ti]').dataset.ti):0;
+    var t=D[cur].tables[ti];
+    var idx=SEL_COL!==null&&SEL_COL<t.headers.length?SEL_COL+1:t.headers.length;
+    t.headers.splice(idx,0,name);
+    t.rows.forEach(function(r){r.splice(idx,0,'');});
   } else {
-    d.headers.push(name);
-    d.rows.forEach(function(r){r.push('');});
+    var d=getCurrentData(); if(!d) return;
+    var idx2=SEL_COL!==null&&SEL_COL<d.headers.length?SEL_COL+1:d.headers.length;
+    d.headers.splice(idx2,0,name);
+    d.rows.forEach(function(r){r.splice(idx2,0,'');});
   }
   SEL_COL=null;
   showSheet(cur);
@@ -394,7 +434,7 @@ function hl(v,q){
 }
 
 // ── RENDER ────────────────────────────────────────────────
-function buildTH(headers,showSp){
+function buildTH(headers,showSp,tableIdx){
   var s=showSp?'<th style="width:120px">Ειδικότητα<div class="resizer"></div></th>':'';
   return s+headers.map(function(h,hi){
     return '<th class="'+thCls(h).trim()+'" style="width:'+colW(h)+'px" data-hi="'+hi+'">'+fmtH(h)+'<div class="resizer"></div></th>';
@@ -467,14 +507,83 @@ function addEditListeners(headers){
 
 function renderMulti(tables,q){
   var html='<div style="padding:8px;display:flex;flex-direction:column;gap:16px">';
-  tables.forEach(function(t){
-    var th=buildTH(t.headers,false);
-    var rows=buildRows(t.headers,t.rows,false,q);
-    html+='<div><div class="tbl-title">'+t.title+'</div><table><thead><tr>'+th+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+  tables.forEach(function(t,ti){
+    var th=buildTH(t.headers,false,ti);
+    var rows=buildRowsMulti(t.headers,t.rows,q,ti);
+    html+='<div data-ti="'+ti+'"><div class="tbl-title">'+t.title+'</div><table><thead><tr>'+th+'</tr></thead><tbody>'+rows+'</tbody></table>';
+    if(EDIT_MODE) html+='<button class="add-row-btn" onclick="addRowMulti('+ti+')">+ Προσθήκη γραμμής</button>';
+    html+='</div>';
   });
   html+='</div>';
   document.getElementById('ta').innerHTML=html;
   addResizers();
+  if(EDIT_MODE) addEditListenersMulti(tables);
+}
+
+function buildRowsMulti(headers,rows,q,ti){
+  return rows.map(function(row,ri){
+    if(!Array.isArray(row)) return '';
+    if(row[0]&&String(row[0]).startsWith('📌')){
+      return '<tr><td colspan="'+headers.length+'" style="background:#fffbeb;color:#92400e;font-size:12px;padding:6px 8px;font-style:italic;white-space:normal;word-break:break-word;">'+String(row[0]).replace('📌 ','')+'</td></tr>';
+    }
+    var cells=row.map(function(cell,ci){
+      var cls=tdCls(headers[ci],cell);
+      var vs=hl(String(cell||''),q);
+      var title=String(cell||'').length>35&&cls===''?' title="'+String(cell||'').replace(/"/g,'&quot;')+'"':'';
+      return '<td'+cls+title+' data-ri="'+ri+'" data-ci="'+ci+'" data-ti="'+ti+'">'+vs+'</td>';
+    }).join('');
+    return '<tr data-ri="'+ri+'" data-ti="'+ti+'">'+cells+'</tr>';
+  }).join('');
+}
+
+function addEditListenersMulti(tables){
+  // Header edit for multi
+  document.querySelectorAll('[data-ti] thead th[data-hi]').forEach(function(th){
+    var ti=parseInt(th.closest('[data-ti]').dataset.ti);
+    th.addEventListener('click',function(e){
+      if(e.detail>1) return;
+      document.querySelectorAll('#ta thead th').forEach(function(t){t.classList.remove('col-selected');});
+      SEL_COL=parseInt(th.dataset.hi);
+      th.classList.add('col-selected');
+    });
+    th.addEventListener('dblclick',function(e){
+      e.stopPropagation();
+      var hi=parseInt(th.dataset.hi);
+      pushUndo();
+      makeEditable(th,function(nv){
+        tables[ti].headers[hi]=nv;
+        markPending();
+        showSheet(cur);
+      });
+    });
+  });
+  // Cell edit for multi
+  document.querySelectorAll('[data-ti] tbody td[data-ri]').forEach(function(td){
+    td.addEventListener('dblclick',function(e){
+      var ti=parseInt(td.dataset.ti);
+      var ri=parseInt(td.dataset.ri);
+      var ci=parseInt(td.dataset.ci);
+      makeEditable(td,function(nv){
+        tables[ti].rows[ri][ci]=nv;
+        markPending();
+      });
+    });
+  });
+}
+
+function addRowMulti(ti){
+  if(!cur||!D[cur]||!D[cur].__multi__) return;
+  pushUndo();
+  var t=D[cur].tables[ti];
+  var empty=t.headers.map(function(){return '';});
+  var selTr=document.querySelector('[data-ti="'+ti+'"] tbody tr.sel');
+  if(selTr){
+    var ri=parseInt(selTr.dataset.ri);
+    if(!isNaN(ri)) t.rows.splice(ri+1,0,empty);
+    else t.rows.push(empty);
+  } else t.rows.push(empty);
+  showSheet(cur);
+  markPending();
 }
 
 // ── INIT ──────────────────────────────────────────────────
