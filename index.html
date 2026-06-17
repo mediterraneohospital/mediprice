@@ -270,8 +270,25 @@ function makeEditable(el, onSave){
   pushUndo();
   var orig=el.textContent;
   el.classList.add('editing');
-  var inp=document.createElement('input');
-  inp.type='text'; inp.value=orig;
+  var isTh=el.tagName==='TH'||!!el.closest('th');
+  var inp=document.createElement(isTh?'input':'textarea');
+  if(isTh) inp.type='text';
+  inp.value=orig;
+  inp.style.width='100%';
+  inp.style.boxSizing='border-box';
+  inp.style.border='2px solid #1a56db';
+  inp.style.outline='none';
+  inp.style.padding='4px 8px';
+  inp.style.fontSize='13px';
+  inp.style.fontFamily='inherit';
+  inp.style.background='#fff';
+  inp.style.lineHeight='1.4';
+  if(!isTh){
+    inp.style.resize='none';
+    inp.style.overflow='hidden';
+    inp.style.whiteSpace='pre-wrap';
+    inp.style.wordBreak='break-word';
+  }
   el.innerHTML=''; el.appendChild(inp);
   inp.focus(); inp.select();
   if(!isTh){
@@ -289,8 +306,9 @@ function makeEditable(el, onSave){
   }
   inp.addEventListener('blur',done);
   inp.addEventListener('keydown',function(e){
-    if(e.key==='Enter'){e.preventDefault();inp.blur();}
     if(e.key==='Escape'){saved=true;el.classList.remove('editing');el.textContent=orig;}
+    if(isTh&&e.key==='Enter'){e.preventDefault();inp.blur();}
+    if(!isTh&&e.key==='Enter'&&e.ctrlKey){inp.blur();}
     e.stopPropagation();
   });
 }
