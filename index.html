@@ -114,7 +114,7 @@ td.editing input, th.editing input{width:100%;min-width:200px;border:2px solid #
   <button onclick="toggleEdit()" style="background:#374151;border-color:#374151;">✕ Έξοδος</button>
 </div>
 <header>
-  <div class="logo"><span class="m">Medi</span><span class="p">Price</span></div>
+  <div class="logo" onclick="goHome()" style="cursor:pointer"><span class="m">Medi</span><span class="p">Price</span></div>
   <div class="sep"></div>
   <div class="hosp">Τιμοκατάλογος Mediterraneo Hospital</div>
   <div class="sw">
@@ -354,7 +354,18 @@ function fmtH(h){
 }
 function hl(v,q){
   if(!q||!v) return String(v||'');
-  return String(v).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),function(m){return '<mark>'+m+'</mark>';});
+  // Highlight χωρίς να χρειάζονται τόνοι
+  var str=String(v);
+  var norm=str.normalize('NFD').replace(/[̀-ͯ]/g,'');
+  var qn=q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  var esc=qn.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  var result=''; var i=0;
+  norm.replace(new RegExp(esc,'gi'),function(m,offset){
+    result+=str.slice(i,offset)+'<mark>'+str.slice(offset,offset+m.length)+'</mark>';
+    i=offset+m.length;
+  });
+  result+=str.slice(i);
+  return result||str;
 }
 
 // ── RENDER ────────────────────────────────────────────────
@@ -456,6 +467,14 @@ async function init(){
   }
 }
 
+function goHome(){
+  sMode=false; cur=null;
+  document.getElementById('gS').value='';
+  document.getElementById('gC').style.display='none';
+  renderSB();
+  welcome();
+}
+
 function welcome(){
   document.getElementById('cH').style.display='none';
   document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🏥</div><div class="state-title">Καλώς ήρθατε στο MediPrice</div><div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div></div>';
@@ -490,14 +509,15 @@ function showSheet(name){
 function doSearch(q){
   if(!q||q.length<2) return;
   sMode=true; cur=null; renderSB(document.getElementById('spF').value);
-  var ql=q.toLowerCase(), grouped={};
+  var normalize=function(s){return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');};
+  var ql=normalize(q), grouped={};
   Object.keys(D).forEach(function(sp){
     var d=D[sp];
     if(d.__multi__){
       d.tables.forEach(function(t){
         t.rows.forEach(function(row){
           if(!Array.isArray(row)) return;
-          if(t.title.toLowerCase().indexOf(ql)>=0||row.some(function(c){return String(c).toLowerCase().indexOf(ql)>=0;})){
+          if(normalize(t.title).indexOf(ql)>=0||row.some(function(c){return normalize(String(c)).indexOf(ql)>=0;})){
             if(!grouped[sp]) grouped[sp]={headers:t.headers,items:[]};
             grouped[sp].items.push(row);
           }
@@ -507,7 +527,7 @@ function doSearch(q){
       if(!d.rows) return;
       d.rows.forEach(function(row){
         if(!Array.isArray(row)) return;
-        if(row.some(function(c){return String(c).toLowerCase().indexOf(ql)>=0;})){
+        if(row.some(function(c){return normalize(String(c)).indexOf(ql)>=0;})){
           if(!grouped[sp]) grouped[sp]={headers:d.headers,items:[]};
           grouped[sp].items.push(row);
         }
