@@ -39,10 +39,10 @@ header{height:48px;background:var(--sur);border-bottom:1px solid var(--brd);disp
 .ch{padding:8px 14px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:10px;background:var(--sur);flex-shrink:0;min-height:42px;}
 .ct{font-size:14px;font-weight:600;white-space:nowrap;}
 .cs{font-size:12px;color:var(--mut);}
-#ta{flex:1;overflow:auto;}
+#ta{flex:1;overflow:auto;display:block;}
 #ta::-webkit-scrollbar{width:5px;height:5px;}
 #ta::-webkit-scrollbar-thumb{background:var(--brd);border-radius:3px;}
-table{border-collapse:collapse;font-size:13px;background:var(--sur);table-layout:fixed;width:max-content;}
+table{border-collapse:collapse;font-size:13px;background:var(--sur);table-layout:fixed;width:max-content;max-width:none;}
 thead{position:sticky;top:0;z-index:10;}
 th{background:#eef1f6;color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.3px;padding:6px 8px;text-align:left;border-bottom:2px solid var(--brd);border-right:1px solid var(--brd);white-space:normal;word-break:break-word;vertical-align:top;position:relative;}
 th:last-child{border-right:none;}
@@ -68,6 +68,23 @@ mark{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px;}
 @keyframes sp{to{transform:rotate(360deg);}}
 .resizer{position:absolute;right:0;top:0;width:6px;height:100%;cursor:col-resize;z-index:2;}
 .resizer:hover{background:rgba(26,86,219,.3);}
+.edit-btn{position:fixed;bottom:20px;right:20px;background:#1e40af;color:#fff;border:none;border-radius:50px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:1000;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:8px;}
+.edit-btn:hover{background:#1a56db;}
+.edit-btn.active{background:#059669;}
+.edit-mode td.editable{cursor:cell;}
+.edit-mode td.editable:hover{background:#fef9c3!important;outline:2px solid #f59e0b;}
+td.editing{padding:0!important;background:#fff!important;}
+td.editing input{width:100%;height:100%;border:2px solid #1a56db;outline:none;padding:4px 8px;font-size:13px;font-family:'Inter',sans-serif;background:#fff;min-height:30px;}
+.save-indicator{position:fixed;bottom:70px;right:20px;background:#059669;color:#fff;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;z-index:1000;display:none;animation:fadeout 2s forwards;}
+@keyframes fadeout{0%{opacity:1}80%{opacity:1}100%{opacity:0}}
+.auth-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:center;justify-content:center;}
+.auth-box{background:#fff;border-radius:12px;padding:32px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.auth-box h2{font-size:18px;font-weight:700;margin-bottom:8px;}
+.auth-box p{font-size:13px;color:#6b7280;margin-bottom:20px;}
+.auth-box input{width:100%;border:1px solid #e2e6ed;border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;}
+.auth-box input:focus{border-color:#1a56db;box-shadow:0 0 0 3px rgba(26,86,219,.1);}
+.auth-box button{width:100%;background:#1e40af;color:#fff;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
+.auth-box .err{color:#e53e3e;font-size:12px;margin-top:8px;display:none;}
 .tbl-title{background:#1e40af;color:#fff;font-size:12px;font-weight:600;padding:6px 10px;letter-spacing:.3px;}
 #tooltip{position:fixed;background:#1f2937;color:#fff;padding:6px 10px;border-radius:6px;font-size:12px;max-width:340px;white-space:normal;word-break:break-word;z-index:9999;pointer-events:none;line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,.25);display:none;}
 </style>
@@ -99,6 +116,8 @@ mark{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px;}
     <div id="ta"><div class="state"><div class="spin"></div></div></div>
   </div>
 </div>
+<button class="edit-btn" id="editBtn" onclick="toggleEdit()">✏️ Λειτουργία Επεξεργασίας</button>
+<div class="save-indicator" id="saveInd">✓ Αποθηκεύτηκε</div>
 <script>
 var D={}, cur=null, sMode=false;
 
@@ -113,11 +132,169 @@ function rowCount(d){
   return d.rows.length;
 }
 
+var EDIT_MODE=false;
+var EDIT_PASS='mediprice2026';
+var SB_URL='https://odtbtugzilxsfqxlpofq.supabase.co';
+var SB_KEY='sb_publishable_ch-7C1ihpZRrxEhXFqV1xA_hXPwq61S';
+var EDITS={};
+
+// Load edits from Supabase
+async function loadEdits(){
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/mediprice_edits?select=*',{
+      headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}
+    });
+    var data=await r.json();
+    data.forEach(function(e){
+      var key=e.sheet+'|'+e.row_index+'|'+e.col_index;
+      EDITS[key]=e.value;
+    });
+  }catch(err){console.log('Edits load error:',err);}
+}
+
+// Apply edits to data
+function applyEdits(){
+  Object.keys(D).forEach(function(sheet){
+    var d=D[sheet];
+    if(d.__multi__){
+      d.tables.forEach(function(t){
+        t.rows.forEach(function(row,ri){
+          if(!Array.isArray(row)) return;
+          row.forEach(function(cell,ci){
+            var key=sheet+'|'+ri+'|'+ci;
+            if(EDITS[key]!==undefined) row[ci]=EDITS[key];
+          });
+        });
+      });
+    } else {
+      d.rows.forEach(function(row,ri){
+        if(!Array.isArray(row)) return;
+        row.forEach(function(cell,ci){
+          var key=sheet+'|'+ri+'|'+ci;
+          if(EDITS[key]!==undefined) row[ci]=EDITS[key];
+        });
+      });
+    }
+  });
+}
+
+async function saveEdit(sheet,ri,ci,val){
+  // Upsert
+  var key=sheet+'|'+ri+'|'+ci;
+  EDITS[key]=val;
+  try{
+    await fetch(SB_URL+'/rest/v1/mediprice_edits',{
+      method:'POST',
+      headers:{
+        apikey:SB_KEY,
+        Authorization:'Bearer '+SB_KEY,
+        'Content-Type':'application/json',
+        Prefer:'resolution=merge-duplicates'
+      },
+      body:JSON.stringify({sheet:sheet,row_index:ri,col_index:ci,value:val})
+    });
+    showSaved();
+  }catch(err){console.log('Save error:',err);}
+}
+
+function showSaved(){
+  var el=document.getElementById('saveInd');
+  el.style.display='block';
+  setTimeout(function(){el.style.display='none';},2000);
+}
+
+function toggleEdit(){
+  if(!EDIT_MODE){
+    // Show auth
+    showAuth();
+  } else {
+    EDIT_MODE=false;
+    document.body.classList.remove('edit-mode');
+    document.getElementById('editBtn').textContent='✏️ Λειτουργία Επεξεργασίας';
+    document.getElementById('editBtn').classList.remove('active');
+    // Re-render current sheet
+    if(cur) showSheet(cur);
+  }
+}
+
+function showAuth(){
+  var overlay=document.createElement('div');
+  overlay.className='auth-overlay';
+  overlay.id='authOverlay';
+  overlay.innerHTML='<div class="auth-box">'
+    +'<h2>🔐 Επεξεργασία</h2>'
+    +'<p>Εισάγετε τον κωδικό πρόσβασης για να ενεργοποιήσετε τη λειτουργία επεξεργασίας.</p>'
+    +'<input type="password" id="authPass" placeholder="Κωδικός..." onkeydown="if(event.key==='Enter')checkAuth()">'
+    +'<button onclick="checkAuth()">Είσοδος</button>'
+    +'<div class="err" id="authErr">Λάθος κωδικός!</div>'
+    +'</div>';
+  document.body.appendChild(overlay);
+  setTimeout(function(){document.getElementById('authPass').focus();},100);
+}
+
+function checkAuth(){
+  var pass=document.getElementById('authPass').value;
+  if(pass===EDIT_PASS){
+    document.getElementById('authOverlay').remove();
+    EDIT_MODE=true;
+    document.body.classList.add('edit-mode');
+    document.getElementById('editBtn').innerHTML='✅ Επεξεργασία ΕΝΕΡΓΗ';
+    document.getElementById('editBtn').classList.add('active');
+    if(cur) showSheet(cur);
+  } else {
+    document.getElementById('authErr').style.display='block';
+    document.getElementById('authPass').value='';
+    document.getElementById('authPass').focus();
+  }
+}
+
+// Make cell editable on click in edit mode
+document.getElementById('ta').addEventListener('dblclick',function(e){
+  if(!EDIT_MODE) return;
+  var td=e.target.closest('td');
+  if(!td||td.classList.contains('editing')) return;
+  var tr=td.closest('tr');
+  if(!tr) return;
+  var ri=tr.dataset.ri;
+  var ci=td.dataset.ci;
+  var sheet=td.dataset.sheet;
+  if(ri===undefined||ci===undefined) return;
+
+  var origVal=td.textContent;
+  td.classList.add('editing');
+  var inp=document.createElement('input');
+  inp.type='text';
+  inp.value=origVal;
+  td.innerHTML='';
+  td.appendChild(inp);
+  inp.focus();
+  inp.select();
+
+  function save(){
+    var newVal=inp.value;
+    td.classList.remove('editing');
+    td.textContent=newVal;
+    if(newVal!==origVal){
+      saveEdit(sheet,parseInt(ri),parseInt(ci),newVal);
+      // Update data in memory
+      var key=sheet+'|'+ri+'|'+ci;
+      EDITS[key]=newVal;
+    }
+  }
+  inp.addEventListener('blur',save);
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter') inp.blur();
+    if(e.key==='Escape'){inp.value=origVal;inp.blur();}
+  });
+});
+
 async function init(){
   try{
     var r=await fetch('data.json'); D=await r.json();
     var ks=Object.keys(D), total=ks.reduce(function(s,k){return s+rowCount(D[k]);},0);
     document.getElementById('badge').textContent=ks.length+' ειδικότητες · '+total+' εγγραφές';
+    await loadEdits();
+    applyEdits();
     renderSB(); welcome();
   }catch(e){
     document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">⚠️</div><div class="state-title">'+e.message+'</div></div>';
@@ -219,20 +396,22 @@ function buildTH(headers, showSp){
 }
 
 function buildRows(headers, items, showSp, q){
-  return items.map(function(item){
+  return items.map(function(item,ri){
     if(!Array.isArray(item.row)) return '';
     if(item.row[0]&&String(item.row[0]).startsWith('📌')){
       var cs=headers.length+(showSp?1:0);
       return '<tr><td colspan="'+cs+'" style="background:#fffbeb;color:#92400e;font-size:12px;padding:6px 8px;font-style:italic;white-space:normal;word-break:break-word;">'+String(item.row[0]).replace('📌 ','')+'</td></tr>';
     }
+    var sheetName=item.sp||cur||'';
     var sp=showSp?'<td><span class="spbadge">'+item.sp+'</span></td>':'';
     var cells=item.row.map(function(cell,ci){
       var cls=tdCls(headers[ci],cell);
       var vs=hl(String(cell||''),q);
       var title=String(cell||'').length>35&&WCOLS.indexOf(headers[ci])<0&&ECOLS.indexOf(headers[ci])<0&&PCOLS.indexOf(headers[ci])<0?' title="'+String(cell||'').replace(/"/g,'&quot;')+'"':'';
-      return '<td'+cls+title+'>'+vs+'</td>';
+      var editAttr=EDIT_MODE?' class="'+(cls?cls.replace('class="','').replace('"',''):'')+' editable" data-ci="'+ci+'" data-sheet="'+(item.sp||cur||'')+'"':cls;
+      return '<td'+editAttr+title+'>'+vs+'</td>';
     }).join('');
-    return '<tr>'+sp+cells+'</tr>';
+    return '<tr data-ri="'+ri+'" data-sheet="'+(item.sp||cur||'')+'">'+sp+cells+'</tr>';
   }).join('');
 }
 
