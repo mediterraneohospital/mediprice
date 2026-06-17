@@ -86,7 +86,7 @@ mark{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px;}
 td.editing, th.editing{padding:0!important;overflow:visible!important;}
 td.editing input, th.editing input{width:100%;height:100%;border:2px solid #1a56db;outline:none;padding:4px 8px;font-size:13px;font-family:inherit;background:#fff;min-height:28px;min-width:60px;}
 .row-actions{display:none;position:absolute;left:-28px;top:50%;transform:translateY(-50%);gap:2px;}
-.edit-mode tr{position:relative;}
+.edit-mode tbody tr{position:relative;}
 .edit-mode tr:hover .row-actions{display:flex;}
 .row-actions button{width:22px;height:22px;border:none;border-radius:4px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;padding:0;}
 .row-actions .ins{background:#dbeafe;color:#1a56db;}
@@ -106,6 +106,7 @@ td.editing input, th.editing input{width:100%;height:100%;border:2px solid #1a56
   <span style="opacity:.7;font-size:11px">Διπλό κλικ σε κελί/header για επεξεργασία</span>
   <div class="spacer"></div>
   <button onclick="addColumn()">+ Στήλη</button>
+  <button id="saveBtn" onclick="saveAll()" style="background:#1a56db;">💾 Αποθήκευση</button>
   <button onclick="toggleEdit()" style="background:#e53e3e;border-color:#e53e3e;">✕ Έξοδος</button>
 </div>
 <header>
@@ -138,6 +139,7 @@ var D={}, cur=null, sMode=false, EDIT_MODE=false;
 var SB_URL='https://odtbtugzilxsfqxlpofq.supabase.co';
 var SB_KEY='sb_publishable_ch-7C1ihpZRrxEhXFqV1xA_hXPwq61S';
 var EDIT_PASS='mediterraneo';
+var PENDING=false;
 
 var ECOLS=['ΕΟΠΥΥ ΒΑ3','ΕΟΠΥΥ ΒΑ','ΕΟΠΥΥ ΒΑ3 2026','ΕΟΠΥΥ ΒΑ 2026','ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ ΜΕ ΦΠΑ 24%','ΕΟΠΥΥ ΒΑ ΜΕ ΦΠΑ','ODC ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ODC ΕΟΠΥΥ ΜΕ ΦΠΑ','ΒΑ ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ΒΑ ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ Α','ΤΕΛΙΚΟΣ ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ','ΕΟΠΥΥ 2026','ΒΑ NET','Α NET','LUX NET','SUITE NET','ΕΟΠΥΥ ΚΛΙΝΙΚΗ','ΕΟΠΥΥ ΑΝΑΙΣΘ.'];
 var PCOLS=['ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ ΒΑ','ΙΔΙΩΤΗΣ ΒΑ3 2026','ΙΔΙΩΤΗΣ ΒΑ 2026','ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ 24%','ΙΔΙΩΤΗΣ ΒΑ ΜΕ ΦΠΑ','ODC ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ','ODC ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΒΑ ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ','ΒΑ ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΙΔΙΩΤΗΣ Α','ΙΔΙΩΤΗΣ','ΙΔΙΩΤΗΣ 2026','ΒΑ ΜΕ ΦΠΑ','Α ΜΕ ΦΠΑ','LUX ΜΕ ΦΠΑ','SUITE ΜΕ ΦΠΑ','ODC ΜΕ ΦΠΑ','ΒΑ','Α','LUX','SUITE','ODC','ΙΔΙΩΤΗΣ ΚΛΙΝΙΚΗ','ΙΔΙΩΤΗΣ ΑΝΑΙΣΘ.','ΤΟΠΙΚΗ','ΜΕΘΗ','ΓΕΝΙΚΗ'];
@@ -168,7 +170,26 @@ async function sbSave(sheet, headers, rows){
     headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
     body:JSON.stringify({sheet_name:sheet,headers:headers,rows:rows,updated_at:new Date().toISOString()})
   });
-  showNotice('✓ Αποθηκεύτηκε');
+}
+
+function markPending(){
+  PENDING=true;
+  document.getElementById('saveBtn').style.background='#f59e0b';
+  document.getElementById('saveBtn').textContent='💾 Αποθήκευση (εκκρεμεί)';
+}
+
+async function saveAll(){
+  if(!cur||!D[cur]||D[cur].__multi__) return;
+  var d=D[cur];
+  document.getElementById('saveBtn').textContent='⏳ Αποθήκευση...';
+  await markPending();
+  PENDING=false;
+  document.getElementById('saveBtn').style.background='#059669';
+  document.getElementById('saveBtn').textContent='✓ Αποθηκεύτηκε';
+  setTimeout(function(){
+    document.getElementById('saveBtn').style.background='';
+    document.getElementById('saveBtn').textContent='💾 Αποθήκευση';
+  },2000);
 }
 
 async function loadSheetFromSB(sheet){
@@ -230,7 +251,7 @@ function makeEditable(el, onSave){
     var nv=inp.value;
     el.classList.remove('editing');
     el.textContent=nv;
-    if(nv!==orig) onSave(nv);
+    if(nv!==orig){onSave(nv); markPending();}
   }
   inp.addEventListener('blur',done);
   inp.addEventListener('keydown',function(e){
@@ -246,7 +267,7 @@ function addRow(afterIdx){
   if(afterIdx===undefined) d.rows.push(empty);
   else d.rows.splice(afterIdx+1,0,empty);
   showSheet(cur);
-  sbSave(cur,d.headers,d.rows);
+  markPending();
 }
 
 function delRow(idx){
@@ -254,7 +275,7 @@ function delRow(idx){
   if(!confirm('Διαγραφή γραμμής;')) return;
   d.rows.splice(idx,1);
   showSheet(cur);
-  sbSave(cur,d.headers,d.rows);
+  markPending();
 }
 
 function addColumn(){
@@ -264,7 +285,7 @@ function addColumn(){
   d.headers.push(name);
   d.rows.forEach(function(r){r.push('');});
   showSheet(cur);
-  sbSave(cur,d.headers,d.rows);
+  markPending();
 }
 
 // ── COLWIDTH ──────────────────────────────────────────────
@@ -336,7 +357,7 @@ function addEditListeners(headers){
       var d=getCurrentData(); if(!d) return;
       makeEditable(th.querySelector('span')||th,function(nv){
         d.headers[hi]=nv;
-        sbSave(cur,d.headers,d.rows);
+        markPending();
         showSheet(cur);
       });
     });
@@ -349,7 +370,7 @@ function addEditListeners(headers){
       var d=getCurrentData(); if(!d) return;
       makeEditable(td,function(nv){
         d.rows[ri][ci]=nv;
-        sbSave(cur,d.headers,d.rows);
+        markPending();
       });
     });
   });
@@ -450,7 +471,6 @@ function doSearch(q){
     var g=grouped[sp];
     var th='<th style="width:120px;background:#eff6ff;color:var(--acc)">Ειδικότητα<div class="resizer"></div></th>'+g.headers.map(function(h){return '<th class="'+thCls(h).trim()+'" style="width:'+colW(h)+'px">'+fmtH(h)+'<div class="resizer"></div></th>';}).join('');
     var rows=g.items.map(function(row){
-      var sp='<td><span class="spbadge">'+sp+'</span></td>';
       var cells=row.map(function(cell,ci){var cls=tdCls(g.headers[ci],cell);return '<td'+cls+'>'+hl(String(cell||''),q)+'</td>';}).join('');
       return '<tr><td><span class="spbadge">'+sp+'</span></td>'+cells+'</tr>';
     }).join('');
