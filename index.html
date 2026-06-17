@@ -48,8 +48,8 @@ th{background:#eef1f6;color:var(--mut);font-weight:600;font-size:11px;text-trans
 th:last-child{border-right:none;}
 th.ec{background:#f0fdf4;color:#166534;}
 th.pc{background:#eff6ff;color:#1e40af;}
-td{padding:5px 8px;border-bottom:1px solid #f1f5f9;border-right:1px solid #eef0f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-td.wrap{white-space:normal;word-break:break-word;line-height:1.4;}
+td{padding:5px 8px;border-bottom:1px solid #f1f5f9;border-right:1px solid #eef0f5;white-space:normal;word-break:break-word;line-height:1.4;vertical-align:top;}
+td.wrap{white-space:normal;word-break:break-word;line-height:1.4;} /* same as td */
 td.ev{background:#f0fdf4;font-weight:600;color:#166534;text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
 td.pv{background:#eff6ff;font-weight:600;color:#1e40af;text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
 td:last-child{border-right:none;}
@@ -84,7 +84,7 @@ mark{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px;}
 .edit-mode th:hover{background:#dbeafe;}
 .edit-mode td{cursor:cell;}
 td.editing, th.editing{padding:0!important;overflow:visible!important;}
-td.editing input, th.editing input{width:100%;height:100%;border:2px solid #1a56db;outline:none;padding:4px 8px;font-size:13px;font-family:inherit;background:#fff;min-height:28px;min-width:60px;}
+td.editing input, th.editing input{width:100%;min-width:200px;border:2px solid #1a56db;outline:none;padding:4px 8px;font-size:13px;font-family:inherit;background:#fff;min-height:28px;position:relative;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.15);}
 .row-actions{display:none;position:absolute;left:-28px;top:50%;transform:translateY(-50%);gap:2px;}
 .edit-mode tbody tr{position:relative;}
 .edit-mode tr:hover .row-actions{display:flex;}
@@ -207,12 +207,12 @@ async function saveAll(){
   if(!cur||!D[cur]||D[cur].__multi__) return;
   var d=D[cur];
   document.getElementById('saveBtn').textContent='⏳ Αποθήκευση...';
-  await markPending();
+  await sbSave(cur, d.headers, d.rows);
   PENDING=false;
   document.getElementById('saveBtn').style.background='#059669';
   document.getElementById('saveBtn').textContent='✓ Αποθηκεύτηκε';
   setTimeout(function(){
-    document.getElementById('saveBtn').style.background='';
+    document.getElementById('saveBtn').style.background='#1a56db';
     document.getElementById('saveBtn').textContent='💾 Αποθήκευση';
   },2000);
 }
