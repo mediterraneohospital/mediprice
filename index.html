@@ -81,6 +81,7 @@ mark{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px;}
 .edit-btn{position:fixed;bottom:60px;right:20px;background:#1e40af;color:#fff;border:none;border-radius:50px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:600;font-family:inherit;}
 .edit-btn.active{background:#059669;}
 .edit-mode th{cursor:pointer;}
+.edit-mode th.col-selected{background:#dbeafe!important;color:#1a56db!important;outline:2px solid #1a56db;}
 .edit-mode th:hover{background:#dbeafe;}
 .edit-mode td{cursor:cell;}
 td.editing, th.editing{padding:0!important;overflow:visible!important;}
@@ -397,10 +398,17 @@ function renderTbl(headers,rows,showSp,q){
 function addEditListeners(headers){
   // Header edit
   document.querySelectorAll('thead th[data-hi]').forEach(function(th){
+    th.addEventListener('click',function(e){
+      if(e.detail>1) return;
+      document.querySelectorAll('#ta thead th').forEach(function(t){t.classList.remove('col-selected');});
+      SEL_COL=parseInt(th.dataset.hi);
+      th.classList.add('col-selected');
+    });
     th.addEventListener('dblclick',function(e){
+      e.stopPropagation();
       var hi=parseInt(th.dataset.hi);
       var d=getCurrentData(); if(!d) return;
-      makeEditable(th.querySelector('span')||th,function(nv){
+      makeEditable(th,function(nv){
         d.headers[hi]=nv;
         markPending();
         showSheet(cur);
