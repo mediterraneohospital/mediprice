@@ -201,7 +201,8 @@ async function sbSave(sheet, headers, rows){
 function markPending(){
   PENDING=true;
   document.getElementById('saveBtn').style.background='#f59e0b';
-  document.getElementById('saveBtn').textContent='💾 Αποθήκευση (εκκρεμεί)';
+  document.getElementById('saveBtn').style.borderColor='#f59e0b';
+  document.getElementById('saveBtn').textContent='⚠️ Αποθήκευση εκκρεμεί';
 }
 
 async function saveAll(){
@@ -213,7 +214,8 @@ async function saveAll(){
   document.getElementById('saveBtn').style.background='#059669';
   document.getElementById('saveBtn').textContent='✓ Αποθηκεύτηκε';
   setTimeout(function(){
-    document.getElementById('saveBtn').style.background='#1a56db';
+    document.getElementById('saveBtn').style.background='';
+    document.getElementById('saveBtn').style.borderColor='';
     document.getElementById('saveBtn').textContent='💾 Αποθήκευση';
   },2000);
 }
@@ -272,6 +274,11 @@ function makeEditable(el, onSave){
   inp.type='text'; inp.value=orig;
   el.innerHTML=''; el.appendChild(inp);
   inp.focus(); inp.select();
+  if(!isTh){
+    inp.style.height='auto';
+    inp.style.height=Math.max(inp.scrollHeight,28)+'px';
+    inp.addEventListener('input',function(){inp.style.height='auto';inp.style.height=Math.max(inp.scrollHeight,28)+'px';});
+  }
   var saved=false;
   function done(){
     if(saved) return; saved=true;
