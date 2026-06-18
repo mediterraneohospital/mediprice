@@ -146,6 +146,7 @@ var EDIT_PASS='mediterraneo';
 var PENDING=false;
 var UNDO_STACK=[];
 var SEL_COL=null;
+var COL_WIDTHS={}; // { sheetName: { headerName: px } }
 
 function pushUndo(){
   if(!cur||!D[cur]) return;
@@ -195,11 +196,23 @@ async function sbSave(sheet, headers, rows){
   var existing=await sbGet(sheet);
   var method=existing?'PATCH':'POST';
   var url=SB_URL+'/rest/v1/mediprice_sheets'+(existing?'?sheet_name=eq.'+encodeURIComponent(sheet):'');
-  await fetch(url,{
+  var payload={sheet_name:sheet,headers:headers,rows:rows,updated_at:new Date().toISOString()};
+  if(COL_WIDTHS[sheet]) payload.col_widths=COL_WIDTHS[sheet];
+  var resp=await fetch(url,{
     method:method,
     headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
-    body:JSON.stringify({sheet_name:sheet,headers:headers,rows:rows,updated_at:new Date().toISOString()})
+    body:JSON.stringify(payload)
   });
+  // Αν αποτύχει λόγω missing col_widths column, δοκίμασε χωρίς αυτό
+  if(!resp.ok && COL_WIDTHS[sheet]){
+    delete payload.col_widths;
+    await fetch(url,{
+      method:method,
+      headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+      body:JSON.stringify(payload)
+    });
+    showNotice('⚠️ Τα πλάτη στηλών χρειάζονται migration DB');
+  }
 }
 
 async function sbSaveMulti(sheet){
@@ -207,11 +220,22 @@ async function sbSaveMulti(sheet){
   var existing=await sbGet(sheet);
   var method=existing?'PATCH':'POST';
   var url=SB_URL+'/rest/v1/mediprice_sheets'+(existing?'?sheet_name=eq.'+encodeURIComponent(sheet):'');
-  await fetch(url,{
+  var payload={sheet_name:sheet,headers:JSON.stringify(d.tables),rows:[],updated_at:new Date().toISOString()};
+  if(COL_WIDTHS[sheet]) payload.col_widths=COL_WIDTHS[sheet];
+  var resp=await fetch(url,{
     method:method,
     headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
-    body:JSON.stringify({sheet_name:sheet,headers:JSON.stringify(d.tables),rows:[],updated_at:new Date().toISOString()})
+    body:JSON.stringify(payload)
   });
+  if(!resp.ok && COL_WIDTHS[sheet]){
+    delete payload.col_widths;
+    await fetch(url,{
+      method:method,
+      headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+      body:JSON.stringify(payload)
+    });
+    showNotice('⚠️ Τα πλάτη στηλών χρειάζονται migration DB');
+  }
 }
 
 function markPending(){
@@ -251,6 +275,10 @@ async function loadSheetFromSB(sheet){
     } else if(D[sheet]&&!D[sheet].__multi__){
       D[sheet].headers=d.headers;
       D[sheet].rows=d.rows;
+    }
+    // Load saved column widths
+    if(d.col_widths && typeof d.col_widths==='object'){
+      COL_WIDTHS[sheet]=d.col_widths;
     }
     return true;
   }
@@ -401,6 +429,7 @@ function addColumn(){
 
 // ── COLWIDTH ──────────────────────────────────────────────
 function colW(h){
+  if(cur && COL_WIDTHS[cur] && COL_WIDTHS[cur][h]!==undefined) return COL_WIDTHS[cur][h];
   var W={'ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ':187,'ΠΕΡΙΓΡΑΦΗ':187,'ΕΙΔΟΣ ΠΡΑΞΗΣ':187,'ΠΡΑΞΗ':187,'ΤΙΤΛΟΣ ΕΠΕΜΒΑΣΗΣ':187,'ΠΑΡΑΤΗΡΗΣΕΙΣ':180,'ΣΧΟΛΙΑ':180,'EXTRA':180,'ΥΛΙΚΑ ΙΔΙΩΤΗ':250,'ΑΠΟΦΑΣΗ ΚΕΣΥ':180,'ΕΞΕΤΑΣΕΙΣ ΠΑΚΕΤΟΥ':180,'ΠΑΡΑΤΗΡΗΣΕΙΣ - ΠΑΡΑΔΟΧΕΣ':180,'ΥΛΙΚΑ MEDTRONIC':250,'ΥΛΙΚΟ':250,'ΚΑΤΗΓΟΡΙΑ':180,'ΥΠΟΚΑΤΗΓΟΡΙΑ':180,'ΙΔΙΩΤΗΣ ΒΑ3':75,'ΙΔΙΩΤΗΣ ΒΑ':75,'ΙΔΙΩΤΗΣ ΒΑ3 2026':75,'ΙΔΙΩΤΗΣ ΒΑ 2026':75,'ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ':75,'ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ 24%':75,'ΙΔΙΩΤΗΣ ΒΑ ΜΕ ΦΠΑ':75,'ODC ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ':75,'ODC ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ':75,'ΒΑ ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ':75,'ΒΑ ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ':75,'ΙΔΙΩΤΗΣ Α':75,'ΙΔΙΩΤΗΣ':75,'ΙΔΙΩΤΗΣ 2026':75,'ΒΑ ΜΕ ΦΠΑ':75,'Α ΜΕ ΦΠΑ':75,'LUX ΜΕ ΦΠΑ':75,'SUITE ΜΕ ΦΠΑ':75,'ODC ΜΕ ΦΠΑ':75,'ΒΑ':75,'Α':75,'LUX':75,'SUITE':75,'ODC':75,'ΙΔΙΩΤΗΣ ΚΛΙΝΙΚΗ':75,'ΙΔΙΩΤΗΣ ΑΝΑΙΣΘ.':75,'ΤΟΠΙΚΗ':75,'ΜΕΘΗ':75,'ΓΕΝΙΚΗ':75,'ΕΟΠΥΥ ΒΑ3':75,'ΕΟΠΥΥ ΒΑ':75,'ΕΟΠΥΥ ΒΑ3 2026':75,'ΕΟΠΥΥ ΒΑ 2026':75,'ΕΟΠΥΥ ΜΕ ΦΠΑ':75,'ΕΟΠΥΥ ΜΕ ΦΠΑ 24%':75,'ΕΟΠΥΥ ΒΑ ΜΕ ΦΠΑ':75,'ODC ΕΟΠΥΥ ΠΡΟ ΦΠΑ':75,'ODC ΕΟΠΥΥ ΜΕ ΦΠΑ':75,'ΒΑ ΕΟΠΥΥ ΠΡΟ ΦΠΑ':75,'ΒΑ ΕΟΠΥΥ ΜΕ ΦΠΑ':75,'ΕΟΠΥΥ Α':65,'ΙΔΙΩΤΗΣ Α':65,'ΤΕΛΙΚΟΣ ΕΟΠΥΥ ΜΕ ΦΠΑ':75,'ΕΟΠΥΥ':75,'ΕΟΠΥΥ 2026':75,'ΒΑ NET':75,'Α NET':75,'LUX NET':75,'SUITE NET':75,'ΕΟΠΥΥ ΚΛΙΝΙΚΗ':75,'ΕΟΠΥΥ ΑΝΑΙΣΘ.':75,'ΚΕΝ':70,'ΚΕΝ/Π.Δ.':70,'ΚΕΝ (2)':70,'ΗΜ':40,'HM':40,'Α/Α':40,'ΜΕΘ':40,'REF':40,'ΦΠΑ':40,'ICD10':55,'ΠΑΡΑΜΟΝΗ':70,'ΗΜΕΡΕΣ':65,'ΗΜΕΡΕΣ ΝΟΣΗΛΕΙΑΣ':65,'ΧΡΟΝΟΣ':65,'ΔΩΜΑΤΙΟ':65,'ΝΟΣΗΛΕΙΑ ΚΛΙΝΗ ΘΑΛΑΜΟΥ':75,'ΝΟΣΗΛΕΙΑ ΜΑΠ/ΜΕΘ':75,'ΔΙΑΡΚΕΙΑ ΩΡΕΣ':72,'ΗΜ. ΝΟΣ':55,'ΧΕΙΡ. ΧΡΟΝΟΣ':70,'ΧΡΟΝΟΙ Χ/ΓΕΙΟΥ':70,'ΧΡΟΝΟΙ Χ/ΓΕΙΟΥ ΕΝΔΕΙΚΤΙΚΑ':70,'ΩΡΕΣ ΧΕΙΡΟΥΡΓΕΙΟΥ':70,'ΑΜΟΙΒΗ ΑΝΑΙΣΘΗΣΙΟΛΟΓΟΥ':85,'ΚΟΣΤΟΣ ΥΛΙΚΟΥ ΧΩΡΙΣ ΦΠΑ':85,'ΧΕΙΡΟΥΡΓΙΚΟΣ ΧΡΟΝΟΣ (ΛΕΠΤΑ)':85,'ΜΕΓΙΣΤΟ ΚΟΣΤΟΣ ΡΑΜΜΑΤΩΝ':90,'ΑΠΟΔΟΣΗ ΜΕΡΙΔΟΛΟΓΙΟΥ':90,'ΚΩΔΙΚΟΣ Ι.Π.':75,'ΥΛΙΚΑ':250,'ΗΜΕΡΟΜΗΝΙΑ':85,'ΥΛΙΚΟ ΚΟΣΤΟΣ':75,'ΠΟΣΟΤΗΤΑ (ΤΕΜ)':75,'ΤΙΜΗ ΠΑΡΑΤΗΡΙΟΥ (ΤΕΜ)':85,'ΠΑΡΑΤΗΡΙΟ':75,'ΧΡΟΝΟΧΡΕΩΣΗ':80,'ΙΣΤΟΛΟΓΙΚΗ':75};
   if(W[h]!==undefined) return W[h];
   return Math.max(40,h.split(' ')[0].length*9+16);
@@ -692,12 +721,40 @@ function doSearch(q){
 function addResizers(){
   document.querySelectorAll('thead th').forEach(function(th){
     var r=th.querySelector('.resizer'); if(!r) return;
+    // Βρες το header name από το data-hi attribute
+    var hi=th.dataset.hi!==undefined?parseInt(th.dataset.hi):-1;
     var sx,sw;
     r.addEventListener('mousedown',function(e){
       e.preventDefault(); sx=e.pageX; sw=th.offsetWidth;
       document.body.style.cursor='col-resize';
-      function mv(e){th.style.width=Math.max(30,sw+e.pageX-sx)+'px';}
-      function up(){document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);document.body.style.cursor='';}
+      function mv(e){
+        var nw=Math.max(30,sw+e.pageX-sx);
+        th.style.width=nw+'px';
+      }
+      function up(e){
+        document.removeEventListener('mousemove',mv);
+        document.removeEventListener('mouseup',up);
+        document.body.style.cursor='';
+        // Αποθήκευση width αν είμαστε σε edit mode
+        if(EDIT_MODE && cur && hi>=0){
+          var headers=null;
+          if(D[cur]&&D[cur].__multi__){
+            // Βρες ποιος πίνακας ανήκει αυτό το th
+            var wrap=th.closest('[data-ti]');
+            if(wrap){
+              var ti=parseInt(wrap.dataset.ti);
+              headers=D[cur].tables[ti].headers;
+            }
+          } else if(D[cur]){
+            headers=D[cur].headers;
+          }
+          if(headers && headers[hi]!==undefined){
+            if(!COL_WIDTHS[cur]) COL_WIDTHS[cur]={};
+            COL_WIDTHS[cur][headers[hi]]=Math.max(30,sw+e.pageX-sx);
+            markPending();
+          }
+        }
+      }
       document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
     });
   });
