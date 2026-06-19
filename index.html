@@ -428,8 +428,7 @@ function onPriceHeaderClick(e){
   var th=e.currentTarget;
   th.classList.add('price-selected');
   PRICE_COL=parseInt(th.dataset.hi);
-  PRICE_COL_NAME=th.textContent.replace(/
-/g,' ').trim();
+  PRICE_COL_NAME=th.textContent.replace(/\s+/g,' ').trim();
   // Highlight στήλης
   document.querySelectorAll('tbody td[data-ci="'+PRICE_COL+'"]').forEach(function(td){
     var v=parseFloat(td.textContent.trim());
