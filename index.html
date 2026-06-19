@@ -97,6 +97,20 @@ td.editing input, th.editing input{width:100%;min-width:200px;border:2px solid #
 .add-col-btn{display:none;background:#eff6ff;border:1px dashed #1a56db;color:#1a56db;padding:6px 10px;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;}
 .edit-mode .add-col-btn{display:inline-block;}
 .notice{position:fixed;top:60px;right:20px;background:#1e40af;color:#fff;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,.2);}
+.price-mode th[data-hi]{cursor:crosshair!important;}
+.price-mode th[data-hi]:hover{background:#fef9c3!important;color:#713f12!important;}
+th.price-selected{background:#fef08a!important;color:#713f12!important;outline:2px solid #eab308!important;}
+td.price-highlight{background:#fef9c3!important;}
+#pricePanel{display:none;position:fixed;bottom:52px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;border-radius:10px;padding:12px 16px;z-index:700;box-shadow:0 8px 24px rgba(0,0,0,.3);align-items:center;gap:8px;font-size:12px;white-space:nowrap;}
+#pricePanel.show{display:flex;}
+#pricePanel .pcol-name{font-weight:700;color:#fde68a;margin-right:4px;}
+#pricePanel button{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;}
+#pricePanel button:hover{background:rgba(255,255,255,.28);}
+#pricePanel .apply-btn{background:#eab308;color:#1f2937;border-color:#eab308;font-weight:700;}
+#pricePanel .apply-btn:hover{background:#ca9a06;}
+#pricePanel .cancel-btn{background:#e53e3e;border-color:#e53e3e;}
+#pricePanel input[type=number]{width:64px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:4px 8px;color:#fff;font-size:12px;font-family:inherit;text-align:center;}
+#pricePanel input[type=number]::-webkit-inner-spin-button{opacity:1;}
 </style>
 </head>
 <body>
@@ -107,11 +121,28 @@ td.editing input, th.editing input{width:100%;min-width:200px;border:2px solid #
   <span style="opacity:.7;font-size:11px">Διπλό κλικ σε κελί/header για επεξεργασία</span>
   <div class="spacer"></div>
   <button id="undoBtn" onclick="undo()" disabled style="opacity:.5">↩ Αναίρεση</button>
+  <button id="priceBtn" onclick="togglePriceMode()" style="background:#eab308;border-color:#ca9a06;color:#1f2937;font-weight:600;">💰 Αλλαγές Τιμών</button>
   <button onclick="addRow()">+ Γραμμή</button>
   <button onclick="delRow()" style="background:#e53e3e;border-color:#e53e3e;">− Γραμμή</button>
   <button onclick="addColumn()">+ Στήλη</button>
   <button id="saveBtn" onclick="saveAll()" style="background:#1a56db;">💾 Αποθήκευση</button>
   <button onclick="toggleEdit()" style="background:#374151;border-color:#374151;">✕ Έξοδος</button>
+</div>
+<div id="pricePanel">
+  <span>💰 Αλλαγές Τιμών —</span>
+  <span>Κλικ σε header στήλης για επιλογή</span>
+  <span id="pricePanelCol" class="pcol-name" style="display:none"></span>
+  <div id="priceBtns" style="display:none;align-items:center;gap:6px;display:none">
+    <button onclick="applyPct(-20)">−20%</button>
+    <button onclick="applyPct(-10)">−10%</button>
+    <button onclick="applyPct(10)">+10%</button>
+    <button onclick="applyPct(20)">+20%</button>
+    <button onclick="applyPct(40)">+40%</button>
+    <span style="opacity:.6">|</span>
+    <input type="number" id="customPct" placeholder="%" step="1">
+    <button onclick="applyCustomPct()" class="apply-btn">✓ Εφαρμογή</button>
+  </div>
+  <button onclick="cancelPriceMode()" class="cancel-btn">✕ Άκυρο</button>
 </div>
 <header>
   <div class="logo" onclick="goHome()" style="cursor:pointer"><span class="m">Medi</span><span class="p">Price</span></div>
@@ -367,6 +398,81 @@ function makeEditable(el, onSave){
     if(isTh&&e.key==='Enter'){e.preventDefault();inp.blur();}
     if(!isTh&&e.key==='Enter'&&e.ctrlKey){inp.blur();}
     e.stopPropagation();
+  });
+}
+
+// ── PRICE MODE ────────────────────────────────────────────
+var PRICE_MODE=false, PRICE_COL=null, PRICE_COL_NAME='';
+
+function togglePriceMode(){
+  if(PRICE_MODE){ cancelPriceMode(); return; }
+  PRICE_MODE=true;
+  document.getElementById('pricePanel').classList.add('show');
+  document.getElementById('pricePanelCol').style.display='none';
+  document.getElementById('priceBtns').style.display='none';
+  document.querySelector('#pricePanel span:nth-child(2)').style.display='';
+  document.getElementById('priceBtn').style.background='#ca9a06';
+  document.getElementById('ta').classList.add('price-mode');
+  // Προσθήκη click listeners στα headers
+  document.querySelectorAll('thead th[data-hi]').forEach(function(th){
+    th.addEventListener('click', onPriceHeaderClick);
+  });
+}
+
+function onPriceHeaderClick(e){
+  if(!PRICE_MODE) return;
+  e.stopPropagation();
+  // Αφαίρεση προηγούμενης επιλογής
+  document.querySelectorAll('thead th.price-selected').forEach(function(t){t.classList.remove('price-selected');});
+  document.querySelectorAll('td.price-highlight').forEach(function(t){t.classList.remove('price-highlight');});
+  var th=e.currentTarget;
+  th.classList.add('price-selected');
+  PRICE_COL=parseInt(th.dataset.hi);
+  PRICE_COL_NAME=th.textContent.replace(/
+/g,' ').trim();
+  // Highlight στήλης
+  document.querySelectorAll('tbody td[data-ci="'+PRICE_COL+'"]').forEach(function(td){
+    var v=parseFloat(td.textContent.replace(/[^0-9.\-]/g,''));
+    if(!isNaN(v) && v!==0) td.classList.add('price-highlight');
+  });
+  // Εμφάνιση panel με κουμπιά
+  document.getElementById('pricePanelCol').textContent=PRICE_COL_NAME;
+  document.getElementById('pricePanelCol').style.display='';
+  document.getElementById('priceBtns').style.display='flex';
+  document.querySelector('#pricePanel span:nth-child(2)').style.display='none';
+}
+
+function applyPct(pct){
+  if(PRICE_COL===null) return;
+  var d=getCurrentData(); if(!d) return;
+  pushUndo();
+  d.rows.forEach(function(row){
+    var v=parseFloat(row[PRICE_COL]);
+    if(!isNaN(v) && v!==0){
+      row[PRICE_COL]=String(Math.round(v*(1+pct/100)));
+    }
+  });
+  showNotice((pct>0?'+':'')+pct+'% εφαρμόστηκε στη στήλη "'+PRICE_COL_NAME+'"');
+  markPending();
+  cancelPriceMode();
+  showSheet(cur);
+}
+
+function applyCustomPct(){
+  var pct=parseFloat(document.getElementById('customPct').value);
+  if(isNaN(pct)){ alert('Εισάγετε έγκυρο ποσοστό'); return; }
+  applyPct(pct);
+}
+
+function cancelPriceMode(){
+  PRICE_MODE=false; PRICE_COL=null; PRICE_COL_NAME='';
+  document.getElementById('pricePanel').classList.remove('show');
+  document.getElementById('priceBtn').style.background='#eab308';
+  document.getElementById('ta').classList.remove('price-mode');
+  document.querySelectorAll('thead th.price-selected').forEach(function(t){t.classList.remove('price-selected');});
+  document.querySelectorAll('td.price-highlight').forEach(function(t){t.classList.remove('price-highlight');});
+  document.querySelectorAll('thead th[data-hi]').forEach(function(th){
+    th.removeEventListener('click', onPriceHeaderClick);
   });
 }
 
