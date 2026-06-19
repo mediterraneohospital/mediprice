@@ -48,7 +48,7 @@ th{background:#eef1f6;color:var(--mut);font-weight:600;font-size:11px;text-trans
 th:last-child{border-right:none;}
 th.ec{background:#f0fdf4;color:#166534;}
 th.pc{background:#eff6ff;color:#1e40af;}
-td{padding:5px 8px;border-bottom:1px solid #f1f5f9;border-right:1px solid #eef0f5;white-space:normal;word-break:break-word;line-height:1.4;vertical-align:top;}
+td{padding:5px 8px;border-bottom:1px solid #f1f5f9;border-right:1px solid #eef0f5;white-space:normal;word-break:break-word;line-height:1.4;vertical-align:top;min-height:28px;}
 td.wrap{white-space:normal;word-break:break-word;line-height:1.4;} /* same as td */
 td.ev{background:#f0fdf4;font-weight:600;color:#166534;text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
 td.pv{background:#eff6ff;font-weight:600;color:#1e40af;text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
@@ -374,16 +374,28 @@ function addRow(){
   var d=getCurrentData(); if(!d) return;
   pushUndo();
   var empty=d.headers.map(function(){return '';});
+  var ta=document.getElementById('ta');
+  var scrollTop=ta.scrollTop;
+  var insertedRi=null;
   var selTr=document.querySelector('#ta tbody tr.sel');
   if(selTr){
     var ri=parseInt(selTr.dataset.ri);
-    if(!isNaN(ri)) d.rows.splice(ri+1,0,empty);
-    else d.rows.push(empty);
+    if(!isNaN(ri)){ d.rows.splice(ri+1,0,empty); insertedRi=ri+1; }
+    else { d.rows.push(empty); insertedRi=d.rows.length-1; }
   } else {
-    d.rows.push(empty);
+    d.rows.push(empty); insertedRi=d.rows.length-1;
   }
   showSheet(cur);
   markPending();
+  ta.scrollTop=scrollTop;
+  if(insertedRi!==null){
+    var newTr=document.querySelector('#ta tbody tr[data-ri="'+insertedRi+'"]');
+    if(newTr){
+      newTr.classList.add('sel');
+      newTr.querySelectorAll('td').forEach(function(td){ td.style.minHeight='32px'; });
+      newTr.scrollIntoView({block:'nearest',behavior:'smooth'});
+    }
+  }
 }
 
 function delRow(){
