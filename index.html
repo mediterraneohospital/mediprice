@@ -63,7 +63,16 @@ html.is-mobile, html.is-mobile body {
 .m-select:focus, .m-input:focus {
   border-color: #1a56db; background: #fff;
 }
-.m-search-wrap { position: relative; }
+.m-select-wrap { position: relative; display: flex; align-items: center; }
+.m-select-wrap .m-select { flex: 1; padding-right: 36px; }
+.m-sel-clr {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: #9ca3af; color: #fff; border: none; border-radius: 50%;
+  width: 20px; height: 20px; font-size: 10px; cursor: pointer;
+  display: none; align-items: center; justify-content: center; padding: 0;
+  line-height: 1;
+}
+.m-sel-clr.visible { display: flex; }
 .m-search-wrap .m-input { padding-left: 36px; }
 .m-search-wrap::before {
   content: "🔍"; position: absolute; left: 11px; top: 50%;
@@ -91,7 +100,7 @@ html.is-mobile, html.is-mobile body {
 }
 .m-card-name {
   font-size: .88rem; font-weight: 600; line-height: 1.35;
-  color: #111827; margin-bottom: 8px;
+  color: #111827;
 }
 .m-card-prices {
   display: flex; flex-wrap: wrap; gap: 6px;
@@ -111,6 +120,34 @@ html.is-mobile, html.is-mobile body {
   width: 28px; height: 28px; border: 3px solid #e2e6ed;
   border-top-color: #1a56db; border-radius: 50%;
   animation: sp .8s linear infinite; margin: 0 auto 12px;
+}
+.m-card-top {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+  margin-bottom: 8px;
+}
+.m-card-expandable { cursor: pointer; }
+.m-card-open { border-left-color: #059669; }
+.m-expand-icon {
+  font-size: .65rem; color: #9ca3af; flex-shrink: 0;
+  margin-top: 4px; transition: transform .2s;
+}
+.m-drawer {
+  display: none; margin-top: 10px;
+  border-top: 1px solid #e2e6ed; padding-top: 10px;
+}
+.m-drawer.open { display: block; }
+.m-drawer-row {
+  display: flex; gap: 8px; padding: 4px 0;
+  border-bottom: 1px solid #f1f5f9; font-size: .8rem;
+  align-items: flex-start;
+}
+.m-drawer-row:last-child { border-bottom: none; }
+.m-drawer-label {
+  color: #6b7280; font-weight: 600; flex-shrink: 0;
+  min-width: 120px; max-width: 140px; line-height: 1.4;
+}
+.m-drawer-val {
+  color: #111827; line-height: 1.4; flex: 1; word-break: break-word;
 }
 </style>
 
@@ -235,9 +272,12 @@ td.price-highlight{background:#fef9c3!important;}
     <div class="m-badge" id="m-badge">Φόρτωση…</div>
   </div>
   <div id="m-search-area">
-    <select class="m-select" id="m-specialty">
-      <option value="">Όλες οι ειδικότητες</option>
-    </select>
+    <div class="m-select-wrap">
+      <select class="m-select" id="m-specialty">
+        <option value="">Όλες οι ειδικότητες</option>
+      </select>
+      <button class="m-sel-clr" id="m-sel-clr" onclick="clearSpecialty()" title="Καθαρισμός">✕</button>
+    </div>
     <div class="m-search-wrap">
       <input class="m-input" id="m-search" type="search"
              placeholder="Αναζήτηση πράξης…" autocomplete="off" />
@@ -1100,18 +1140,25 @@ if (IS_MOBILE) {
     return '—';
   }
 
-  function getPricesFromRow(headers, row) {
-    var eoppy = [], idiotis = [];
+  // Όλες οι στήλες με αριθμητική τιμή → preview chips
+  // Όλες οι υπόλοιπες (με περιεχόμενο) → drawer, με αρχική σειρά
+  function splitColumns(headers, row) {
+    var priceCols = [], otherCols = [];
     headers.forEach(function(h, i) {
-      var v = row[i];
-      if (!v || v === '' || v === '0') return;
-      var n = parseFloat(String(v).replace(',','.'));
-      if (isNaN(n) || n === 0) return;
-      var fmt = n.toLocaleString('el-GR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
-      if (ECOLS_M.indexOf(h) >= 0) eoppy.push({ label: h, val: fmt });
-      else if (PCOLS_M.indexOf(h) >= 0) idiotis.push({ label: h, val: fmt });
+      var v = String(row[i] || '').trim();
+      var n = parseFloat(v.replace(',','.'));
+      var hasNumericVal = !isNaN(n) && n !== 0 && v !== '';
+      var knownPrice = ECOLS_M.indexOf(h) >= 0 || PCOLS_M.indexOf(h) >= 0;
+      if (hasNumericVal || knownPrice) {
+        if (!hasNumericVal && v === '') return; // γνωστή τιμή αλλά κενή, skip
+        var fmt = hasNumericVal ? n.toLocaleString('el-GR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' \u20ac' : (v || '\u2014');
+        var cls = ECOLS_M.indexOf(h) >= 0 ? 'eoppy' : 'idiotis';
+        priceCols.push({ label: h, val: fmt, cls: cls });
+      } else {
+        if (v !== '') otherCols.push({ label: h, val: v });
+      }
     });
-    return { eoppy: eoppy, idiotis: idiotis };
+    return { priceCols: priceCols, otherCols: otherCols };
   }
 
   function normalize(s) {
@@ -1147,28 +1194,51 @@ if (IS_MOBILE) {
 
     countEl.textContent = filtered.length + ' αποτελέσματα';
 
-    var html = filtered.map(function(item) {
+    var html = filtered.map(function(item, idx) {
       var name = getNameFromRow(item.headers, item.row);
-      var prices = getPricesFromRow(item.headers, item.row);
-      var priceHTML = '';
-      // Δείχνουμε max 2 ΕΟΠΥΥ + 2 ΙΔΙΩΤΗΣ για συντομία
-      prices.eoppy.slice(0,2).forEach(function(p){
-        priceHTML += '<span class="m-price-chip eoppy">ΕΟΠΥΥ ' + p.val + '</span>';
-      });
-      prices.idiotis.slice(0,2).forEach(function(p){
-        priceHTML += '<span class="m-price-chip idiotis">ΙΔΙΩΤΗΣ ' + p.val + '</span>';
-      });
-      if (!priceHTML) priceHTML = '<span class="m-price-chip idiotis" style="opacity:.5">Τιμή N/A</span>';
+      var split = splitColumns(item.headers, item.row);
 
-      return '<div class="m-card">'
+      // Price chips (preview)
+      var priceHTML = split.priceCols.map(function(p) {
+        return '<span class="m-price-chip ' + p.cls + '">' + p.label + ': ' + p.val + '</span>';
+      }).join('');
+      if (!priceHTML) priceHTML = '<span class="m-price-chip" style="opacity:.4">Τιμή N/A</span>';
+
+      // Drawer rows (other cols)
+      var drawerHTML = '';
+      if (split.otherCols.length) {
+        drawerHTML = '<div class="m-drawer" id="drawer-' + idx + '">'
+          + split.otherCols.map(function(c) {
+              return '<div class="m-drawer-row"><span class="m-drawer-label">' + c.label + '</span><span class="m-drawer-val">' + c.val + '</span></div>';
+            }).join('')
+          + '</div>';
+      }
+
+      var hasDrawer = split.otherCols.length > 0;
+      return '<div class="m-card' + (hasDrawer ? ' m-card-expandable' : '') + '" onclick="toggleDrawer(' + idx + ', this)">'
+        + '<div class="m-card-top">'
+        + '<div>'
         + '<div class="m-card-sp">' + item.sp + '</div>'
         + '<div class="m-card-name">' + name + '</div>'
+        + '</div>'
+        + (hasDrawer ? '<span class="m-expand-icon" id="icon-' + idx + '">▼</span>' : '')
+        + '</div>'
         + '<div class="m-card-prices">' + priceHTML + '</div>'
+        + drawerHTML
         + '</div>';
     }).join('');
 
     container.innerHTML = html;
   }
+
+  window.toggleDrawer = function(idx, card) {
+    var drawer = document.getElementById('drawer-' + idx);
+    var icon = document.getElementById('icon-' + idx);
+    if (!drawer) return;
+    var open = drawer.classList.toggle('open');
+    if (icon) icon.textContent = open ? '▲' : '▼';
+    card.classList.toggle('m-card-open', open);
+  };
 
   // Αρχικοποίηση mobile — περιμένει να φορτώσει το D από το desktop init()
   function waitForData() {
@@ -1192,13 +1262,24 @@ if (IS_MOBILE) {
     document.getElementById('m-count').textContent = '';
 
     var mSearch = document.getElementById('m-search');
+    var mSelClr = document.getElementById('m-sel-clr');
     var st;
+
+    window.clearSpecialty = function() {
+      mSel.value = '';
+      mSelClr.classList.remove('visible');
+      doFilter();
+    };
+
     function doFilter() {
       var sp = mSel.value;
       var q = mSearch.value.trim();
       renderMobileResults(allRows, sp, q);
     }
-    mSel.addEventListener('change', doFilter);
+    mSel.addEventListener('change', function() {
+      mSelClr.classList.toggle('visible', mSel.value !== '');
+      doFilter();
+    });
     mSearch.addEventListener('input', function() { clearTimeout(st); st = setTimeout(doFilter, 300); });
   }
 
