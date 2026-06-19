@@ -4,6 +4,116 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MediPrice</title>
+
+<!-- =====================================================
+     MOBILE DETECTION — αν κινητό, κρύβει το desktop UI
+====================================================== -->
+<script>
+var IS_MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  || Math.min(window.screen.width, window.screen.height) < 768;
+if (IS_MOBILE) document.documentElement.classList.add('is-mobile');
+</script>
+
+<!-- Mobile styles — εφαρμόζονται μόνο σε κινητά -->
+<style>
+/* Στο desktop κρύβουμε το mobile UI και στο κινητό κρύβουμε το desktop */
+html.is-mobile .desktop-only { display: none !important; }
+html:not(.is-mobile) .mobile-only { display: none !important; }
+
+/* ── Mobile App ── */
+html.is-mobile, html.is-mobile body {
+  height: 100%; overflow: hidden;
+  background: #f0f4f8;
+  font-family: 'Inter', sans-serif;
+}
+#m-app {
+  display: flex; flex-direction: column;
+  height: 100vh; overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #111827;
+}
+#m-topbar {
+  background: #1a56db;
+  padding: 14px 16px 12px;
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+#m-topbar .m-logo { font-size: 1.2rem; font-weight: 700; color: #fff; line-height: 1; }
+#m-topbar .m-logo span { color: #fca5a5; }
+#m-topbar .m-sub { font-size: .7rem; color: rgba(255,255,255,.65); margin-top: 2px; }
+#m-topbar .m-badge {
+  margin-left: auto; background: rgba(255,255,255,.15);
+  color: #fff; border-radius: 20px; padding: 2px 10px;
+  font-size: .7rem; white-space: nowrap;
+}
+#m-search-area {
+  background: #fff; padding: 10px 12px;
+  border-bottom: 1px solid #e2e6ed; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.m-select, .m-input {
+  width: 100%; border: 1.5px solid #e2e6ed;
+  border-radius: 10px; padding: 10px 13px;
+  font-size: .9rem; font-family: inherit;
+  background: #f5f7fa; color: #111827; outline: none;
+  -webkit-appearance: none;
+}
+.m-select:focus, .m-input:focus {
+  border-color: #1a56db; background: #fff;
+}
+.m-search-wrap { position: relative; }
+.m-search-wrap .m-input { padding-left: 36px; }
+.m-search-wrap::before {
+  content: "🔍"; position: absolute; left: 11px; top: 50%;
+  transform: translateY(-50%); font-size: .85rem; pointer-events: none;
+}
+#m-results-area {
+  flex: 1; overflow-y: auto; padding: 10px 12px 24px;
+  -webkit-overflow-scrolling: touch;
+}
+#m-count {
+  font-size: .75rem; color: #6b7280;
+  text-align: center; padding: 4px 0 6px;
+}
+.m-card {
+  background: #fff; border-radius: 12px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.09);
+  padding: 12px 14px; margin-bottom: 9px;
+  border-left: 4px solid #1a56db;
+  animation: mfade .18s ease;
+}
+@keyframes mfade { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+.m-card-sp {
+  font-size: .68rem; font-weight: 700; color: #1a56db;
+  letter-spacing: .04em; text-transform: uppercase; margin-bottom: 3px;
+}
+.m-card-name {
+  font-size: .88rem; font-weight: 600; line-height: 1.35;
+  color: #111827; margin-bottom: 8px;
+}
+.m-card-prices {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.m-price-chip {
+  font-size: .75rem; border-radius: 6px; padding: 3px 8px;
+  font-weight: 600; white-space: nowrap;
+}
+.m-price-chip.eoppy { background: #f0fdf4; color: #166534; }
+.m-price-chip.idiotis { background: #eff6ff; color: #1e40af; }
+.m-state {
+  text-align: center; padding: 50px 20px; color: #6b7280;
+}
+.m-state .m-emoji { font-size: 2.2rem; margin-bottom: 10px; }
+.m-state p { font-size: .88rem; line-height: 1.6; }
+.m-spin {
+  width: 28px; height: 28px; border: 3px solid #e2e6ed;
+  border-top-color: #1a56db; border-radius: 50%;
+  animation: sp .8s linear infinite; margin: 0 auto 12px;
+}
+</style>
+
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 :root{--bg:#f5f7fa;--sur:#fff;--s2:#f0f2f5;--brd:#e2e6ed;--acc:#1a56db;--txt:#111827;--mut:#6b7280;--dim:#374151;--grn:#059669;--r:8px;}
@@ -114,6 +224,39 @@ td.price-highlight{background:#fef9c3!important;}
 </style>
 </head>
 <body>
+
+<!-- ══════════ MOBILE APP ══════════ -->
+<div id="m-app" class="mobile-only">
+  <div id="m-topbar">
+    <div>
+      <div class="m-logo">Medi<span>Price</span></div>
+      <div class="m-sub">Τιμοκατάλογος Mediterraneo</div>
+    </div>
+    <div class="m-badge" id="m-badge">Φόρτωση…</div>
+  </div>
+  <div id="m-search-area">
+    <select class="m-select" id="m-specialty">
+      <option value="">Όλες οι ειδικότητες</option>
+    </select>
+    <div class="m-search-wrap">
+      <input class="m-input" id="m-search" type="search"
+             placeholder="Αναζήτηση πράξης…" autocomplete="off" />
+    </div>
+  </div>
+  <div id="m-results-area">
+    <div id="m-count"></div>
+    <div id="m-results">
+      <div class="m-state">
+        <div class="m-spin"></div>
+        <p>Φόρτωση δεδομένων…</p>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ══════════ END MOBILE APP ══════════ -->
+
+<!-- ══════════ DESKTOP APP (αναλλοίωτο) ══════════ -->
+<div class="desktop-only">
 <div id="tooltip"></div>
 <button class="edit-btn" id="editBtn" onclick="toggleEdit()">✏️ Επεξεργασία</button>
 <div class="edit-bar" id="editBar">
@@ -912,5 +1055,156 @@ document.getElementById('spF').addEventListener('input',function(e){renderSB(e.t
 
 init();
 </script>
+
+<!-- ══════════ END DESKTOP APP ══════════ -->
+</div>
+
+<!-- ══════════ MOBILE SCRIPT ══════════ -->
+<script>
+if (IS_MOBILE) {
+  var ECOLS_M=['ΕΟΠΥΥ ΒΑ3','ΕΟΠΥΥ ΒΑ','ΕΟΠΥΥ ΒΑ3 2026','ΕΟΠΥΥ ΒΑ 2026','ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ','ΕΟΠΥΥ 2026','ΤΕΛΙΚΟΣ ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ ΚΛΙΝΙΚΗ','ΕΟΠΥΥ ΑΝΑΙΣΘ.'];
+  var PCOLS_M=['ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ ΒΑ','ΙΔΙΩΤΗΣ ΒΑ3 2026','ΙΔΙΩΤΗΣ ΒΑ 2026','ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΙΔΙΩΤΗΣ','ΙΔΙΩΤΗΣ 2026','ΒΑ ΜΕ ΦΠΑ','Α ΜΕ ΦΠΑ','LUX ΜΕ ΦΠΑ','SUITE ΜΕ ΦΠΑ','ΒΑ','ΙΔΙΩΤΗΣ ΚΛΙΝΙΚΗ','ΙΔΙΩΤΗΣ ΑΝΑΙΣΘ.'];
+  var NAMECOLS=['ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ','ΠΕΡΙΓΡΑΦΗ','ΕΙΔΟΣ ΠΡΑΞΗΣ','ΠΡΑΞΗ','ΤΙΤΛΟΣ ΕΠΕΜΒΑΣΗΣ'];
+
+  // Φτιάχνει επίπεδη λίστα εγγραφών από τη δομή D
+  function flattenData(D) {
+    var rows = [];
+    Object.keys(D).forEach(function(sp) {
+      var d = D[sp];
+      if (d.__multi__) {
+        d.tables.forEach(function(t) {
+          t.rows.forEach(function(row) {
+            if (!Array.isArray(row)) return;
+            rows.push({ sp: sp, headers: t.headers, row: row });
+          });
+        });
+      } else if (d.rows) {
+        d.rows.forEach(function(row) {
+          if (!Array.isArray(row)) return;
+          rows.push({ sp: sp, headers: d.headers, row: row });
+        });
+      }
+    });
+    return rows;
+  }
+
+  function getNameFromRow(headers, row) {
+    for (var i = 0; i < NAMECOLS.length; i++) {
+      var idx = headers.indexOf(NAMECOLS[i]);
+      if (idx >= 0 && row[idx]) return String(row[idx]);
+    }
+    // fallback: πρώτη μακριά τιμή
+    for (var j = 0; j < row.length; j++) {
+      if (String(row[j]||'').length > 5) return String(row[j]);
+    }
+    return '—';
+  }
+
+  function getPricesFromRow(headers, row) {
+    var eoppy = [], idiotis = [];
+    headers.forEach(function(h, i) {
+      var v = row[i];
+      if (!v || v === '' || v === '0') return;
+      var n = parseFloat(String(v).replace(',','.'));
+      if (isNaN(n) || n === 0) return;
+      var fmt = n.toLocaleString('el-GR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
+      if (ECOLS_M.indexOf(h) >= 0) eoppy.push({ label: h, val: fmt });
+      else if (PCOLS_M.indexOf(h) >= 0) idiotis.push({ label: h, val: fmt });
+    });
+    return { eoppy: eoppy, idiotis: idiotis };
+  }
+
+  function normalize(s) {
+    return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  }
+
+  function renderMobileResults(allRows, sp, q) {
+    var container = document.getElementById('m-results');
+    var countEl = document.getElementById('m-count');
+
+    if (!sp && !q) {
+      countEl.textContent = '';
+      container.innerHTML = '<div class="m-state"><div class="m-emoji">🔍</div><p>Επιλέξτε ειδικότητα<br>ή πληκτρολογήστε λέξη-κλειδί</p></div>';
+      return;
+    }
+
+    var nq = normalize(q);
+    var filtered = allRows.filter(function(item) {
+      if (sp && item.sp !== sp) return false;
+      if (nq) {
+        var name = normalize(getNameFromRow(item.headers, item.row));
+        var inRow = item.row.some(function(c){ return normalize(c).indexOf(nq) >= 0; });
+        return name.indexOf(nq) >= 0 || inRow;
+      }
+      return true;
+    });
+
+    if (!filtered.length) {
+      countEl.textContent = '';
+      container.innerHTML = '<div class="m-state"><div class="m-emoji">😕</div><p>Δεν βρέθηκαν αποτελέσματα</p></div>';
+      return;
+    }
+
+    countEl.textContent = filtered.length + ' αποτελέσματα';
+
+    var html = filtered.map(function(item) {
+      var name = getNameFromRow(item.headers, item.row);
+      var prices = getPricesFromRow(item.headers, item.row);
+      var priceHTML = '';
+      // Δείχνουμε max 2 ΕΟΠΥΥ + 2 ΙΔΙΩΤΗΣ για συντομία
+      prices.eoppy.slice(0,2).forEach(function(p){
+        priceHTML += '<span class="m-price-chip eoppy">ΕΟΠΥΥ ' + p.val + '</span>';
+      });
+      prices.idiotis.slice(0,2).forEach(function(p){
+        priceHTML += '<span class="m-price-chip idiotis">ΙΔΙΩΤΗΣ ' + p.val + '</span>';
+      });
+      if (!priceHTML) priceHTML = '<span class="m-price-chip idiotis" style="opacity:.5">Τιμή N/A</span>';
+
+      return '<div class="m-card">'
+        + '<div class="m-card-sp">' + item.sp + '</div>'
+        + '<div class="m-card-name">' + name + '</div>'
+        + '<div class="m-card-prices">' + priceHTML + '</div>'
+        + '</div>';
+    }).join('');
+
+    container.innerHTML = html;
+  }
+
+  // Αρχικοποίηση mobile — περιμένει να φορτώσει το D από το desktop init()
+  function waitForData() {
+    if (typeof D === 'undefined' || !Object.keys(D).length) {
+      setTimeout(waitForData, 200);
+      return;
+    }
+    var allRows = flattenData(D);
+    var specialties = Object.keys(D).sort();
+    var mSel = document.getElementById('m-specialty');
+    specialties.forEach(function(sp) {
+      var o = document.createElement('option');
+      o.value = sp; o.textContent = sp;
+      mSel.appendChild(o);
+    });
+    var total = allRows.length;
+    document.getElementById('m-badge').textContent = specialties.length + ' ειδικότητες · ' + total + ' εγγραφές';
+
+    // Αρχική κατάσταση
+    document.getElementById('m-results').innerHTML = '<div class="m-state"><div class="m-emoji">🔍</div><p>Επιλέξτε ειδικότητα<br>ή πληκτρολογήστε λέξη-κλειδί</p></div>';
+    document.getElementById('m-count').textContent = '';
+
+    var mSearch = document.getElementById('m-search');
+    var st;
+    function doFilter() {
+      var sp = mSel.value;
+      var q = mSearch.value.trim();
+      renderMobileResults(allRows, sp, q);
+    }
+    mSel.addEventListener('change', doFilter);
+    mSearch.addEventListener('input', function() { clearTimeout(st); st = setTimeout(doFilter, 300); });
+  }
+
+  waitForData();
+}
+</script>
+
 </body>
 </html>
