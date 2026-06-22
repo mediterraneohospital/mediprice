@@ -6,7 +6,9 @@
 <title>MediPrice</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
-:root{--bg:#f5f7fa;--sur:#fff;--s2:#f0f2f5;--brd:#e2e6ed;--acc:#1a56db;--txt:#111827;--mut:#6b7280;--dim:#374151;--grn:#059669;--r:8px;}
+:root{--bg:#f5f7fa;--sur:#fff;--s2:#f0f2f5;--brd:#e2e6ed;--acc:#1a56db;--txt:#111827;--mut:#6b7280;--dim:#374151;--grn:#059669;--r:8px;--th-bg:#eef1f6;--th-ec:#f0fdf4;--th-pc:#eff6ff;--row-even:#f7f9fc;--row-sel:#eff6ff;--price-sel:#fef08a;}
+[data-dark]{--bg:#1e2130;--sur:#252837;--s2:#2d3148;--brd:#3d4266;--acc:#4d7ff5;--txt:#e2e6f0;--mut:#8b92b0;--dim:#c5cade;--grn:#34d399;--th-bg:#2a2e45;--th-ec:#1a3a2a;--th-pc:#1a2a45;--row-even:#2a2e45;--row-sel:#1e3a6e;--price-sel:#5a4a00;}
+*{transition:background-color .2s,border-color .2s,color .15s;}
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:13px;background:var(--bg);color:var(--txt);}
 header{height:48px;background:var(--sur);border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:12px;padding:0 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);flex-shrink:0;}
@@ -44,16 +46,16 @@ header{height:48px;background:var(--sur);border-bottom:1px solid var(--brd);disp
 #ta::-webkit-scrollbar-thumb{background:var(--brd);border-radius:3px;}
 table{border-collapse:collapse;font-size:13px;background:var(--sur);table-layout:fixed;width:max-content;}
 thead{position:sticky;top:0;z-index:10;}
-th{background:#eef1f6;color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.3px;padding:6px 8px;text-align:left;border-bottom:2px solid var(--brd);border-right:1px solid var(--brd);white-space:normal;word-break:break-word;vertical-align:top;position:relative;}
+th{background:var(--th-bg);color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.3px;padding:6px 8px;text-align:left;border-bottom:2px solid var(--brd);border-right:1px solid var(--brd);white-space:normal;word-break:break-word;vertical-align:top;position:relative;}
 th:last-child{border-right:none;}
-th.ec{background:#f0fdf4;color:#166534;}
-th.pc{background:#eff6ff;color:#1e40af;}
+th.ec{background:var(--th-ec);color:#166534;}
+th.pc{background:var(--th-pc);color:#4d7ff5;}
 td{padding:5px 8px;border-bottom:1px solid #f1f5f9;border-right:1px solid #eef0f5;white-space:normal;word-break:break-word;line-height:1.4;vertical-align:top;}
 td.wrap{white-space:normal;word-break:break-word;line-height:1.4;} /* same as td */
 td.ev{background:#f0fdf4;font-weight:600;color:#166534;text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
 td.pv{background:#eff6ff;font-weight:600;color:#1e40af;text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
 td:last-child{border-right:none;}
-tbody tr{height:56px;}tbody tr:nth-child(even) td{background:#f7f9fc;}
+tbody tr{height:56px;}tbody tr:nth-child(even) td{background:var(--row-even);}
 tbody tr:nth-child(even) td.ev{background:#e8faf0;}
 tbody tr:nth-child(even) td.pv{background:#e8f0fe;}
 tbody tr:hover td{background:#eef4ff!important;cursor:pointer;}
@@ -99,7 +101,7 @@ td.editing input, th.editing input{width:100%;min-width:200px;border:2px solid #
 .notice{position:fixed;top:60px;right:20px;background:#1e40af;color:#fff;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,.2);}
 .price-mode th[data-hi]{cursor:crosshair!important;}
 .price-mode th[data-hi]:hover{background:#fef9c3!important;color:#713f12!important;}
-th.price-selected{background:#fef08a!important;color:#713f12!important;outline:2px solid #eab308!important;}
+th.price-selected{background:var(--price-sel)!important;color:#d4a017!important;outline:2px solid #eab308!important;}
 td.price-highlight{background:#fef9c3!important;}
 #pricePanel{display:none;position:fixed;bottom:52px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;border-radius:10px;padding:12px 16px;z-index:700;box-shadow:0 8px 24px rgba(0,0,0,.3);align-items:center;gap:8px;font-size:12px;white-space:nowrap;}
 #pricePanel.show{display:flex;}
@@ -400,6 +402,31 @@ function makeEditable(el, onSave){
     e.stopPropagation();
   });
 }
+
+// ── DARK MODE ─────────────────────────────────────────────
+function toggleDark(){
+  var isDark=document.documentElement.hasAttribute('data-dark');
+  if(isDark){
+    document.documentElement.removeAttribute('data-dark');
+    document.getElementById('darkBtn').textContent='🌙';
+    localStorage.setItem('mediDark','0');
+  } else {
+    document.documentElement.setAttribute('data-dark','');
+    document.getElementById('darkBtn').textContent='☀️';
+    localStorage.setItem('mediDark','1');
+  }
+}
+// Φόρτωση προτίμησης
+(function(){
+  if(localStorage.getItem('mediDark')==='1'){
+    document.documentElement.setAttribute('data-dark','');
+    // Ενημέρωση κουμπιού μετά το DOM load
+    document.addEventListener('DOMContentLoaded',function(){
+      var b=document.getElementById('darkBtn');
+      if(b) b.textContent='☀️';
+    });
+  }
+})();
 
 // ── PRICE MODE ────────────────────────────────────────────
 var PRICE_MODE=false, PRICE_COL=null, PRICE_COL_NAME='';
