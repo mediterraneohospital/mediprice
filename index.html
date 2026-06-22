@@ -7,7 +7,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 :root{--bg:#f5f7fa;--sur:#fff;--s2:#f0f2f5;--brd:#e2e6ed;--acc:#1a56db;--txt:#111827;--mut:#6b7280;--dim:#374151;--grn:#059669;--r:8px;--th-bg:#eef1f6;--th-ec:#f0fdf4;--th-pc:#eff6ff;--row-even:#f7f9fc;--row-sel:#eff6ff;--price-sel:#fef08a;}
-[data-dark]{--bg:#1e2130;--sur:#252837;--s2:#2d3148;--brd:#3d4266;--acc:#4d7ff5;--txt:#e2e6f0;--mut:#8b92b0;--dim:#c5cade;--grn:#34d399;--th-bg:#2a2e45;--th-ec:#1a3a2a;--th-pc:#1a2a45;--row-even:#2a2e45;--row-sel:#1e3a6e;--price-sel:#5a4a00;}
+[data-dark]{--bg:#1e2130;--sur:#252837;--s2:#2d3148;--brd:#3d4266;--acc:#4d7ff5;--txt:#e2e6f0;--mut:#8b92b0;--dim:#c5cade;--grn:#34d399;--th-bg:#2a2e45;--th-ec:#1a3a2a;--th-pc:#1a2a45;--row-even:#2a2e45;--row-sel:#1e3a6e;--price-sel:#5a4a00;--note-bg:#2a2510;--note-txt:#f59e0b;}
 *{transition:background-color .2s,border-color .2s,color .15s;}
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:13px;background:var(--bg);color:var(--txt);}
@@ -619,7 +619,7 @@ function buildRows(headers,rows,showSp,q){
   return rows.map(function(row,ri){
     if(!Array.isArray(row)) return '';
     if(row[0]&&String(row[0]).startsWith('📌')){
-      return '<tr><td colspan="'+(headers.length+(showSp?1:0))+'" style="background:#fffbeb;color:#92400e;font-size:12px;padding:6px 8px;font-style:italic;white-space:normal;word-break:break-word;">'+String(row[0]).replace('📌 ','')+'</td></tr>';
+      return '<tr><td colspan="'+(headers.length+(showSp?1:0))+'" style="background:var(--note-bg,#fffbeb);color:var(--note-txt,#92400e);font-size:12px;padding:6px 8px;font-style:italic;white-space:normal;word-break:break-word;">'+String(row[0]).replace('📌 ','')+'</td></tr>';
     }
     var sp=showSp?'<td><span class="spbadge">'+cur+'</span></td>':'';
     var acts='';
@@ -698,7 +698,7 @@ function buildRowsMulti(headers,rows,q,ti){
   return rows.map(function(row,ri){
     if(!Array.isArray(row)) return '';
     if(row[0]&&String(row[0]).startsWith('📌')){
-      return '<tr><td colspan="'+headers.length+'" style="background:#fffbeb;color:#92400e;font-size:12px;padding:6px 8px;font-style:italic;white-space:normal;word-break:break-word;">'+String(row[0]).replace('📌 ','')+'</td></tr>';
+      return '<tr><td colspan="'+headers.length+'" style="background:var(--note-bg,#fffbeb);color:var(--note-txt,#92400e);font-size:12px;padding:6px 8px;font-style:italic;white-space:normal;word-break:break-word;">'+String(row[0]).replace('📌 ','')+'</td></tr>';
     }
     var cells=row.map(function(cell,ci){
       var cls=tdCls(headers[ci],cell);
