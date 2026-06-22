@@ -7,7 +7,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 :root{--bg:#f5f7fa;--sur:#fff;--s2:#f0f2f5;--brd:#e2e6ed;--acc:#1a56db;--txt:#111827;--mut:#6b7280;--dim:#374151;--grn:#059669;--r:8px;--th-bg:#eef1f6;--th-ec:#f0fdf4;--th-pc:#eff6ff;--row-even:#f7f9fc;--row-sel:#eff6ff;--price-sel:#fef08a;}
-[data-dark]{--bg:#1e2130;--sur:#252837;--s2:#2d3148;--brd:#3d4266;--acc:#4d7ff5;--txt:#e2e6f0;--mut:#8b92b0;--dim:#c5cade;--grn:#34d399;--th-bg:#2a2e45;--th-ec:#1a3a2a;--th-pc:#1a2a45;--row-even:#2a2e45;--row-sel:#1e3a6e;--price-sel:#5a4a00;--note-bg:#2a2510;--note-txt:#f59e0b;}
+[data-dark]{--bg:#1e2130;--sur:#252837;--s2:#2d3148;--brd:#3d4266;--acc:#4d7ff5;--txt:#e2e6f0;--mut:#8b92b0;--dim:#c5cade;--grn:#34d399;--th-bg:#2a2e45;--th-ec:#1a3a2a;--th-pc:#1a2a45;--row-even:#2a2e45;--row-sel:#1e3a6e;--price-sel:#5a4a00;--note-bg:#2a2510;--note-txt:#f59e0b;--th-lux:#2a1a3a;--lux:#c084fc;--th-suite:#2a1a0a;--suite:#fb923c;}
 *{transition:background-color .2s,border-color .2s,color .15s;}
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:13px;background:var(--bg);color:var(--txt);}
@@ -54,10 +54,14 @@ td{padding:5px 8px;border-bottom:1px solid #f1f5f9;border-right:1px solid #eef0f
 td.wrap{white-space:normal;word-break:break-word;line-height:1.4;} /* same as td */
 td.ev{background:var(--th-ec);font-weight:600;color:var(--grn);text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
 td.pv{background:var(--th-pc);font-weight:600;color:var(--acc);text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
+td.lv{background:var(--th-lux,#fdf4ff);font-weight:600;color:var(--lux,#7e22ce);text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
+td.sv{background:var(--th-suite,#fff7ed);font-weight:600;color:var(--suite,#c2410c);text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
 td:last-child{border-right:none;}
 tbody tr{height:56px;}tbody tr:nth-child(even) td{background:var(--row-even);}
 tbody tr:nth-child(even) td.ev{background:var(--th-ec);}
 tbody tr:nth-child(even) td.pv{background:var(--th-pc);}
+tbody tr:nth-child(even) td.lv{background:var(--th-lux,#fdf4ff);}
+tbody tr:nth-child(even) td.sv{background:var(--th-suite,#fff7ed);}
 tbody tr:hover td{background:var(--row-sel)!important;cursor:pointer;}
 tbody tr.sel td{background:var(--row-sel)!important;}
 .spbadge{font-size:10px;font-weight:600;color:var(--acc);background:#eff6ff;border-radius:4px;padding:2px 5px;white-space:nowrap;}
@@ -206,8 +210,10 @@ function undo(){
   if(!UNDO_STACK.length) document.getElementById('undoBtn').disabled=true;
 }
 
-var ECOLS=['ΕΟΠΥΥ ΒΑ3','ΕΟΠΥΥ ΒΑ','ΕΟΠΥΥ ΒΑ3 2026','ΕΟΠΥΥ ΒΑ 2026','ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ ΜΕ ΦΠΑ 24%','ΕΟΠΥΥ ΒΑ ΜΕ ΦΠΑ','ODC ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ODC ΕΟΠΥΥ ΜΕ ΦΠΑ','ΒΑ ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ΒΑ ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ Α','ΤΕΛΙΚΟΣ ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ','ΕΟΠΥΥ 2026','ΒΑ NET','Α NET','LUX NET','SUITE NET','ΕΟΠΥΥ ΚΛΙΝΙΚΗ','ΕΟΠΥΥ ΑΝΑΙΣΘ.'];
-var PCOLS=['ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ ΒΑ','ΙΔΙΩΤΗΣ ΒΑ3 2026','ΙΔΙΩΤΗΣ ΒΑ 2026','ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ 24%','ΙΔΙΩΤΗΣ ΒΑ ΜΕ ΦΠΑ','ODC ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ','ODC ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΒΑ ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ','ΒΑ ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΙΔΙΩΤΗΣ Α','ΙΔΙΩΤΗΣ','ΙΔΙΩΤΗΣ 2026','ΒΑ ΜΕ ΦΠΑ','Α ΜΕ ΦΠΑ','LUX ΜΕ ΦΠΑ','SUITE ΜΕ ΦΠΑ','ODC ΜΕ ΦΠΑ','ΒΑ','Α','LUX','SUITE','ODC','ΙΔΙΩΤΗΣ ΚΛΙΝΙΚΗ','ΙΔΙΩΤΗΣ ΑΝΑΙΣΘ.','ΤΟΠΙΚΗ','ΜΕΘΗ','ΓΕΝΙΚΗ'];
+var ECOLS=['ΕΟΠΥΥ ΒΑ3','ΕΟΠΥΥ ΒΑ','ΕΟΠΥΥ ΒΑ3 2026','ΕΟΠΥΥ ΒΑ 2026','ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ ΜΕ ΦΠΑ 24%','ΕΟΠΥΥ ΒΑ ΜΕ ΦΠΑ','ODC ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ODC ΕΟΠΥΥ ΜΕ ΦΠΑ','ΒΑ ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ΒΑ ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ Α','ΤΕΛΙΚΟΣ ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ','ΕΟΠΥΥ 2026','ΒΑ NET','Α NET','ΕΟΠΥΥ ΚΛΙΝΙΚΗ','ΕΟΠΥΥ ΑΝΑΙΣΘ.'];
+var PCOLS=['ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ ΒΑ','ΙΔΙΩΤΗΣ ΒΑ3 2026','ΙΔΙΩΤΗΣ ΒΑ 2026','ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ 24%','ΙΔΙΩΤΗΣ ΒΑ ΜΕ ΦΠΑ','ODC ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ','ODC ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΒΑ ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ','ΒΑ ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΙΔΙΩΤΗΣ Α','ΙΔΙΩΤΗΣ','ΙΔΙΩΤΗΣ 2026','ΒΑ ΜΕ ΦΠΑ','Α ΜΕ ΦΠΑ','LUX ΜΕ ΦΠΑ','SUITE ΜΕ ΦΠΑ','ODC ΜΕ ΦΠΑ','ΒΑ','Α','ODC','ΙΔΙΩΤΗΣ ΚΛΙΝΙΚΗ','ΙΔΙΩΤΗΣ ΑΝΑΙΣΘ.','ΤΟΠΙΚΗ','ΜΕΘΗ','ΓΕΝΙΚΗ'];
+var LCOLS=['LUX ΜΕ ΦΠΑ','LUX NET','LUX'];
+var SCOLS=['SUITE ΜΕ ΦΠΑ','SUITE NET','SUITE'];
 var WCOLS=['ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ','ΠΕΡΙΓΡΑΦΗ','ΕΙΔΟΣ ΠΡΑΞΗΣ','ΠΡΑΞΗ','ΤΙΤΛΟΣ ΕΠΕΜΒΑΣΗΣ','ΠΑΡΑΤΗΡΗΣΕΙΣ','ΣΧΟΛΙΑ','EXTRA','ΥΛΙΚΑ ΙΔΙΩΤΗ','ΑΠΟΦΑΣΗ ΚΕΣΥ','ΕΞΕΤΑΣΕΙΣ ΠΑΚΕΤΟΥ','ΠΑΡΑΤΗΡΗΣΕΙΣ - ΠΑΡΑΔΟΧΕΣ','ΥΛΙΚΑ MEDTRONIC','ΥΛΙΚΟ','ΚΑΤΗΓΟΡΙΑ','ΥΠΟΚΑΤΗΓΟΡΙΑ'];
 var ORDER=['ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ','ΓΑΣΤΡΕΝΤΕΡΟΛΟΓΙΚΑ','ΓΝΑΘΟΧΕΙΡΟΥΡΓΙΚΑ','ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ','ΓΥΝΑΙΚΟΛΟΓΙΚΗ','ΕΠΕΜΒΑΤΙΚΗ ΑΚΤΙΝΟΛΟΓΙΑ','ΕΠΕΜΒΑΤΙΚΗ ΚΑΡΔΙΟΛΟΓΙΑ','ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ','ΘΕΡΑΠΕΙΕΣ ΠΟΝΟ ΜΕ ΣΥΣΚΕΥΕΣ','INTERSTIM','ΘΩΡΑΚΟΧΕΙΡΟΥΡΓΙΚΗ','ΚΑΡΔΙΟΧΕΙΡΟΥΡΓΙΚΗ','ΜΟΝΑΔΑ ΜΑΣΤΟΥ','ΝΕΥΡΟΧΕΙΡΟΥΡΓΙΚΗ','ΟΝΠ','ΟΡΘΟΠΕΔΙΚΗ','ΟΥΡΟΛΟΓΙΚΗ','ΟΦΘΑΛΜΟΛΟΓΙΑ','ΠΛΑΣΤΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ','ΠΝΕΥΜΟΝΟΛΟΓΙΚΟ','ΠΟΝΟΣ','ΧΟΛΗΦΟΡΑ','ΣΠΟΝΔΥΛΙΚΗ ΣΤΗΛΗ','ΩΡΛ'];
 
@@ -582,6 +588,8 @@ function colW(h){
 function thCls(h){return ECOLS.indexOf(h)>=0?' ec':PCOLS.indexOf(h)>=0?' pc':'';}
 function tdCls(h,v){
   if(ECOLS.indexOf(h)>=0) return ' class="ev"';
+  if(LCOLS.indexOf(h)>=0) return ' class="lv"';
+  if(SCOLS.indexOf(h)>=0) return ' class="sv"';
   if(PCOLS.indexOf(h)>=0) return ' class="pv"';
   if(WCOLS.indexOf(h)>=0||String(v).length>45) return ' class="wrap"';
   return '';
