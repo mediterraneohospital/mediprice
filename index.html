@@ -1032,10 +1032,15 @@ init();
 
 <script>
 var AI_OPEN=false,AI_TYPING_EL=null,AI_HISTORY=[];
-var CLAUDE_KEY=localStorage.getItem('mp_key')||'';
-if(!CLAUDE_KEY){
-  var k=prompt('Εισαγωγή API Key (αποθηκεύεται τοπικά):');
-  if(k){localStorage.setItem('mp_key',k);CLAUDE_KEY=k;}
+var CLAUDE_KEY='';
+async function aiLoadKey(){
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/mp_config?key=eq.claude_key&select=value',
+      {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+    var d=await r.json();
+    if(d&&d[0]) CLAUDE_KEY=d[0].value;
+  }catch(e){}
+  if(!CLAUDE_KEY) CLAUDE_KEY=localStorage.getItem('mp_key')||'';
 }
 
 function nt(s){
@@ -1115,6 +1120,7 @@ function sendAI(){
 
 async function aiCallClaude(userText){
   try{
+    if(!CLAUDE_KEY) await aiLoadKey();
     var sheetNames=await aiAllNames();
     var sys='You are MediPrice assistant for Mediterraneo Hospital. '
       +'Available specialties: '+sheetNames.join(', ')+'. '
