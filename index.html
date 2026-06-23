@@ -1214,7 +1214,27 @@ async function aiSearch(term,sheetFilter,priceFilter,sortBy){
     var words=[];
     if(term){
       var tw=nt(term).split(' ');
-      for(var i=0;i<tw.length;i++) if(tw[i].length>=3) words.push(tw[i]);
+      for(var i=0;i<tw.length;i++){
+        var w=tw[i];
+        if(w.length<3) continue;
+        // Greek stemming - remove common endings to match different forms
+        var stems=[
+          [/ης$/,''],  // βηματοδότης -> βηματοδότη
+          [/ου$/,''],  // βηματοδότου -> βηματοδότ
+          [/ων$/,''],  // βηματοδότων
+          [/εις$/,''], // αντικαταστάσεις
+          [/ες$/,''],  // αντικαταστάσες
+          [/ας$/,''],  // αντικατάστασας
+          [/η$/,''],   // βηματοδότη
+          [/α$/,''],   // 
+        ];
+        var stemmed=w;
+        for(var si=0;si<stems.length;si++){
+          var candidate=w.replace(stems[si][0],stems[si][1]);
+          if(candidate.length>=4){stemmed=candidate;break;}
+        }
+        words.push(stemmed.length>=4?stemmed:w);
+      }
     }
 
     for(var si=0;si<sheets.length;si++){
@@ -1325,7 +1345,17 @@ async function aiExecute(actionType,data){
     var words=[];
     if(data.searchTerm){
       var tw=nt(data.searchTerm).split(' ');
-      for(var i=0;i<tw.length;i++) if(tw[i].length>=2) words.push(tw[i]);
+      for(var i=0;i<tw.length;i++){
+        var w=tw[i];
+        if(w.length<2) continue;
+        var stems=[[/ης$/,''],[/ου$/,''],[/ων$/,''],[/εις$/,''],[/ες$/,''],[/ας$/,''],[/η$/,''],[/α$/,'']];
+        var stemmed=w;
+        for(var si=0;si<stems.length;si++){
+          var candidate=w.replace(stems[si][0],stems[si][1]);
+          if(candidate.length>=4){stemmed=candidate;break;}
+        }
+        words.push(stemmed.length>=3?stemmed:w);
+      }
     }
     for(var si=0;si<sheets.length;si++){
       var sname=sheets[si];
