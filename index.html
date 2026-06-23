@@ -1187,25 +1187,27 @@ function aiMatchSheet(t){
 }
 
 function aiGetTerm(t, sheetKey){
-  var clean = t
-    .replace(/τιμ[ηε]\s*(της\s*)?/g,'')
-    .replace(/δειξε\s*(μου\s*)?(τις\s*|τη\s*|την\s*)?/g,'')
-    .replace(/βρες\s*/g,'').replace(/φερε\s*/g,'').replace(/ψαξε\s*/g,'')
-    .replace(/αλλαξε\s*/g,'').replace(/αυξησε\s*/g,'').replace(/μειωσε\s*/g,'')
-    .replace(/ολες\s*(τις\s*)?/g,'')
-    .replace(/ποια\s*/g,'').replace(/ποσο\s*/g,'').replace(/ποιες\s*/g,'')
-    .replace(/[+\-]?\d+[.,]?\d*\s*%/g,'').replace(/[=:]\s*\d+[.,]?\d*/g,'')
-    .replace(/\b(η|ο|τη|τον|της|του|τους|τις|το|τα|και)\b\s*/g,'')
-    .replace(/;/g,'').trim();
+  // Αφαίρεσε βήμα-βήμα
+  var clean = t;
+  // Ρήματα/εκφράσεις
+  clean = clean.replace(/τιμ[ηε]\s*(της\s*|του\s*|την\s*|τον\s*)?/g,'');
+  clean = clean.replace(/δειξε\s*(μου\s*)?(τις\s*|τη\s*|την\s*)?/g,'');
+  clean = clean.replace(/βρες\s*/g,'').replace(/φερε\s*/g,'').replace(/ψαξε\s*/g,'');
+  clean = clean.replace(/αλλαξε\s*/g,'').replace(/αυξησε\s*/g,'').replace(/μειωσε\s*/g,'');
+  clean = clean.replace(/ολες\s*(τις\s*)?/g,'');
+  clean = clean.replace(/ποια\s*/g,'').replace(/ποσο\s*/g,'').replace(/ποιες\s*/g,'');
+  // Αριθμοί/ποσοστά
+  clean = clean.replace(/[+\-]?\d+[.,]?\d*\s*%/g,'').replace(/[=:]\s*\d+[.,]?\d*/g,'');
+  // Άρθρα — αφαίρεσε ως standalone λέξεις (με space ή αρχή/τέλος)
+  var articles = ['της','τους','τον','τις','του','τη','τα','το','και','ο','η'];
+  articles.forEach(function(a){
+    clean = clean.replace(new RegExp('(^|\\s)'+a+'(\\s|$)','g'),' ');
+  });
+  clean = clean.replace(/;/g,'').replace(/\s+/g,' ').trim();
 
-  // Αφαίρεσε sheet key μόνο αν ΔΕΝ είναι μέρος μεγαλύτερης λέξης
-  if(sheetKey){
-    var test = clean.replace(new RegExp('^'+sheetKey+'$'),'').trim();
-    if(test===clean){
-      // το sheetKey δεν είναι standalone — κράτα το clean (είναι επέμβαση)
-    } else {
-      clean = test; // ήταν μόνο ειδικότητα
-    }
+  // Αφαίρεσε sheet key μόνο αν είναι ακριβώς αυτό (standalone)
+  if(sheetKey && clean === sheetKey){
+    clean = '';
   }
 
   return clean.length>=3 ? clean : null;
