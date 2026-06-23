@@ -84,7 +84,7 @@ mark{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px;}
 .edit-bar button:hover{background:rgba(255,255,255,.3);}
 .edit-bar .spacer{flex:1;}
 .edit-bar .saved{background:#059669;border-color:#059669;}
-.edit-btn{position:fixed;bottom:60px;right:20px;background:#1e40af;color:#fff;border:none;border-radius:50px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:600;font-family:inherit;}
+.edit-btn{position:fixed;bottom:84px;right:24px;background:#1e40af;color:#fff;border:none;border-radius:50px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:600;font-family:inherit;}
 .edit-btn.active{background:#059669;}
 .edit-mode th{cursor:pointer;}
 .edit-mode th.col-selected{background:var(--row-sel)!important;color:var(--acc)!important;outline:2px solid var(--acc);}
@@ -118,7 +118,7 @@ td.price-highlight{background:#fef9c3!important;}
 #pricePanel input[type=number]{width:64px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:4px 8px;color:#fff;font-size:12px;font-family:inherit;text-align:center;}
 #pricePanel input[type=number]::-webkit-inner-spin-button{opacity:1;}
 
-#aiBtn{position:fixed;bottom:24px;right:24px;width:50px;height:50px;background:var(--acc);color:#fff;border:none;border-radius:50%;cursor:pointer;box-shadow:0 4px 16px rgba(26,86,219,.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform .2s;}
+#aiBtn{position:fixed;bottom:24px;right:24px;width:48px;height:48px;background:var(--acc);color:#fff;border:none;border-radius:50%;cursor:pointer;box-shadow:0 4px 16px rgba(26,86,219,.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform .2s;}
 #aiBtn:hover{transform:scale(1.08);}
 #aiBtn.open{background:#374151;}
 #aiPanel{position:fixed;right:0;top:48px;bottom:0;width:380px;background:var(--sur);border-left:1px solid var(--brd);display:flex;flex-direction:column;z-index:800;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:-4px 0 24px rgba(0,0,0,.1);}
@@ -1054,9 +1054,10 @@ function isPriceCol(h){
   var hn=nt((h||'').toString().split('\n').join(' '));
   var bad=['υλικ','κοστ','αμοιβ','περιλαμβ','ημερ','κλιν','χρον','διαρκ','παρατ','σχολ','αποφ','αγορ','εσοδ','διαφ','ωρε','μεγιστ','ken','κεν','κωδ','extra','notes'];
   for(var i=0;i<bad.length;i++) if(hn.indexOf(bad[i])>=0) return false;
-  return hn.indexOf('ιδιωτ')>=0||hn.indexOf('εοπυ')>=0||hn.indexOf('odc')>=0||
-    hn.indexOf('lux')>=0||hn.indexOf('suite')>=0||hn.indexOf('μεθη')>=0||
-    hn.indexOf('τοπικ')>=0||hn.indexOf('βα3')>=0||hn.indexOf('ba3')>=0;
+  return hn.indexOf('ιδιωτ')>=0||hn.indexOf('εοπυ')>=0||hn.indexOf('εοππ')>=0||
+    hn.indexOf('odc')>=0||hn.indexOf('lux')>=0||hn.indexOf('suite')>=0||
+    hn.indexOf('μεθη')>=0||hn.indexOf('τοπικ')>=0||
+    hn.indexOf('βα3')>=0||hn.indexOf('ba3')>=0||hn.indexOf('τελικ')>=0;
 }
 
 function matchPrice(h,filter){
@@ -1141,7 +1142,7 @@ async function aiCallClaude(userText){
       +'Available specialties: '+sheetNames.join(', ')+'. '
       +'Note: cholecystectomy is in ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ. '
       +'Always respond in Greek. Always respond in JSON only, no markdown. '
-      +'Format: {"intent":"search","message":"...","data":{"searchTerm":"...","sheet":"exact name or null","priceFilter":"ιδιωτης or εοπυυ or βα3 or βα or odc or null","sortBy":"max or min or null"}} '
+      +'Format: {"intent":"search","message":"...","data":{"searchTerm":"...","sheet":"exact name or null","priceFilter":"για ΕΟΠΥΥ ΒΑ3 γραψε εοπυυ βα3. Για ΙΔΙΩΤΗ ΒΑ3 γραψε ιδιωτης βα3. Για μονο ΕΟΠΥΥ γραψε εοπυυ. Για μονο ΙΔΙΩΤΗ γραψε ιδιωτης. Για ολες null","sortBy":"max or min or null"}} '
       +'or {"intent":"confirm_update","message":"...","data":{"searchTerm":"...","sheet":"...","changeType":"percent","value":10,"priceFilter":null}} '
       +'or {"intent":"confirm_bulk","message":"...","data":{"sheet":"...","changeType":"percent","value":5,"priceFilter":null}} '
       +'or {"intent":"chat","message":"...","data":null}. '
