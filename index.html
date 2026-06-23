@@ -1047,20 +1047,11 @@ init();
 </div>
 
 <script>
-// ── GROQ + SMART CHATBOT v6 ──────────────────────────────
+// ── CLAUDE CHATBOT ───────────────────────────────────────
 var AI_OPEN = false;
 var AI_TYPING_EL = null;
 var AI_HISTORY = [];
-var WORKER_URL = 'https://empty-bush-9e4b.giorgosdanalatos.workers.dev';
-
-// Λέξεις που δείχνουν ότι μια στήλη έχει τιμή ΙΔΙΩΤΗ
-var PRICE_IDIWTHS = ['ιδιωτ'];
-// Λέξεις που δείχνουν ΕΟΠΥΥ
-var PRICE_EOPUU = ['εοπυ','ασφ/ν','ασφαλ'];
-// Όλες οι στήλες τιμών
-var PRICE_ANY = ['ιδιωτ','εοπυ','ασφ/ν','ασφαλ','odc','lux','suite','μεθη','τοπικ','γενικ αναισθ','ba3','βα3','βα ','βα$'];
-// Στήλες που ΔΕΝ είναι τιμές αν και περιέχουν αυτές τις λέξεις
-var NOT_PRICE = ['υλικ','κοστ','αμοιβ','περιλαμβ','ημερ','κλιν','χρον','διαρκ','παρατ','σχολ','extra','notes','αποφ','αγορ','εσοδ','διαφ'];
+var CLAUDE_KEY = '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';
 
 function nt(s){
   return (s||'').toLowerCase()
@@ -1070,33 +1061,28 @@ function nt(s){
     .replace(/ώ/g,'ω');
 }
 
-// Βρες αν μια στήλη header είναι τιμή
 function isPriceCol(h){
-  var hn = nt((h||'').toString().replace(/\n/g,' '));
-  // Αν έχει NOT_PRICE keyword, όχι τιμή
-  if(NOT_PRICE.some(function(k){return hn.indexOf(k)>=0;})) return false;
-  // Αν έχει PRICE keyword, είναι τιμή
-  return PRICE_ANY.some(function(k){return hn.indexOf(k)>=0;});
+  var hn=nt((h||'').toString().replace(/\n/g,' '));
+  var notPrice=['υλικ','κοστ','αμοιβ','περιλαμβ','ημερ','κλιν','χρον','διαρκ','παρατ','σχολ','αποφ','αγορ','εσοδ','διαφ','ωρε','μεγιστ','ken','κεν','κωδ','α/α','extra','notes'];
+  if(notPrice.some(function(k){return hn.indexOf(k)>=0;})) return false;
+  return /ιδιωτ|εοπυ|ασφ\/ν|odc|lux|suite|μεθη|τοπικ|βα3|ba3/.test(hn);
 }
 
-// Βρες αν τιμή ταιριάζει σε priceFilter
-function matchPrice(h, filter){
+function matchPrice(h,filter){
   if(!filter) return true;
   var hn=nt((h||'').toString().replace(/\n/g,' '));
   var f=nt(filter);
-  if(f==='ιδιωτης'||f==='ιδιωτ') return PRICE_IDIWTHS.some(function(k){return hn.indexOf(k)>=0;});
-  if(f==='εοπυυ'||f==='εοπυ') return PRICE_EOPUU.some(function(k){return hn.indexOf(k)>=0;});
-  if(f==='βα3'||f==='ba3') return hn.indexOf('βα3')>=0||hn.indexOf('ba3')>=0;
-  if(f==='βα'||f==='ba') return (hn.indexOf('βα')>=0||hn.indexOf(' βα')>=0) && hn.indexOf('βα3')<0;
+  if(f==='ιδιωτης'||f==='ιδιωτ') return hn.indexOf('ιδιωτ')>=0;
+  if(f==='εοπυυ'||f==='εοπυ') return /εοπυ|ασφ/.test(hn);
+  if(f==='βα3'||f==='ba3') return /βα3|ba3/.test(hn);
+  if(f==='βα') return (/βα|ba/.test(hn))&&!/βα3|ba3/.test(hn);
   if(f==='odc') return hn.indexOf('odc')>=0;
   if(f==='lux') return hn.indexOf('lux')>=0;
   if(f==='suite') return hn.indexOf('suite')>=0;
   return true;
 }
 
-// Βρες το όνομα μιας γραμμής (πρώτο non-αριθμός, non-κωδικός κείμενο)
-function getRowName(row, headers){
-  // Κοίτα πρώτα στήλες με "ΠΕΡΙΓΡΑΦΗ", "ΠΡΑΞΗ", "ΤΙΤΛΟΣ", "ΕΙΔΟΣ"
+function getRowName(row,headers){
   for(var i=0;i<(headers||[]).length&&i<row.length;i++){
     var h=nt((headers[i]||'').toString());
     if(/περιγραφ|πραξ|τιτλ|ειδο/.test(h)){
@@ -1104,7 +1090,6 @@ function getRowName(row, headers){
       if(v&&v.length>3&&!/^\d+$/.test(v)) return v;
     }
   }
-  // Fallback: πρώτο cell που δεν είναι αριθμός και έχει >3 χαρακτήρες
   for(var j=0;j<Math.min(row.length,6);j++){
     var v2=(row[j]||'').toString().trim();
     if(v2&&v2.length>3&&!/^\d+[.,]?\d*$/.test(v2)&&!/^[A-Z]\d+/.test(v2)) return v2;
@@ -1112,13 +1097,12 @@ function getRowName(row, headers){
   return '';
 }
 
-// Βρες παρατήρηση
-function getRowNotes(row, headers){
+function getRowNotes(row,headers){
   for(var i=0;i<(headers||[]).length&&i<row.length;i++){
     var h=nt((headers[i]||'').toString());
     if(/παρατ|σχολ/.test(h)){
       var v=(row[i]||'').toString().trim();
-      if(v&&v!=='Υλικά'&&v!=='EXTRA'&&v.length>3) return v;
+      if(v&&v.length>3&&v!=='Υλικά'&&v!=='EXTRA') return v;
     }
   }
   return '';
@@ -1140,48 +1124,83 @@ function sendAI(){
   input.value=''; input.style.height='auto';
   aiAddMsg('user',text);
   aiShowTyping();
-  aiCallGroq(text);
+  aiCallClaude(text);
 }
 
-// ── GROQ ─────────────────────────────────────────────────
-async function aiCallGroq(userText){
+// ── CLAUDE API ───────────────────────────────────────────
+async function aiCallClaude(userText){
   try{
     var sheetNames=await aiAllNames();
-    var sys=
-      'Είσαι βοηθός του MediPrice (Mediterraneo Hospital).\n'+
-      'ΕΙΔΙΚΟΤΗΤΕΣ: '+sheetNames.join(', ')+'\n'+
-      'ΣΗΜΕΙΩΣΗ: χολοκυστεκτομή → ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ\n\n'+
-      'ΑΠΑΝΤΑ σε JSON χωρίς markdown:\n'+
-      '{"intent":"search"|"confirm_update"|"confirm_bulk"|"chat","message":"...","data":{...}}\n\n'+
-      'search: data={searchTerm:"...",sheet:"ακριβές όνομα ή null",priceFilter:"ιδιωτης"|"εοπυυ"|"βα3"|"βα"|"odc"|"lux"|"suite"|null}\n'+
-      'confirm_update: data={searchTerm:"...",sheet:"..." ή null,changeType:"percent"|"fixed",value:30,priceFilter:"..."ή null}\n'+
-      'confirm_bulk: data={sheet:"...",changeType:"percent"|"fixed",value:5,priceFilter:"..."ή null}\n'+
-      'chat: data=null\n\n'+
-      'Ελληνικά. Αλλαγές→confirm πάντα. priceFilter μόνο αν ο χρήστης το ζητά ρητά.';
 
-    var msgs=[{role:'system',content:sys}];
+    var sys=
+      'Είσαι ο βοηθός του MediPrice του Mediterraneo Hospital.\n\n'+
+      'ΕΙΔΙΚΟΤΗΤΕΣ: '+sheetNames.join(', ')+'\n\n'+
+      'ΔΥΝΑΤΟΤΗΤΕΣ:\n'+
+      '1. Αναζήτηση τιμής επέμβασης (σε όλες τις ειδικότητες ή σε συγκεκριμένη)\n'+
+      '2. Αλλαγή τιμής συγκεκριμένης επέμβασης (με επιβεβαίωση)\n'+
+      '3. Μαζική αλλαγή τιμών ανά ειδικότητα (με επιβεβαίωση)\n'+
+      '4. Ερωτήσεις όπως: «ποια είναι η ακριβότερη επέμβαση», «σύγκρινε τιμές»\n\n'+
+      'ΑΠΑΝΤΑ ΠΑΝΤΑ σε JSON χωρίς markdown:\n'+
+      '{"intent":"search"|"confirm_update"|"confirm_bulk"|"chat","message":"...","data":{...}}\n\n'+
+      'search: data={searchTerm:"...", sheet:"ακριβές όνομα ή null", priceFilter:"ιδιωτης"|"εοπυυ"|"βα3"|"βα"|"odc"|null, sortBy:"max"|"min"|null}\n'+
+      'confirm_update: data={searchTerm:"...", sheet:"..." ή null, changeType:"percent"|"fixed", value:30, priceFilter:"..."ή null}\n'+
+      'confirm_bulk: data={sheet:"...", changeType:"percent"|"fixed", value:5, priceFilter:"..."ή null}\n'+
+      'chat: data=null (για γενικές απαντήσεις)\n\n'+
+      'ΚΑΝΟΝΕΣ:\n'+
+      '- Απάντα πάντα στα ελληνικά\n'+
+      '- Για αλλαγές ΠΑΝΤΑ ζήτα επιβεβαίωση (confirm_update ή confirm_bulk)\n'+
+      '- priceFilter: βάλε μόνο αν ο χρήστης το ζητά ρητά\n'+
+      '- sortBy: "max" για ακριβότερη, "min" για φθηνότερη\n'+
+      '- Να είσαι φυσικός και φιλικός στις απαντήσεις σου';
+
+    var msgs=[{role:'user',content:sys+' [SYSTEM INSTRUCTIONS - follow these]'}];
     AI_HISTORY.forEach(function(m){msgs.push(m);});
     msgs.push({role:'user',content:userText});
 
-    var resp=await fetch(WORKER_URL,{method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages:msgs})});
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':CLAUDE_KEY,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:800,
+        system: sys,
+        messages: (function(){
+          var m=[];
+          AI_HISTORY.forEach(function(h){m.push(h);});
+          m.push({role:'user',content:userText});
+          return m;
+        })()
+      })
+    });
 
-    if(!resp.ok) throw new Error('Worker '+resp.status);
+    if(!resp.ok){
+      var err=await resp.json();
+      throw new Error(err.error?.message||'HTTP '+resp.status);
+    }
+
     var data=await resp.json();
-    if(data.error) throw new Error(data.error);
+    var raw=(data.content?.[0]?.text||'').replace(/```json|```/g,'').trim();
 
-    var raw=(data.choices?.[0]?.message?.content||'').replace(/```json|```/g,'').trim();
     var parsed;
-    try{ var m=raw.match(/\{[\s\S]*\}/); parsed=JSON.parse(m?m[0]:raw); }
-    catch(e){ parsed={intent:'chat',message:raw,data:null}; }
+    try{
+      var m=raw.match(/\{[\s\S]*\}/);
+      parsed=JSON.parse(m?m[0]:raw);
+    }catch(e){
+      parsed={intent:'chat',message:raw,data:null};
+    }
 
     AI_HISTORY.push({role:'user',content:userText});
-    AI_HISTORY.push({role:'assistant',content:JSON.stringify(parsed)});
-    if(AI_HISTORY.length>10) AI_HISTORY=AI_HISTORY.slice(-10);
+    AI_HISTORY.push({role:'assistant',content:raw});
+    if(AI_HISTORY.length>12) AI_HISTORY=AI_HISTORY.slice(-12);
 
     aiHideTyping();
     aiHandle(parsed);
+
   }catch(err){
     aiHideTyping();
     aiAddMsg('bot','❌ Σφάλμα: '+err.message,'error');
@@ -1192,7 +1211,7 @@ function aiHandle(p){
   var d=p.data||{};
   if(p.intent==='search'){
     aiAddMsg('bot',p.message||'Αναζητώ...');
-    aiSearch(d.searchTerm||'',d.sheet||null,d.priceFilter||null);
+    aiSearch(d.searchTerm||'',d.sheet||null,d.priceFilter||null,d.sortBy||null);
   } else if(p.intent==='confirm_update'||p.intent==='confirm_bulk'){
     aiShowConfirm(p.message,p.intent,d);
   } else {
@@ -1200,15 +1219,15 @@ function aiHandle(p){
   }
 }
 
-// ── ΑΝΑΖΗΤΗΣΗ — 100% δυναμική ────────────────────────────
-async function aiSearch(term, sheetFilter, priceFilter){
+// ── ΑΝΑΖΗΤΗΣΗ ────────────────────────────────────────────
+async function aiSearch(term,sheetFilter,priceFilter,sortBy){
   aiShowTyping();
   try{
     var sheets=[];
     if(sheetFilter){
       if(!D[sheetFilter]||!D[sheetFilter].rows) await aiLoad(sheetFilter);
       if(D[sheetFilter]) sheets.push(sheetFilter);
-    } else if(term){
+    } else if(term||sortBy){
       var all=await aiAllNames();
       for(var i=0;i<all.length;i++){
         if(!D[all[i]]||!D[all[i]].rows) await aiLoad(all[i]);
@@ -1221,10 +1240,8 @@ async function aiSearch(term, sheetFilter, priceFilter){
 
     sheets.forEach(function(sname){
       var d=D[sname]; if(!d||d.__multi__||!d.rows) return;
-      var h=d.headers||[];
-      var rows=d.rows||[];
+      var h=d.headers||[]; var rows=d.rows||[];
 
-      // Βρες τις στήλες τιμών δυναμικά από headers
       var priceCols=[];
       h.forEach(function(hdr,i){
         if(isPriceCol(hdr)) priceCols.push({i:i,n:(hdr||'').toString().replace(/\n/g,' ').trim()});
@@ -1232,8 +1249,6 @@ async function aiSearch(term, sheetFilter, priceFilter){
 
       rows.forEach(function(row){
         if(!row||!row.length) return;
-
-        // Αναζήτηση σε ΟΛΑ τα cells
         var rowText=row.map(function(c){return c?nt(c.toString()):'';}).join(' ');
         var match=words.length===0||words.every(function(w){return rowText.indexOf(w)>=0;});
         if(!match) return;
@@ -1241,7 +1256,6 @@ async function aiSearch(term, sheetFilter, priceFilter){
         var name=getRowName(row,h);
         if(!name||name.length<3) return;
 
-        // Τιμές με φιλτράρισμα
         var prices=[];
         priceCols.forEach(function(pc){
           if(!matchPrice(pc.n,priceFilter)) return;
@@ -1251,29 +1265,42 @@ async function aiSearch(term, sheetFilter, priceFilter){
           if(pn>0) prices.push({n:pc.n.substring(0,25),v:pn});
         });
 
-        if(prices.length===0) return;
-
+        if(!prices.length) return;
         var notes=getRowNotes(row,h);
-        results.push({sheet:sname,name:name,prices:prices,notes:notes});
+        var maxPrice=Math.max.apply(null,prices.map(function(p){return p.v;}));
+        results.push({sheet:sname,name:name,prices:prices,notes:notes,maxPrice:maxPrice});
       });
     });
+
+    // Ταξινόμηση αν χρειάζεται
+    if(sortBy==='max') results.sort(function(a,b){return b.maxPrice-a.maxPrice;});
+    if(sortBy==='min') results.sort(function(a,b){return a.maxPrice-b.maxPrice;});
 
     aiHideTyping();
 
     if(!results.length){
-      aiAddMsg('bot','Δεν βρέθηκαν αποτελέσματα'+(term?' για «'+term+'»':'')+'.\nΔοκίμασε άλλη λέξη.','error');
+      aiAddMsg('bot','Δεν βρέθηκαν αποτελέσματα'+(term?' για «'+term+'»':'')+'.
+Δοκίμασε άλλη λέξη.','error');
       return;
     }
 
-    var shown=results.slice(0,6);
-    var msg='🔍 Βρέθηκαν '+results.length+(results.length>6?' (εμφανίζω 6)':'')+' αποτελέσματα:\n\n';
+    var limit=sortBy?3:6;
+    var shown=results.slice(0,limit);
+    var msg='🔍 Βρέθηκαν '+results.length+(results.length>limit?' (εμφανίζω '+limit+')':'')+' αποτελέσματα:
+
+';
     shown.forEach(function(r){
-      msg+='• '+r.name+'\n';
+      msg+='• '+r.name+'
+';
       r.prices.forEach(function(p){
-        msg+='  '+p.n+': '+p.v.toLocaleString('el-GR',{minimumFractionDigits:0})+'€\n';
+        msg+='  '+p.n+': '+p.v.toLocaleString('el-GR',{minimumFractionDigits:0})+'€
+';
       });
-      if(r.notes) msg+='  📝 '+r.notes+'\n';
-      msg+='  — '+r.sheet.trim()+'\n\n';
+      if(r.notes) msg+='  📝 '+r.notes+'
+';
+      msg+='  — '+r.sheet.trim()+'
+
+';
     });
     aiAddMsg('bot',msg.trim());
 
@@ -1298,7 +1325,7 @@ function aiShowConfirm(msg,actionType,data){
   document.getElementById('aiMessages').appendChild(wrap); aiScroll();
 }
 
-// ── ΕΚΤΕΛΕΣΗ ΑΛΛΑΓΗΣ ─────────────────────────────────────
+// ── ΕΚΤΕΛΕΣΗ ─────────────────────────────────────────────
 async function aiExecute(actionType,data){
   aiShowTyping();
   try{
@@ -1322,12 +1349,9 @@ async function aiExecute(actionType,data){
       var sname=sheets[si];
       var d=D[sname]; if(!d||d.__multi__||!d.rows) continue;
       var h=d.headers||[]; var rows=d.rows||[];
-
-      // Βρες τιμές δυναμικά
       var priceCols=[];
       h.forEach(function(hdr,i){
-        if(isPriceCol(hdr)&&matchPrice(hdr,data.priceFilter||null))
-          priceCols.push(i);
+        if(isPriceCol(hdr)&&matchPrice(hdr,data.priceFilter||null)) priceCols.push(i);
       });
       if(!priceCols.length) continue;
 
