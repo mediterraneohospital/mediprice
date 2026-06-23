@@ -1044,7 +1044,7 @@ init();
 var AI_OPEN = false;
 var AI_TYPING_EL = null;
 var AI_HISTORY = [];
-var GEMINI_KEY = 'AIzaSyAb8RN6I1fzRNACWysX-kmiD_fSs6mMES5fw5xvN31YvuWIFGSQ';
+var GEMINI_KEY = 'AQ.Ab8RN6I1fzRNACWysX-kmiD_fSs6mMES5fw5xvN31YvuWIFGSQ';
 var GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=';
 
 var AI_PRICE_COLS = ['ΙΔΙΩΤΗΣ ΒΑ','ΙΔΙΩΤΗΣ','ΒΑ','ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ 2026','ΙΔΙΩΤΗΣ ΒΑ 2026','ΙΔΙΩΤΗΣ ΒΑ ΜΕ ΦΠΑ'];
@@ -1103,9 +1103,15 @@ async function aiCallGemini(userText){
     // Νέο μήνυμα
     contents.push({ role:'user', parts:[{text:userText}] });
 
-    var resp = await fetch(GEMINI_URL + GEMINI_KEY, {
+    var isNewKey = GEMINI_KEY.startsWith('AQ.');
+    var fetchUrl = isNewKey
+      ? 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
+      : GEMINI_URL + GEMINI_KEY;
+    var fetchHeaders = {'Content-Type':'application/json'};
+    if(isNewKey) fetchHeaders['x-goog-api-key'] = GEMINI_KEY;
+    var resp = await fetch(fetchUrl, {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:fetchHeaders,
       body: JSON.stringify({ contents: contents, generationConfig:{ temperature:0.1, maxOutputTokens:500 } })
     });
 
