@@ -1032,7 +1032,11 @@ init();
 
 <script>
 var AI_OPEN=false,AI_TYPING_EL=null,AI_HISTORY=[];
-var CLAUDE_KEY=['sk-ant-api0','3-KB0h6TKmri4dITvoL823CzkRotCAJ8-UGHOfBCpI43EdbejGRfNyLnupA9Lho_rpsOkroFRJyaK6DgoPxhmJkg-wmUpKgAA'].join('');
+var CLAUDE_KEY=localStorage.getItem('mp_key')||'';
+if(!CLAUDE_KEY){
+  var k=prompt('Εισαγωγή API Key (αποθηκεύεται τοπικά):');
+  if(k){localStorage.setItem('mp_key',k);CLAUDE_KEY=k;}
+}
 
 function nt(s){
   s=(s||'').toLowerCase();
