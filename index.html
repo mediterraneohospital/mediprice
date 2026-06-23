@@ -117,6 +117,55 @@ td.price-highlight{background:#fef9c3!important;}
 #pricePanel .cancel-btn{background:#e53e3e;border-color:#e53e3e;}
 #pricePanel input[type=number]{width:64px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:4px 8px;color:#fff;font-size:12px;font-family:inherit;text-align:center;}
 #pricePanel input[type=number]::-webkit-inner-spin-button{opacity:1;}
+
+#aiBtn{position:fixed;bottom:24px;right:24px;width:50px;height:50px;background:var(--acc);color:#fff;border:none;border-radius:50%;cursor:pointer;box-shadow:0 4px 16px rgba(26,86,219,.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform .2s;}
+#aiBtn:hover{transform:scale(1.08);}
+#aiBtn.open{background:#374151;}
+#aiPanel{position:fixed;right:0;top:48px;bottom:0;width:380px;background:var(--sur);border-left:1px solid var(--brd);display:flex;flex-direction:column;z-index:800;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:-4px 0 24px rgba(0,0,0,.1);}
+#aiPanel.open{transform:translateX(0);}
+.ai-header{padding:14px 16px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.ai-header-icon{width:32px;height:32px;background:linear-gradient(135deg,#1a56db,#4d7ff5);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.ai-header-title{font-size:13px;font-weight:700;color:var(--txt);}
+.ai-header-sub{font-size:11px;color:var(--mut);}
+.ai-close{margin-left:auto;background:none;border:none;color:var(--mut);cursor:pointer;font-size:18px;padding:4px;border-radius:6px;}
+.ai-close:hover{background:var(--s2);}
+#aiMessages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth;}
+#aiMessages::-webkit-scrollbar{width:3px;}
+#aiMessages::-webkit-scrollbar-thumb{background:var(--brd);border-radius:3px;}
+.ai-msg{display:flex;flex-direction:column;max-width:88%;animation:fadeUp .2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.ai-msg.user{align-self:flex-end;}
+.ai-msg.bot{align-self:flex-start;}
+.ai-bubble{padding:10px 13px;border-radius:14px;font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:break-word;}
+.ai-msg.user .ai-bubble{background:var(--acc);color:#fff;border-bottom-right-radius:4px;}
+.ai-msg.bot .ai-bubble{background:var(--s2);color:var(--txt);border-bottom-left-radius:4px;border:1px solid var(--brd);}
+.ai-msg.bot .ai-bubble.confirm{background:#fffbeb;border-color:#f59e0b;}
+.ai-msg.bot .ai-bubble.success{background:#f0fdf4;border-color:#22c55e;}
+.ai-msg.bot .ai-bubble.error{background:#fef2f2;border-color:#ef4444;}
+[data-dark] .ai-msg.bot .ai-bubble{background:var(--s2);border-color:var(--brd);}
+[data-dark] .ai-msg.bot .ai-bubble.confirm{background:#2a2510;border-color:#f59e0b;color:#fbbf24;}
+[data-dark] .ai-msg.bot .ai-bubble.success{background:#0d2b1a;border-color:#22c55e;color:#34d399;}
+[data-dark] .ai-msg.bot .ai-bubble.error{background:#2b0d0d;border-color:#ef4444;color:#f87171;}
+.ai-meta{font-size:10px;color:var(--mut);margin-top:3px;padding:0 4px;}
+.ai-msg.user .ai-meta{text-align:right;}
+.ai-confirm-btns{display:flex;gap:8px;margin-top:8px;}
+.ai-confirm-btns button{flex:1;padding:7px 12px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.ai-btn-yes{background:#22c55e;color:#fff;}
+.ai-btn-no{background:var(--brd);color:var(--dim);}
+.ai-typing{display:flex;gap:4px;padding:12px 14px;background:var(--s2);border:1px solid var(--brd);border-radius:14px;border-bottom-left-radius:4px;width:fit-content;align-self:flex-start;}
+.ai-typing span{width:6px;height:6px;background:var(--mut);border-radius:50%;animation:bounce .9s infinite;}
+.ai-typing span:nth-child(2){animation-delay:.15s;}
+.ai-typing span:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-5px);}}
+.ai-quickbar{padding:10px 14px;border-top:1px solid var(--brd);display:flex;flex-wrap:wrap;gap:6px;flex-shrink:0;}
+.ai-quick{padding:5px 10px;background:var(--s2);border:1px solid var(--brd);border-radius:20px;font-size:11px;color:var(--dim);cursor:pointer;font-family:inherit;white-space:nowrap;}
+.ai-quick:hover{background:#dbeafe;border-color:var(--acc);color:var(--acc);}
+.ai-inputbar{padding:12px 14px;border-top:1px solid var(--brd);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;}
+#aiInput{flex:1;background:var(--s2);border:1px solid var(--brd);border-radius:10px;padding:9px 12px;font-size:13px;font-family:inherit;color:var(--txt);resize:none;outline:none;max-height:100px;min-height:38px;line-height:1.4;}
+#aiInput:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(26,86,219,.1);}
+#aiInput::placeholder{color:var(--mut);}
+#aiSend{width:38px;height:38px;background:var(--acc);color:#fff;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+#aiSend:hover{background:#1741b6;}
 </style>
 </head>
 <body>
@@ -947,6 +996,387 @@ document.getElementById('gC').addEventListener('click',function(){
 document.getElementById('spF').addEventListener('input',function(e){renderSB(e.target.value);});
 
 init();
+</script>
+
+<button id="aiBtn" onclick="toggleAI()" title="AI Βοηθός">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+</button>
+<div id="aiPanel">
+  <div class="ai-header">
+    <div class="ai-header-icon">🤖</div>
+    <div>
+      <div class="ai-header-title">MediPrice Βοηθός</div>
+      <div class="ai-header-sub">Αναζήτηση &amp; αλλαγές τιμών</div>
+    </div>
+    <button class="ai-close" onclick="toggleAI()">✕</button>
+  </div>
+  <div id="aiMessages">
+    <div class="ai-msg bot">
+      <div class="ai-bubble">Γεια σου! 👋 Ρώτησέ με ό,τι θέλεις για τιμές επεμβάσεων. Μπορώ να αναζητώ, να συγκρίνω και να αλλάζω τιμές.</div>
+      <div class="ai-meta">Τώρα</div>
+    </div>
+  </div>
+  <div class="ai-quickbar">
+    <button class="ai-quick" onclick="aiQuick('χολοκυστεκτομή')">Χολοκυστεκτομή</button>
+    <button class="ai-quick" onclick="aiQuick('ακριβότερη επέμβαση γενική χειρουργική')">Ακριβότερη Γεν.Χειρ.</button>
+    <button class="ai-quick" onclick="aiQuick('laser κιρσοί')">Laser κιρσοί</button>
+    <button class="ai-quick" onclick="aiQuick('ουρολογική +5%')">Ουρολογική +5%</button>
+  </div>
+  <div class="ai-inputbar">
+    <textarea id="aiInput" placeholder="Ρώτησε κάτι..." rows="1" onkeydown="aiKeyDown(event)" oninput="aiResize(this)"></textarea>
+    <button id="aiSend" onclick="sendAI()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+var AI_OPEN=false,AI_TYPING_EL=null,AI_HISTORY=[];
+var CLAUDE_KEY='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';
+
+function nt(s){
+  s=(s||'').toLowerCase();
+  var f='άέήίϊΐόύϋΰώ',t='αεηιιιουυυω';
+  for(var i=0;i<f.length;i++) s=s.split(f[i]).join(t[i]);
+  return s;
+}
+
+function isPriceCol(h){
+  var hn=nt((h||'').toString().split('\n').join(' '));
+  var bad=['υλικ','κοστ','αμοιβ','περιλαμβ','ημερ','κλιν','χρον','διαρκ','παρατ','σχολ','αποφ','αγορ','εσοδ','διαφ','ωρε','μεγιστ','ken','κεν','κωδ','extra','notes'];
+  for(var i=0;i<bad.length;i++) if(hn.indexOf(bad[i])>=0) return false;
+  return hn.indexOf('ιδιωτ')>=0||hn.indexOf('εοπυ')>=0||hn.indexOf('odc')>=0||
+    hn.indexOf('lux')>=0||hn.indexOf('suite')>=0||hn.indexOf('μεθη')>=0||
+    hn.indexOf('τοπικ')>=0||hn.indexOf('βα3')>=0||hn.indexOf('ba3')>=0;
+}
+
+function matchPrice(h,filter){
+  if(!filter) return true;
+  var hn=nt((h||'').toString().split('\n').join(' '));
+  var f=nt(filter);
+  if(f==='ιδιωτης'||f==='ιδιωτ') return hn.indexOf('ιδιωτ')>=0;
+  if(f==='εοπυυ'||f==='εοπυ') return hn.indexOf('εοπυ')>=0||hn.indexOf('ασφ')>=0;
+  if(f==='βα3'||f==='ba3') return hn.indexOf('βα3')>=0||hn.indexOf('ba3')>=0;
+  if(f==='βα') return (hn.indexOf('βα')>=0||hn.indexOf('ba')>=0)&&hn.indexOf('βα3')<0&&hn.indexOf('ba3')<0;
+  if(f==='odc') return hn.indexOf('odc')>=0;
+  if(f==='lux') return hn.indexOf('lux')>=0;
+  if(f==='suite') return hn.indexOf('suite')>=0;
+  return true;
+}
+
+function getRowName(row,headers){
+  for(var i=0;i<(headers||[]).length&&i<row.length;i++){
+    var h=nt((headers[i]||'').toString());
+    if(h.indexOf('περιγραφ')>=0||h.indexOf('πραξ')>=0||h.indexOf('τιτλ')>=0||h.indexOf('ειδο')>=0){
+      var v=(row[i]||'').toString().trim();
+      if(v&&v.length>3&&!/^[0-9]+$/.test(v)) return v;
+    }
+  }
+  for(var j=0;j<Math.min(row.length,6);j++){
+    var v2=(row[j]||'').toString().trim();
+    if(v2&&v2.length>3&&!/^[0-9]+[.,]?[0-9]*$/.test(v2)&&!/^[A-Z][0-9]+/.test(v2)) return v2;
+  }
+  return '';
+}
+
+function getRowNotes(row,headers){
+  for(var i=0;i<(headers||[]).length&&i<row.length;i++){
+    var h=nt((headers[i]||'').toString());
+    if(h.indexOf('παρατ')>=0||h.indexOf('σχολ')>=0){
+      var v=(row[i]||'').toString().trim();
+      if(v&&v.length>3&&v!=='Υλικά'&&v!=='EXTRA') return v;
+    }
+  }
+  return '';
+}
+
+function toggleAI(){
+  AI_OPEN=!AI_OPEN;
+  document.getElementById('aiPanel').classList.toggle('open',AI_OPEN);
+  document.getElementById('aiBtn').classList.toggle('open',AI_OPEN);
+  if(AI_OPEN) setTimeout(function(){document.getElementById('aiInput').focus();},300);
+}
+function aiQuick(t){document.getElementById('aiInput').value=t;sendAI();}
+function aiResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+function aiKeyDown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAI();}}
+
+function sendAI(){
+  var input=document.getElementById('aiInput');
+  var text=input.value.trim();if(!text)return;
+  input.value='';input.style.height='auto';
+  aiAddMsg('user',text);
+  aiShowTyping();
+  aiCallClaude(text);
+}
+
+async function aiCallClaude(userText){
+  try{
+    var sheetNames=await aiAllNames();
+    var sys='You are MediPrice assistant for Mediterraneo Hospital. '
+      +'Available specialties: '+sheetNames.join(', ')+'. '
+      +'Note: cholecystectomy is in ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ. '
+      +'Always respond in Greek. Always respond in JSON only, no markdown. '
+      +'Format: {"intent":"search","message":"...","data":{"searchTerm":"...","sheet":"exact name or null","priceFilter":"ιδιωτης or εοπυυ or βα3 or βα or odc or null","sortBy":"max or min or null"}} '
+      +'or {"intent":"confirm_update","message":"...","data":{"searchTerm":"...","sheet":"...","changeType":"percent","value":10,"priceFilter":null}} '
+      +'or {"intent":"confirm_bulk","message":"...","data":{"sheet":"...","changeType":"percent","value":5,"priceFilter":null}} '
+      +'or {"intent":"chat","message":"...","data":null}. '
+      +'For price changes always use confirm intent first. sortBy max=most expensive, min=cheapest.';
+
+    var msgs=[];
+    for(var i=0;i<AI_HISTORY.length;i++) msgs.push(AI_HISTORY[i]);
+    msgs.push({role:'user',content:userText});
+
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':CLAUDE_KEY,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:500,system:sys,messages:msgs})
+    });
+
+    if(!resp.ok){var e=await resp.json();throw new Error((e.error&&e.error.message)||'HTTP '+resp.status);}
+    var data=await resp.json();
+    var raw=((data.content&&data.content[0]&&data.content[0].text)||'').replace(/```json|```/g,'').trim();
+
+    var parsed;
+    try{var m=raw.match(/\{[\s\S]*\}/);parsed=JSON.parse(m?m[0]:raw);}
+    catch(e){parsed={intent:'chat',message:raw,data:null};}
+
+    AI_HISTORY.push({role:'user',content:userText});
+    AI_HISTORY.push({role:'assistant',content:raw});
+    if(AI_HISTORY.length>12) AI_HISTORY=AI_HISTORY.slice(-12);
+
+    aiHideTyping();
+    aiHandle(parsed);
+  }catch(err){
+    aiHideTyping();
+    aiAddMsg('bot','Σφάλμα: '+err.message,'error');
+  }
+}
+
+function aiHandle(p){
+  var d=p.data||{};
+  if(p.intent==='search'){
+    aiAddMsg('bot',p.message||'Αναζητώ...');
+    aiSearch(d.searchTerm||'',d.sheet||null,d.priceFilter||null,d.sortBy||null);
+  }else if(p.intent==='confirm_update'||p.intent==='confirm_bulk'){
+    aiShowConfirm(p.message,p.intent,d);
+  }else{
+    aiAddMsg('bot',p.message||'...');
+  }
+}
+
+async function aiSearch(term,sheetFilter,priceFilter,sortBy){
+  aiShowTyping();
+  try{
+    var sheets=[];
+    if(sheetFilter){
+      if(!D[sheetFilter]||!D[sheetFilter].rows) await aiLoad(sheetFilter);
+      if(D[sheetFilter]) sheets.push(sheetFilter);
+    }else{
+      var all=await aiAllNames();
+      for(var i=0;i<all.length;i++){
+        if(!D[all[i]]||!D[all[i]].rows) await aiLoad(all[i]);
+        if(D[all[i]]) sheets.push(all[i]);
+      }
+    }
+
+    var results=[];
+    var words=[];
+    if(term){
+      var tw=nt(term).split(' ');
+      for(var i=0;i<tw.length;i++) if(tw[i].length>=3) words.push(tw[i]);
+    }
+
+    for(var si=0;si<sheets.length;si++){
+      var sname=sheets[si];
+      var sd=D[sname];if(!sd||sd.__multi__||!sd.rows) continue;
+      var h=sd.headers||[];var rows=sd.rows||[];
+      var priceCols=[];
+      for(var pi=0;pi<h.length;pi++){
+        if(isPriceCol(h[pi])) priceCols.push({i:pi,n:(h[pi]||'').toString().split('\n').join(' ').trim()});
+      }
+      for(var ri=0;ri<rows.length;ri++){
+        var row=rows[ri];if(!row||!row.length) continue;
+        var rt='';for(var ci=0;ci<row.length;ci++) rt+=(row[ci]?nt(row[ci].toString()):'')+' ';
+        var match=(words.length===0);
+        if(!match){
+          match=true;
+          for(var wi=0;wi<words.length;wi++) if(rt.indexOf(words[wi])<0){match=false;break;}
+        }
+        if(!match) continue;
+        var name=getRowName(row,h);
+        if(!name||name.length<3) continue;
+        var prices=[];
+        for(var pci=0;pci<priceCols.length;pci++){
+          var pc=priceCols[pci];
+          if(!matchPrice(pc.n,priceFilter)) continue;
+          var v=row[pc.i];if(!v) continue;
+          var pn=parseFloat(v.toString().replace(/[^0-9.,]/g,'').replace(',','.'));
+          if(pn>0) prices.push({n:pc.n.substring(0,25),v:pn});
+        }
+        if(!prices.length) continue;
+        var notes=getRowNotes(row,h);
+        var maxP=0;for(var pri=0;pri<prices.length;pri++) if(prices[pri].v>maxP) maxP=prices[pri].v;
+        results.push({sheet:sname,name:name,prices:prices,notes:notes,maxPrice:maxP});
+      }
+    }
+
+    if(sortBy==='max') results.sort(function(a,b){return b.maxPrice-a.maxPrice;});
+    if(sortBy==='min') results.sort(function(a,b){return a.maxPrice-b.maxPrice;});
+
+    aiHideTyping();
+
+    if(!results.length){
+      aiAddMsg('bot','Δεν βρέθηκαν αποτελέσματα'+(term?' για: '+term:'')+'.','error');
+      return;
+    }
+
+    var limit=sortBy?3:6;
+    var shown=results.slice(0,limit);
+    var out='Βρέθηκαν '+results.length+(results.length>limit?' (εμφανίζω '+limit+')':'')+' αποτελέσματα:\n\n';
+    for(var sri=0;sri<shown.length;sri++){
+      var r=shown[sri];
+      out+='• '+r.name+'\n';
+      for(var pri2=0;pri2<r.prices.length;pri2++){
+        var p=r.prices[pri2];
+        out+='  '+p.n+': '+p.v.toLocaleString('el-GR',{minimumFractionDigits:0})+'€\n';
+      }
+      if(r.notes) out+='  📝 '+r.notes+'\n';
+      out+='  — '+r.sheet.trim()+'\n\n';
+    }
+    aiAddMsg('bot',out.trim());
+
+  }catch(err){
+    aiHideTyping();
+    aiAddMsg('bot','Σφάλμα: '+err.message,'error');
+  }
+}
+
+function aiShowConfirm(msg,actionType,data){
+  var wrap=document.createElement('div');wrap.className='ai-msg bot';
+  var bubble=document.createElement('div');bubble.className='ai-bubble confirm';bubble.textContent=msg;
+  var btns=document.createElement('div');btns.className='ai-confirm-btns';
+  var yes=document.createElement('button');yes.className='ai-btn-yes';yes.textContent='✓ Ναι';
+  var no=document.createElement('button');no.className='ai-btn-no';no.textContent='✕ Ακύρωση';
+  yes.onclick=function(){yes.disabled=true;no.disabled=true;aiExecute(actionType,data);};
+  no.onclick=function(){btns.remove();aiAddMsg('bot','Ακυρώθηκε.');};
+  btns.appendChild(yes);btns.appendChild(no);
+  var meta=document.createElement('div');meta.className='ai-meta';meta.textContent=aiNow();
+  wrap.appendChild(bubble);wrap.appendChild(btns);wrap.appendChild(meta);
+  document.getElementById('aiMessages').appendChild(wrap);aiScroll();
+}
+
+async function aiExecute(actionType,data){
+  aiShowTyping();
+  try{
+    var isBulk=(actionType==='confirm_bulk');
+    var sheets=[];
+    if(data.sheet){
+      if(!D[data.sheet]||!D[data.sheet].rows) await aiLoad(data.sheet);
+      if(D[data.sheet]) sheets.push(data.sheet);
+    }else{
+      var all=await aiAllNames();
+      for(var i=0;i<all.length;i++){
+        if(!D[all[i]]||!D[all[i]].rows) await aiLoad(all[i]);
+        if(D[all[i]]&&!D[all[i]].__multi__) sheets.push(all[i]);
+      }
+    }
+    var total=0,changed=[];
+    var words=[];
+    if(data.searchTerm){
+      var tw=nt(data.searchTerm).split(' ');
+      for(var i=0;i<tw.length;i++) if(tw[i].length>=2) words.push(tw[i]);
+    }
+    for(var si=0;si<sheets.length;si++){
+      var sname=sheets[si];
+      var sd=D[sname];if(!sd||sd.__multi__||!sd.rows) continue;
+      var h=sd.headers||[];var rows=sd.rows||[];
+      var priceCols=[];
+      for(var pi=0;pi<h.length;pi++){
+        if(isPriceCol(h[pi])&&matchPrice(h[pi],data.priceFilter||null)) priceCols.push(pi);
+      }
+      if(!priceCols.length) continue;
+      var upd=0;
+      for(var ri=0;ri<rows.length;ri++){
+        var row=rows[ri];if(!row||!row.length) continue;
+        var rt='';for(var ci=0;ci<row.length;ci++) rt+=(row[ci]?nt(row[ci].toString()):'')+' ';
+        var match=(isBulk||words.length===0);
+        if(!match){
+          match=true;
+          for(var wi=0;wi<words.length;wi++) if(rt.indexOf(words[wi])<0){match=false;break;}
+        }
+        if(!match) continue;
+        for(var pci=0;pci<priceCols.length;pci++){
+          var old=parseFloat((row[priceCols[pci]]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'));
+          if(old>0){
+            row[priceCols[pci]]=(data.changeType==='percent'?Math.round(old*(1+data.value/100)):data.value).toString();
+            upd++;
+          }
+        }
+      }
+      if(upd>0){
+        await aiSave(sname,h,rows);
+        if(cur===sname&&typeof showSheet==='function') showSheet(cur);
+        total+=upd;changed.push(sname.trim()+' ('+upd+')');
+      }
+    }
+    aiHideTyping();
+    if(total===0){
+      aiAddMsg('bot','Δεν βρέθηκαν εγγραφές.','error');
+    }else{
+      aiAddMsg('bot','✅ Ολοκληρώθηκε!\n'+changed.join('\n')+'\nΑποθηκεύτηκαν.','success');
+    }
+  }catch(err){
+    aiHideTyping();
+    aiAddMsg('bot','Σφάλμα: '+err.message,'error');
+  }
+}
+
+async function aiAllNames(){
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?select=sheet_name',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+    var d=await r.json();return (d||[]).map(function(x){return x.sheet_name;});
+  }catch(e){return Object.keys(D||{});}
+}
+async function aiLoad(name){
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?sheet_name=eq.'+encodeURIComponent(name)+'&select=*',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+    var d=await r.json();if(!d||!d[0]) return null;
+    var row=d[0];var h=row.headers;var rows=row.rows;
+    if(typeof h==='string'){
+      try{var p=JSON.parse(h);if(Array.isArray(p)&&p[0]&&p[0].headers){D[name]={__multi__:true,tables:p};return D[name];}}catch(e){}
+    }
+    D[name]={headers:h,rows:rows};return D[name];
+  }catch(e){return null;}
+}
+async function aiSave(name,headers,rows){
+  var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?sheet_name=eq.'+encodeURIComponent(name)+'&select=sheet_name',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+  var ex=await r.json();
+  var method=(ex&&ex.length>0)?'PATCH':'POST';
+  var url=SB_URL+'/rest/v1/mediprice_sheets'+(ex&&ex.length>0?'?sheet_name=eq.'+encodeURIComponent(name):'');
+  await fetch(url,{method:method,headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({sheet_name:name,headers:headers,rows:rows,updated_at:new Date().toISOString()})});
+}
+
+function aiAddMsg(role,text,type){
+  var wrap=document.createElement('div');wrap.className='ai-msg '+role;
+  var bubble=document.createElement('div');bubble.className='ai-bubble'+(type?' '+type:'');bubble.textContent=text;
+  var meta=document.createElement('div');meta.className='ai-meta';meta.textContent=aiNow();
+  wrap.appendChild(bubble);wrap.appendChild(meta);
+  document.getElementById('aiMessages').appendChild(wrap);aiScroll();
+}
+function aiShowTyping(){
+  AI_TYPING_EL=document.createElement('div');AI_TYPING_EL.className='ai-typing';
+  AI_TYPING_EL.innerHTML='<span></span><span></span><span></span>';
+  document.getElementById('aiMessages').appendChild(AI_TYPING_EL);aiScroll();
+}
+function aiHideTyping(){if(AI_TYPING_EL){AI_TYPING_EL.remove();AI_TYPING_EL=null;}}
+function aiScroll(){var m=document.getElementById('aiMessages');m.scrollTop=m.scrollHeight;}
+function aiNow(){return new Date().toLocaleTimeString('el-GR',{hour:'2-digit',minute:'2-digit'});}
+
 </script>
 </body>
 </html>
