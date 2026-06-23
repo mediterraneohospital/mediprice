@@ -143,6 +143,13 @@ td.price-highlight{background:#fef9c3!important;}
 .ai-msg.bot .ai-bubble.confirm{background:#fffbeb;border-color:#f59e0b;}
 .ai-msg.bot .ai-bubble.success{background:#f0fdf4;border-color:#22c55e;}
 .ai-msg.bot .ai-bubble.error{background:#fef2f2;border-color:#ef4444;}
+[data-dark] .ai-msg.bot .ai-bubble{background:var(--s2);border-color:var(--brd);color:var(--txt);}
+[data-dark] .ai-msg.bot .ai-bubble.confirm{background:#2a2510;border-color:#f59e0b;color:#fbbf24;}
+[data-dark] .ai-msg.bot .ai-bubble.success{background:#0d2b1a;border-color:#22c55e;color:#34d399;}
+[data-dark] .ai-msg.bot .ai-bubble.error{background:#2b0d0d;border-color:#ef4444;color:#f87171;}
+[data-dark] .ai-typing span{background:var(--mut);}
+[data-dark] .ai-quick{background:var(--s2);border-color:var(--brd);color:var(--dim);}
+[data-dark] .ai-quick:hover{background:var(--row-sel);border-color:var(--acc);color:var(--acc);}
 .ai-meta{font-size:10px;color:var(--mut);margin-top:3px;padding:0 4px;}
 .ai-msg.user .ai-meta{text-align:right;}
 .ai-confirm-btns{display:flex;gap:8px;margin-top:8px;}
@@ -1246,6 +1253,7 @@ async function aiDoSearch(term,sheetFilter,priceFilter){
     shown.forEach(function(r){
       msg+='• '+r.name+'\n';
       r.prices.forEach(function(p){
+        if(!p||p.v===undefined) return;
         msg+='  '+p.n+': '+p.v.toLocaleString('el-GR',{minimumFractionDigits:0})+'€\n';
       });
       if(r.notes) msg+='  📝 '+r.notes+'\n';
