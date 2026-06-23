@@ -1040,21 +1040,20 @@ init();
 </div>
 
 <script>
-// ── GROQ CHATBOT (via Cloudflare Worker) ─────────────────
+// ── SMART CHATBOT ────────────────────────────────────────
 var AI_OPEN = false;
 var AI_TYPING_EL = null;
-var AI_HISTORY = [];
-var WORKER_URL = 'https://empty-bush-9e4b.giorgosdanalatos.workers.dev';
 
-var AI_PRICE_COLS = ['ΙΔΙΩΤΗΣ ΒΑ','ΙΔΙΩΤΗΣ','ΒΑ','ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ 2026','ΙΔΙΩΤΗΣ ΒΑ 2026','ΙΔΙΩΤΗΣ ΒΑ ΜΕ ΦΠΑ'];
+var AI_PRICE_COLS = ['ΙΔΙΩΤΗΣ ΒΑ','ΙΔΙΩΤΗΣ','ΒΑ','ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ 2026',
+  'ΙΔΙΩΤΗΣ ΒΑ 2026','ΙΔΙΩΤΗΣ ΒΑ ΜΕ ΦΠΑ','ΙΔΙΩΤΗΣ Α','Α','ODC','ΤΟΠΙΚΗ','ΜΕΘΗ','ΓΕΝΙΚΗ'];
 
 function toggleAI(){
-  AI_OPEN = !AI_OPEN;
-  document.getElementById('aiPanel').classList.toggle('open', AI_OPEN);
-  document.getElementById('aiBtn').classList.toggle('open', AI_OPEN);
-  if(AI_OPEN) setTimeout(function(){ document.getElementById('aiInput').focus(); }, 300);
+  AI_OPEN=!AI_OPEN;
+  document.getElementById('aiPanel').classList.toggle('open',AI_OPEN);
+  document.getElementById('aiBtn').classList.toggle('open',AI_OPEN);
+  if(AI_OPEN) setTimeout(function(){ document.getElementById('aiInput').focus(); },300);
 }
-function aiQuick(text){ document.getElementById('aiInput').value=text; sendAI(); }
+function aiQuick(t){ document.getElementById('aiInput').value=t; sendAI(); }
 function aiResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; }
 function aiKeyDown(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAI();} }
 
@@ -1064,111 +1063,212 @@ function sendAI(){
   input.value=''; input.style.height='auto';
   aiAddMsg('user',text);
   aiShowTyping();
-  aiCallWorker(text);
+  setTimeout(function(){ aiHideTyping(); aiProcess(text); },300);
 }
 
-async function aiCallWorker(userText){
-  try{
-    var sheetNames = await aiGetAllSheetNames();
+// ── ΑΦΑΙΡΕΣΗ ΤΟΝΩΝ ──────────────────────────────────────
+function nt(s){
+  return (s||'').toLowerCase()
+    .replace(/ά/g,'α').replace(/έ/g,'ε').replace(/ή/g,'η')
+    .replace(/ί/g,'ι').replace(/ϊ/g,'ι').replace(/ΐ/g,'ι')
+    .replace(/ό/g,'ο').replace(/ύ/g,'υ').replace(/ϋ/g,'υ').replace(/ΰ/g,'υ')
+    .replace(/ώ/g,'ω');
+}
 
-    var systemMsg = 'Είσαι ο βοηθός του MediPrice, τιμοκατάλογος του Mediterraneo Hospital.\n\n' +
-      'ΔΙΑΘΕΣΙΜΕΣ ΕΙΔΙΚΟΤΗΤΕΣ:\n' + sheetNames.join(', ') + '\n\n' +
-      'ΜΠΟΡΕΙΣ ΝΑ ΚΑΝΕΙΣ:\n' +
-      '1. Αναζήτηση τιμής επέμβασης\n' +
-      '2. Αλλαγή τιμής συγκεκριμένης επέμβασης (με επιβεβαίωση)\n' +
-      '3. Μαζική αλλαγή τιμών ανά ειδικότητα (με επιβεβαίωση)\n\n' +
-      'ΑΠΑΝΤΑ ΠΑΝΤΑ σε JSON χωρίς markdown:\n' +
-      '{"intent":"search"|"confirm_update"|"confirm_bulk"|"chat","message":"κείμενο","data":{...}}\n\n' +
-      'Για search: data={"searchTerm":"...","sheet":"..." ή null}\n' +
-      'Για confirm_update: data={"searchTerm":"...","sheet":"...","changeType":"percent"|"fixed","value":30}\n' +
-      'Για confirm_bulk: data={"sheet":"...","changeType":"percent"|"fixed","value":5}\n' +
-      'Για chat: data=null\n\n' +
-      'ΚΑΝΟΝΕΣ: Απάντα στα ελληνικά. Για αλλαγές ΠΑΝΤΑ ζήτα επιβεβαίωση πρώτα.';
+// ── PARSING ΕΝΤΟΛΗΣ ──────────────────────────────────────
+function aiProcess(text){
+  var t = nt(text);
 
-    var messages = [{ role:'system', content: systemMsg }];
-    AI_HISTORY.forEach(function(m){ messages.push(m); });
-    messages.push({ role:'user', content: userText });
-
-    var resp = await fetch(WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: messages })
-    });
-
-    if(!resp.ok) throw new Error('Worker error ' + resp.status);
-    var data = await resp.json();
-    var raw = data.choices?.[0]?.message?.content || '';
-    var clean = raw.replace(/```json|```/g,'').trim();
-
-    var parsed;
-    try{ parsed = JSON.parse(clean); }
-    catch(e){ parsed = {intent:'chat', message:raw, data:null}; }
-
-    AI_HISTORY.push({role:'user', content:userText});
-    AI_HISTORY.push({role:'assistant', content:JSON.stringify(parsed)});
-    if(AI_HISTORY.length > 10) AI_HISTORY = AI_HISTORY.slice(-10);
-
-    aiHideTyping();
-    aiHandleResponse(parsed);
-
-  }catch(err){
-    aiHideTyping();
-    aiAddMsg('bot','❌ Σφάλμα: '+err.message,'error');
+  // Βοήθεια
+  if(/βοηθ|help|τι μπορ|εντολ/.test(t)){
+    aiAddMsg('bot',
+      'Μπορώ να κάνω:\n\n'+
+      '🔍 ΑΝΑΖΗΤΗΣΗ:\n'+
+      '  «χολοκυστεκτομή» — βρίσκει όπου υπάρχει\n'+
+      '  «τιμή λαπαροσκοπικής» — βρίσκει σε όλες\n\n'+
+      '📈 ΑΛΛΑΓΗ ΤΙΜΗΣ:\n'+
+      '  «χολοκυστεκτομή +30%» — αυξάνει\n'+
+      '  «αμυγδαλεκτομή -10%» — μειώνει\n'+
+      '  «χολοκυστεκτομή = 1200» — ορίζει τιμή\n\n'+
+      '📊 ΜΑΖΙΚΗ ΑΛΛΑΓΗ (ειδικότητα):\n'+
+      '  «ουρολογική +5%» — όλες οι τιμές\n'+
+      '  «ορθοπεδική -10%» — όλες οι τιμές'
+    );
+    return;
   }
-}
 
-function aiHandleResponse(parsed){
-  var intent = parsed.intent;
-  var data = parsed.data || {};
+  // Ανίχνευση αλλαγής
+  var pct = t.match(/([+\-]\s*\d+[.,]?\d*)\s*%/);
+  if(!pct) pct = t.match(/(\d+[.,]?\d*)\s*%/);
+  var fix = !pct && t.match(/[=:]\s*(\d+[.,]?\d*)/);
 
-  if(intent==='search'){
-    aiAddMsg('bot', parsed.message || 'Αναζητώ...');
-    aiSearch(data.searchTerm||'', data.sheet||null);
-  } else if(intent==='confirm_update'||intent==='confirm_bulk'){
-    aiShowConfirm(parsed.message, intent, data);
+  if(pct || fix){
+    var val = pct ? parseFloat(pct[1].replace(/\s/g,'').replace(',','.'))
+                  : parseFloat(fix[1].replace(',','.'));
+    var isFixed = !!fix;
+
+    // Βρες αν έχει ειδικότητα ή επέμβαση
+    var sheetMatch = aiMatchSheet(t);
+    var term = aiGetTerm(t, sheetMatch ? sheetMatch.key : null);
+
+    if(sheetMatch && !term){
+      // Μαζική αλλαγή ειδικότητας
+      var desc = isFixed ? '= '+val+'€' : (val>=0?'+':'')+val+'%';
+      aiConfirm(
+        '📊 Μαζική αλλαγή τιμών\n\nΕιδικότητα: '+sheetMatch.sheet+'\nΑλλαγή: '+desc+'\n\nΕπιβεβαίωση;',
+        function(){ aiDoBulk(sheetMatch.sheet, isFixed?'fixed':'percent', val); }
+      );
+    } else if(term){
+      var desc2 = isFixed ? '= '+val+'€' : (val>=0?'+':'')+val+'%';
+      var sheetInfo = sheetMatch ? '\nΕιδικότητα: '+sheetMatch.sheet : '\n(αναζήτηση παντού)';
+      aiConfirm(
+        '✏️ Αλλαγή τιμής\n\nΕπέμβαση: «'+term+'»'+sheetInfo+'\nΑλλαγή: '+desc2+'\n\nΕπιβεβαίωση;',
+        function(){ aiDoUpdate(term, sheetMatch?sheetMatch.sheet:null, isFixed?'fixed':'percent', val); }
+      );
+    } else {
+      aiAddMsg('bot','Δεν κατάλαβα τι να αλλάξω.\nΔοκίμασε: «χολοκυστεκτομή +30%»\nή «ουρολογική +5%»');
+    }
   } else {
-    aiAddMsg('bot', parsed.message || '...');
+    // Αναζήτηση
+    var sheetM = aiMatchSheet(t);
+    var termS = aiGetTerm(t, sheetM ? sheetM.key : null);
+
+    if(sheetM && !termS){
+      aiDoSearch('', sheetM.sheet);
+    } else if(termS){
+      aiDoSearch(termS, sheetM ? sheetM.sheet : null);
+    } else {
+      aiAddMsg('bot','Δεν κατάλαβα.\nΔοκίμασε:\n• «χολοκυστεκτομή» για αναζήτηση\n• «χολοκυστεκτομή +30%» για αλλαγή\n• «ουρολογική +5%» για μαζική αλλαγή\n\nΓράψε «βοήθεια» για όλες τις εντολές.');
+    }
   }
 }
 
-async function aiSearch(term, sheetFilter){
+// ── ΑΝΤΙΣΤΟΙΧΙΣΗ ΕΙΔΙΚΟΤΗΤΑΣ ────────────────────────────
+var AI_SHEET_MAP = [
+  {k:'χολοκυστ',s:'ΧΟΛΗΦΟΡΑ'},{k:'χολοφορ',s:'ΧΟΛΗΦΟΡΑ'},{k:'χοληφορ',s:'ΧΟΛΗΦΟΡΑ'},{k:'χολ',s:'ΧΟΛΗΦΟΡΑ'},
+  {k:'ορθοπεδ',s:'ΟΡΘΟΠΕΔΙΚΗ'},{k:'ορθοπαιδ',s:'ΟΡΘΟΠΕΔΙΚΗ'},
+  {k:'ουρολογ',s:'ΟΥΡΟΛΟΓΙΚΗ'},
+  {k:'καρδιοχειρ',s:'ΚΑΡΔΙΟΧΕΙΡΟΥΡΓΙΚΗ'},
+  {k:'επεμβατικη καρδ',s:'ΕΠΕΜΒΑΤΙΚΗ ΚΑΡΔΙΟΛΟΓΙΑ'},{k:'καρδιολογ',s:'ΕΠΕΜΒΑΤΙΚΗ ΚΑΡΔΙΟΛΟΓΙΑ'},
+  {k:'νευροχειρ',s:'ΝΕΥΡΟΧΕΙΡΟΥΡΓΙΚΗ'},
+  {k:'γυναικολογ',s:'ΓΥΝΑΙΚΟΛΟΓΙΚΗ'},{k:'γυναικ',s:'ΓΥΝΑΙΚΟΛΟΓΙΚΗ'},
+  {k:'γενικη χειρ',s:'ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ'},
+  {k:'αγγειοχειρ',s:'ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ'},{k:'αγγειο',s:'ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ'},
+  {k:'θωρακ',s:'ΘΩΡΑΚΟΧΕΙΡΟΥΡΓΙΚΗ'},
+  {k:'πλαστικ',s:'ΠΛΑΣΤΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ'},
+  {k:'οφθαλμ',s:'ΟΦΘΑΛΜΟΛΟΓΙΑ'},
+  {k:'ωρλ',s:'ΩΡΛ'},
+  {k:'γαστρ',s:'ΓΑΣΤΡΕΝΤΕΡΟΛΟΓΙΚΑ'},
+  {k:'ηλεκτροφυσ',s:'ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ'},{k:'ηφε',s:'ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ'},
+  {k:'επεμβατικη ακτιν',s:'ΕΠΕΜΒΑΤΙΚΗ ΑΚΤΙΝΟΛΟΓΙΑ'},{k:'ακτινολογ',s:'ΕΠΕΜΒΑΤΙΚΗ ΑΚΤΙΝΟΛΟΓΙΑ'},
+  {k:'σπονδυλ',s:'ΣΠΟΝΔΥΛΙΚΗ ΣΤΗΛΗ'},
+  {k:'πνευμον',s:'ΠΝΕΥΜΟΝΟΛΟΓΙΚΟ'},
+  {k:'μαστ',s:'ΜΟΝΑΔΑ ΜΑΣΤΟΥ'},
+  {k:'ονπ',s:'ΟΝΠ'},{k:'ωνπ',s:'ΟΝΠ'},
+  {k:'πονο',s:'ΠΟΝΟΣ'},
+  {k:'θεραπει',s:'ΘΕΡΑΠΕΙΕΣ ΠΟΝΟ ΜΕ ΣΥΣΚΕΥΕΣ'},
+  {k:'interstim',s:'INTERSTIM'},
+  {k:'γναθ',s:'ΓΝΑΘΟΧΕΙΡΟΥΡΓΙΚΑ'},
+  {k:'σπλαχν',s:'ΣΠΛΑΧΝΟΧΕΙΡΟΥΡΓΙΚΗ'}
+];
+
+function aiMatchSheet(t){
+  // Πρώτα έλεγξε φορτωμένα sheets
+  var loaded=Object.keys(D||{});
+  for(var i=0;i<loaded.length;i++){
+    var ln=nt(loaded[i]);
+    if(t===ln||t.indexOf(ln)>=0) return {key:ln,sheet:loaded[i]};
+  }
+  // Μετά το χάρτη
+  for(var j=0;j<AI_SHEET_MAP.length;j++){
+    if(t.indexOf(AI_SHEET_MAP[j].k)>=0) return {key:AI_SHEET_MAP[j].k,sheet:AI_SHEET_MAP[j].s};
+  }
+  return null;
+}
+
+function aiGetTerm(t, sheetKey){
+  var clean = t
+    .replace(/τιμ[ηε]\s*(της\s*)?/g,'')
+    .replace(/δειξε\s*(μου\s*)?(τις\s*|τη\s*|την\s*)?/g,'')
+    .replace(/βρες\s*/g,'').replace(/φερε\s*/g,'').replace(/ψαξε\s*/g,'')
+    .replace(/αλλαξε\s*/g,'').replace(/αυξησε\s*/g,'').replace(/μειωσε\s*/g,'')
+    .replace(/ολες\s*(τις\s*)?/g,'')
+    .replace(/ποια\s*/g,'').replace(/ποσο\s*/g,'').replace(/ποιες\s*/g,'')
+    .replace(/[+\-]?\d+[.,]?\d*\s*%/g,'').replace(/[=:]\s*\d+[.,]?\d*/g,'')
+    .replace(/\b(η|ο|τη|τον|της|του|τους|τις|το|τα|και)\b\s*/g,'')
+    .replace(/;/g,'').trim();
+
+  // Αφαίρεσε sheet key μόνο αν ΔΕΝ είναι μέρος μεγαλύτερης λέξης
+  if(sheetKey){
+    var test = clean.replace(new RegExp('^'+sheetKey+'$'),'').trim();
+    if(test===clean){
+      // το sheetKey δεν είναι standalone — κράτα το clean (είναι επέμβαση)
+    } else {
+      clean = test; // ήταν μόνο ειδικότητα
+    }
+  }
+
+  return clean.length>=3 ? clean : null;
+}
+
+// ── ΑΝΑΖΗΤΗΣΗ ───────────────────────────────────────────
+async function aiDoSearch(term, sheetFilter){
   aiShowTyping();
   try{
-    var sheetsToSearch=[];
+    var sheets=[];
     if(sheetFilter){
-      if(!D[sheetFilter]||!D[sheetFilter].rows) await aiLoadSheet(sheetFilter);
-      if(D[sheetFilter]) sheetsToSearch.push({name:sheetFilter,data:D[sheetFilter]});
+      if(!D[sheetFilter]||!D[sheetFilter].rows) await aiLoad(sheetFilter);
+      if(D[sheetFilter]) sheets.push({n:sheetFilter,d:D[sheetFilter]});
     } else if(term){
-      var names=await aiGetAllSheetNames();
-      for(var i=0;i<names.length;i++){
-        if(!D[names[i]]||!D[names[i]].rows) await aiLoadSheet(names[i]);
-        if(D[names[i]]) sheetsToSearch.push({name:names[i],data:D[names[i]]});
+      var all=await aiAllNames();
+      for(var i=0;i<all.length;i++){
+        if(!D[all[i]]||!D[all[i]].rows) await aiLoad(all[i]);
+        if(D[all[i]]) sheets.push({n:all[i],d:D[all[i]]});
       }
     }
 
     var results=[];
-    var termLow=(term||'').toLowerCase();
-    sheetsToSearch.forEach(function(s){
-      var d=s.data; if(!d||d.__multi__||!d.rows) return;
-      var headers=d.headers||[]; var rows=d.rows||[];
-      var priceCol=aiFindPriceCol(headers);
+    var tl=nt(term||'');
+
+    sheets.forEach(function(s){
+      var d=s.d; if(!d||d.__multi__||!d.rows) return;
+      var h=d.headers||[]; var rows=d.rows||[];
+      var pc=aiPriceCol(h);
+
+      // Βρες στήλη ονόματος (πρώτη non-numeric, non-price)
+      var nameCol = h.findIndex(function(hh){
+        return hh && !/τιμ|ιδιωτ|εοπυ|βα|φπα|net|odc|lux|suite|μεθη|τοπικ|γενικ|αναισθ/i.test(hh)
+          && !/^#|αα|α\/α|no\.|κωδ/i.test(hh);
+      });
+      if(nameCol<0) nameCol=0;
+
       rows.forEach(function(row){
-        var match=!term||row.some(function(cell){ return cell&&cell.toString().toLowerCase().includes(termLow); });
-        if(match&&row[0]&&priceCol>=0&&row[priceCol]){
-          results.push({sheet:s.name,name:row[0],price:row[priceCol],colName:headers[priceCol]});
+        if(!row||!row.length) return;
+        var match=!term||row.some(function(cell){
+          return cell&&nt(cell.toString()).indexOf(tl)>=0;
+        });
+        var name=row[nameCol]||row[0]||'';
+        // Skip αν το name είναι αριθμός μόνο
+        if(!name||/^\d+$/.test(name.toString().trim())) return;
+        if(match&&pc>=0&&row[pc]){
+          results.push({sheet:s.n,name:name,price:row[pc],colName:h[pc]});
         }
       });
     });
 
     aiHideTyping();
-    if(!results.length){ aiAddMsg('bot','Δεν βρέθηκαν αποτελέσματα'+(term?' για «'+term+'»':'')+'.','error'); return; }
+
+    if(!results.length){
+      aiAddMsg('bot','Δεν βρέθηκαν αποτελέσματα'+(term?' για «'+term+'»':'')+'.\n\nΔοκίμασε διαφορετική λέξη.','error');
+      return;
+    }
 
     var shown=results.slice(0,8);
-    var msg='Βρέθηκαν '+results.length+(results.length>8?' (πρώτα 8)':'')+' αποτελέσματα:\n\n';
+    var msg='🔍 Βρέθηκαν '+results.length+(results.length>8?' αποτελέσματα (εμφανίζω 8)':' αποτελέσματα')+':\n\n';
     shown.forEach(function(r){
       var pn=parseFloat((r.price||'').toString().replace(/[^0-9.,]/g,'').replace(',','.'));
-      var ps=pn?pn.toLocaleString('el-GR',{minimumFractionDigits:0,maximumFractionDigits:0})+'€':r.price;
-      msg+='• '+r.name+'\n  💰 '+ps+' ('+r.colName+') — '+r.sheet+'\n\n';
+      var ps=pn?pn.toLocaleString('el-GR',{minimumFractionDigits:0})+'€':r.price;
+      msg+='• '+r.name+'\n  💰 '+ps+' — '+r.sheet+'\n\n';
     });
     aiAddMsg('bot',msg.trim());
 
@@ -1178,13 +1278,14 @@ async function aiSearch(term, sheetFilter){
   }
 }
 
-function aiShowConfirm(message,actionType,data){
+// ── CONFIRM ──────────────────────────────────────────────
+function aiConfirm(msg, onYes){
   var wrap=document.createElement('div'); wrap.className='ai-msg bot';
-  var bubble=document.createElement('div'); bubble.className='ai-bubble confirm'; bubble.textContent=message;
+  var bubble=document.createElement('div'); bubble.className='ai-bubble confirm'; bubble.textContent=msg;
   var btns=document.createElement('div'); btns.className='ai-confirm-btns';
   var yes=document.createElement('button'); yes.className='ai-btn-yes'; yes.textContent='✓ Ναι, εφάρμοσε';
   var no=document.createElement('button'); no.className='ai-btn-no'; no.textContent='✕ Ακύρωση';
-  yes.onclick=function(){ yes.disabled=true; no.disabled=true; aiExecute(actionType,data); };
+  yes.onclick=function(){ yes.disabled=true; no.disabled=true; onYes(); };
   no.onclick=function(){ btns.remove(); aiAddMsg('bot','Ακυρώθηκε.'); };
   btns.appendChild(yes); btns.appendChild(no);
   var meta=document.createElement('div'); meta.className='ai-meta'; meta.textContent=aiNow();
@@ -1192,83 +1293,90 @@ function aiShowConfirm(message,actionType,data){
   document.getElementById('aiMessages').appendChild(wrap); aiScroll();
 }
 
-async function aiExecute(actionType,data){
+// ── ΑΛΛΑΓΗ ΤΙΜΗΣ ────────────────────────────────────────
+async function aiDoUpdate(term, sheetFilter, type, val){
   aiShowTyping();
   try{
-    var sheetsToUpdate=[];
-    if(data.sheet){
-      if(!D[data.sheet]||!D[data.sheet].rows) await aiLoadSheet(data.sheet);
-      if(D[data.sheet]) sheetsToUpdate.push({name:data.sheet,data:D[data.sheet]});
+    var sheets=[];
+    if(sheetFilter){
+      if(!D[sheetFilter]||!D[sheetFilter].rows) await aiLoad(sheetFilter);
+      if(D[sheetFilter]) sheets.push({n:sheetFilter,d:D[sheetFilter]});
     } else {
-      var names2=await aiGetAllSheetNames();
-      for(var i=0;i<names2.length;i++){
-        if(!D[names2[i]]||!D[names2[i]].rows) await aiLoadSheet(names2[i]);
-        if(D[names2[i]]&&!D[names2[i]].__multi__) sheetsToUpdate.push({name:names2[i],data:D[names2[i]]});
+      var all=await aiAllNames();
+      for(var i=0;i<all.length;i++){
+        if(!D[all[i]]||!D[all[i]].rows) await aiLoad(all[i]);
+        if(D[all[i]]&&!D[all[i]].__multi__) sheets.push({n:all[i],d:D[all[i]]});
       }
     }
+    var tl=nt(term);
+    await aiApplyChange(sheets,tl,type,val);
+  }catch(err){ aiHideTyping(); aiAddMsg('bot','Σφάλμα: '+err.message,'error'); }
+}
 
-    var totalUpdated=0, sheetsChanged=[];
-    var termLow=(data.searchTerm||'').toLowerCase();
+async function aiDoBulk(sheetName, type, val){
+  aiShowTyping();
+  try{
+    if(!D[sheetName]||!D[sheetName].rows) await aiLoad(sheetName);
+    if(!D[sheetName]){ aiHideTyping(); aiAddMsg('bot','Δεν βρέθηκε η ειδικότητα.','error'); return; }
+    await aiApplyChange([{n:sheetName,d:D[sheetName]}],null,type,val);
+  }catch(err){ aiHideTyping(); aiAddMsg('bot','Σφάλμα: '+err.message,'error'); }
+}
 
-    for(var si=0;si<sheetsToUpdate.length;si++){
-      var s=sheetsToUpdate[si];
-      if(!s.data||s.data.__multi__||!s.data.rows) continue;
-      var headers=s.data.headers||[]; var rows=s.data.rows||[];
-      var priceCol=aiFindPriceCol(headers); if(priceCol<0) continue;
-
-      var updated=0;
-      rows.forEach(function(row){
-        var match=(actionType==='confirm_bulk')||!data.searchTerm||
-          row.some(function(cell){ return cell&&cell.toString().toLowerCase().includes(termLow); });
-        if(match){
-          var oldVal=parseFloat((row[priceCol]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'));
-          if(oldVal>0){
-            var newVal=data.changeType==='percent'?oldVal*(1+data.value/100):data.value;
-            row[priceCol]=Math.round(newVal).toString();
-            updated++;
-          }
+async function aiApplyChange(sheets, termLow, type, val){
+  var totalUp=0, changed=[];
+  for(var si=0;si<sheets.length;si++){
+    var s=sheets[si];
+    if(!s.d||s.d.__multi__||!s.d.rows) continue;
+    var h=s.d.headers||[]; var rows=s.d.rows||[];
+    var pc=aiPriceCol(h); if(pc<0) continue;
+    var upd=0;
+    rows.forEach(function(row){
+      var match=!termLow||row.some(function(c){ return c&&nt(c.toString()).indexOf(termLow)>=0; });
+      if(match){
+        var old=parseFloat((row[pc]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'));
+        if(old>0){
+          var nv=type==='percent'?Math.round(old*(1+val/100)):val;
+          row[pc]=nv.toString(); upd++;
         }
-      });
-
-      if(updated>0){
-        await aiSaveSheet(s.name,headers,rows);
-        if(cur===s.name&&typeof showSheet==='function') showSheet(cur);
-        totalUpdated+=updated; sheetsChanged.push(s.name+' ('+updated+')');
       }
+    });
+    if(upd>0){
+      await aiSave(s.n,h,rows);
+      if(cur===s.n&&typeof showSheet==='function') showSheet(cur);
+      totalUp+=upd; changed.push(s.n+' ('+upd+' τιμές)');
     }
-
-    aiHideTyping();
-    if(totalUpdated===0){
-      aiAddMsg('bot','Δεν βρέθηκαν εγγραφές'+(data.searchTerm?' για «'+data.searchTerm+'»':'')+'.','error');
-    } else {
-      aiAddMsg('bot','✅ Ολοκληρώθηκε!\n\nΕνημερώθηκαν '+totalUpdated+' τιμές:\n'+
-        sheetsChanged.map(function(x){return '• '+x;}).join('\n')+'\n\nΑποθηκεύτηκαν στη βάση.','success');
-    }
-  }catch(err){
-    aiHideTyping();
-    aiAddMsg('bot','Σφάλμα: '+err.message,'error');
+  }
+  aiHideTyping();
+  if(totalUp===0){
+    aiAddMsg('bot','Δεν βρέθηκαν εγγραφές'+(termLow?' για «'+termLow+'»':'')+'.','error');
+  } else {
+    aiAddMsg('bot','✅ Ολοκληρώθηκε!\n\n'+changed.map(function(x){return '• '+x;}).join('\n')+'\n\nΑποθηκεύτηκαν.','success');
   }
 }
 
-async function aiGetAllSheetNames(){
+// ── SUPABASE ─────────────────────────────────────────────
+async function aiAllNames(){
   try{
-    var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?select=sheet_name',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+    var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?select=sheet_name',
+      {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
     var d=await r.json(); return (d||[]).map(function(x){return x.sheet_name;});
   }catch(e){return Object.keys(D||{});}
 }
-async function aiLoadSheet(name){
+
+async function aiLoad(name){
   try{
     var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?sheet_name=eq.'+encodeURIComponent(name)+'&select=*',
       {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
     var d=await r.json(); if(!d||!d[0]) return null;
-    var row=d[0]; var headers=row.headers; var rows=row.rows;
-    if(typeof headers==='string'){
-      try{var p=JSON.parse(headers);if(Array.isArray(p)&&p[0]&&p[0].headers){D[name]={__multi__:true,tables:p};return D[name];}}catch(e){}
+    var row=d[0]; var h=row.headers; var rows=row.rows;
+    if(typeof h==='string'){
+      try{var p=JSON.parse(h);if(Array.isArray(p)&&p[0]&&p[0].headers){D[name]={__multi__:true,tables:p};return D[name];}}catch(e){}
     }
-    D[name]={headers:headers,rows:rows}; return D[name];
+    D[name]={headers:h,rows:rows}; return D[name];
   }catch(e){return null;}
 }
-async function aiSaveSheet(name,headers,rows){
+
+async function aiSave(name,headers,rows){
   var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?sheet_name=eq.'+encodeURIComponent(name)+'&select=sheet_name',
     {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
   var ex=await r.json();
@@ -1279,16 +1387,21 @@ async function aiSaveSheet(name,headers,rows){
     body:JSON.stringify({sheet_name:name,headers:headers,rows:rows,updated_at:new Date().toISOString()})
   });
 }
-function aiFindPriceCol(headers){
-  for(var i=0;i<AI_PRICE_COLS.length;i++){
-    var idx=headers.indexOf(AI_PRICE_COLS[i]); if(idx>=0) return idx;
+
+function aiPriceCol(h){
+  var COLS=['ΙΔΙΩΤΗΣ ΒΑ','ΙΔΙΩΤΗΣ','ΒΑ','ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ 2026','ΙΔΙΩΤΗΣ ΒΑ 2026',
+    'ΙΔΙΩΤΗΣ ΒΑ ΜΕ ΦΠΑ','ΙΔΙΩΤΗΣ Α','Α','ODC','ΤΟΠΙΚΗ','ΜΕΘΗ','ΓΕΝΙΚΗ'];
+  for(var i=0;i<COLS.length;i++){
+    var idx=h.indexOf(COLS[i]); if(idx>=0) return idx;
   }
-  return headers.findIndex(function(h){return h&&/ιδιωτ/i.test(h);});
+  return h.findIndex(function(x){return x&&/ιδιωτ/i.test(x);});
 }
 
+// ── UI ───────────────────────────────────────────────────
 function aiAddMsg(role,text,type){
   var wrap=document.createElement('div'); wrap.className='ai-msg '+role;
-  var bubble=document.createElement('div'); bubble.className='ai-bubble'+(type?' '+type:''); bubble.textContent=text;
+  var bubble=document.createElement('div'); bubble.className='ai-bubble'+(type?' '+type:'');
+  bubble.textContent=text;
   var meta=document.createElement('div'); meta.className='ai-meta'; meta.textContent=aiNow();
   wrap.appendChild(bubble); wrap.appendChild(meta);
   document.getElementById('aiMessages').appendChild(wrap); aiScroll();
