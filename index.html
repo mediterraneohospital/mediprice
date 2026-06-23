@@ -1040,12 +1040,11 @@ init();
 </div>
 
 <script>
-// ── GEMINI CHATBOT ───────────────────────────────────────
+// ── GROQ CHATBOT (via Cloudflare Worker) ─────────────────
 var AI_OPEN = false;
 var AI_TYPING_EL = null;
 var AI_HISTORY = [];
-var GEMINI_KEY = 'AQ.Ab8RN6I1fzRNACWysX-kmiD_fSs6mMES5fw5xvN31YvuWIFGSQ';
-var GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=';
+var WORKER_URL = 'https://empty-bush-9e4b.giorgosdanalatos.workers.dev';
 
 var AI_PRICE_COLS = ['ΙΔΙΩΤΗΣ ΒΑ','ΙΔΙΩΤΗΣ','ΒΑ','ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ 2026','ΙΔΙΩΤΗΣ ΒΑ 2026','ΙΔΙΩΤΗΣ ΒΑ ΜΕ ΦΠΑ'];
 
@@ -1065,63 +1064,40 @@ function sendAI(){
   input.value=''; input.style.height='auto';
   aiAddMsg('user',text);
   aiShowTyping();
-  aiCallGemini(text);
+  aiCallWorker(text);
 }
 
-// ── GEMINI API CALL ──────────────────────────────────────
-async function aiCallGemini(userText){
+async function aiCallWorker(userText){
   try{
-    // Φέρε λίστα sheets από Supabase
     var sheetNames = await aiGetAllSheetNames();
 
-    var systemPrompt = 'Είσαι ο βοηθός του MediPrice, τιμοκατάλογος του Mediterraneo Hospital.\n\n' +
+    var systemMsg = 'Είσαι ο βοηθός του MediPrice, τιμοκατάλογος του Mediterraneo Hospital.\n\n' +
       'ΔΙΑΘΕΣΙΜΕΣ ΕΙΔΙΚΟΤΗΤΕΣ:\n' + sheetNames.join(', ') + '\n\n' +
       'ΜΠΟΡΕΙΣ ΝΑ ΚΑΝΕΙΣ:\n' +
       '1. Αναζήτηση τιμής επέμβασης\n' +
       '2. Αλλαγή τιμής συγκεκριμένης επέμβασης (με επιβεβαίωση)\n' +
       '3. Μαζική αλλαγή τιμών ανά ειδικότητα (με επιβεβαίωση)\n\n' +
-      'ΑΠΑΝΤΑ ΠΑΝΤΑ σε JSON (χωρίς markdown backticks):\n' +
+      'ΑΠΑΝΤΑ ΠΑΝΤΑ σε JSON χωρίς markdown:\n' +
       '{"intent":"search"|"confirm_update"|"confirm_bulk"|"chat","message":"κείμενο","data":{...}}\n\n' +
-      'Για search: data={searchTerm:"...", sheet:"..." ή null}\n' +
-      'Για confirm_update: data={searchTerm:"...", sheet:"...", changeType:"percent"|"fixed", value:30}\n' +
-      'Για confirm_bulk: data={sheet:"...", changeType:"percent"|"fixed", value:5}\n' +
-      'Για chat (ερώτηση/βοήθεια): data=null\n\n' +
-      'ΚΑΝΟΝΕΣ: Απάντα στα ελληνικά. Για αλλαγές ΠΑΝΤΑ intent=confirm_* πρώτα.';
+      'Για search: data={"searchTerm":"...","sheet":"..." ή null}\n' +
+      'Για confirm_update: data={"searchTerm":"...","sheet":"...","changeType":"percent"|"fixed","value":30}\n' +
+      'Για confirm_bulk: data={"sheet":"...","changeType":"percent"|"fixed","value":5}\n' +
+      'Για chat: data=null\n\n' +
+      'ΚΑΝΟΝΕΣ: Απάντα στα ελληνικά. Για αλλαγές ΠΑΝΤΑ ζήτα επιβεβαίωση πρώτα.';
 
-    // Φτιάξε history για Gemini
-    var contents = [];
+    var messages = [{ role:'system', content: systemMsg }];
+    AI_HISTORY.forEach(function(m){ messages.push(m); });
+    messages.push({ role:'user', content: userText });
 
-    // System ως πρώτο user turn (Gemini δεν έχει system role)
-    contents.push({ role:'user', parts:[{text: systemPrompt}] });
-    contents.push({ role:'model', parts:[{text: '{"intent":"chat","message":"Κατάλαβα! Είμαι έτοιμος να βοηθήσω με τον τιμοκατάλογο.","data":null}'}] });
-
-    // Ιστορικό
-    AI_HISTORY.forEach(function(m){
-      contents.push({ role: m.role==='user'?'user':'model', parts:[{text:m.content}] });
+    var resp = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: messages })
     });
 
-    // Νέο μήνυμα
-    contents.push({ role:'user', parts:[{text:userText}] });
-
-    var isNewKey = GEMINI_KEY.startsWith('AQ.');
-    var fetchUrl = isNewKey
-      ? 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
-      : GEMINI_URL + GEMINI_KEY;
-    var fetchHeaders = {'Content-Type':'application/json'};
-    if(isNewKey) fetchHeaders['x-goog-api-key'] = GEMINI_KEY;
-    var resp = await fetch(fetchUrl, {
-      method:'POST',
-      headers:fetchHeaders,
-      body: JSON.stringify({ contents: contents, generationConfig:{ temperature:0.1, maxOutputTokens:500 } })
-    });
-
-    if(!resp.ok){
-      var err = await resp.json();
-      throw new Error(err.error?.message || 'HTTP '+resp.status);
-    }
-
+    if(!resp.ok) throw new Error('Worker error ' + resp.status);
     var data = await resp.json();
-    var raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    var raw = data.choices?.[0]?.message?.content || '';
     var clean = raw.replace(/```json|```/g,'').trim();
 
     var parsed;
@@ -1129,38 +1105,34 @@ async function aiCallGemini(userText){
     catch(e){ parsed = {intent:'chat', message:raw, data:null}; }
 
     AI_HISTORY.push({role:'user', content:userText});
-    AI_HISTORY.push({role:'model', content:JSON.stringify(parsed)});
-    // Κράτα ιστορικό μικρό
+    AI_HISTORY.push({role:'assistant', content:JSON.stringify(parsed)});
     if(AI_HISTORY.length > 10) AI_HISTORY = AI_HISTORY.slice(-10);
 
     aiHideTyping();
     aiHandleResponse(parsed);
 
-  } catch(err){
+  }catch(err){
     aiHideTyping();
     aiAddMsg('bot','❌ Σφάλμα: '+err.message,'error');
   }
 }
 
-// ── HANDLE RESPONSE ──────────────────────────────────────
 function aiHandleResponse(parsed){
   var intent = parsed.intent;
-  var msg = parsed.message || '';
   var data = parsed.data || {};
 
   if(intent==='search'){
-    aiAddMsg('bot', msg.length>10 ? msg : 'Αναζητώ...');
-    aiSearch(data.searchTerm||'', data.sheet||null, msg);
-  } else if(intent==='confirm_update' || intent==='confirm_bulk'){
-    aiShowConfirm(msg, intent, data);
+    aiAddMsg('bot', parsed.message || 'Αναζητώ...');
+    aiSearch(data.searchTerm||'', data.sheet||null);
+  } else if(intent==='confirm_update'||intent==='confirm_bulk'){
+    aiShowConfirm(parsed.message, intent, data);
   } else {
-    aiAddMsg('bot', msg);
+    aiAddMsg('bot', parsed.message || '...');
   }
 }
 
-// ── ΑΝΑΖΗΤΗΣΗ ───────────────────────────────────────────
-async function aiSearch(term, sheetFilter, prefixMsg){
-  if(!prefixMsg) aiShowTyping();
+async function aiSearch(term, sheetFilter){
+  aiShowTyping();
   try{
     var sheetsToSearch=[];
     if(sheetFilter){
@@ -1177,27 +1149,19 @@ async function aiSearch(term, sheetFilter, prefixMsg){
     var results=[];
     var termLow=(term||'').toLowerCase();
     sheetsToSearch.forEach(function(s){
-      var data=s.data;
-      if(!data||data.__multi__||!data.rows) return;
-      var headers=data.headers||[];
-      var rows=data.rows||[];
+      var d=s.data; if(!d||d.__multi__||!d.rows) return;
+      var headers=d.headers||[]; var rows=d.rows||[];
       var priceCol=aiFindPriceCol(headers);
       rows.forEach(function(row){
-        var match=!term||row.some(function(cell){
-          return cell&&cell.toString().toLowerCase().includes(termLow);
-        });
+        var match=!term||row.some(function(cell){ return cell&&cell.toString().toLowerCase().includes(termLow); });
         if(match&&row[0]&&priceCol>=0&&row[priceCol]){
           results.push({sheet:s.name,name:row[0],price:row[priceCol],colName:headers[priceCol]});
         }
       });
     });
 
-    if(!prefixMsg) aiHideTyping();
-
-    if(!results.length){
-      aiAddMsg('bot','Δεν βρέθηκαν αποτελέσματα'+(term?' για «'+term+'»':'')+'.','error');
-      return;
-    }
+    aiHideTyping();
+    if(!results.length){ aiAddMsg('bot','Δεν βρέθηκαν αποτελέσματα'+(term?' για «'+term+'»':'')+'.','error'); return; }
 
     var shown=results.slice(0,8);
     var msg='Βρέθηκαν '+results.length+(results.length>8?' (πρώτα 8)':'')+' αποτελέσματα:\n\n';
@@ -1209,12 +1173,11 @@ async function aiSearch(term, sheetFilter, prefixMsg){
     aiAddMsg('bot',msg.trim());
 
   }catch(err){
-    if(!prefixMsg) aiHideTyping();
-    aiAddMsg('bot','Σφάλμα αναζήτησης: '+err.message,'error');
+    aiHideTyping();
+    aiAddMsg('bot','Σφάλμα: '+err.message,'error');
   }
 }
 
-// ── CONFIRM ──────────────────────────────────────────────
 function aiShowConfirm(message,actionType,data){
   var wrap=document.createElement('div'); wrap.className='ai-msg bot';
   var bubble=document.createElement('div'); bubble.className='ai-bubble confirm'; bubble.textContent=message;
@@ -1229,7 +1192,6 @@ function aiShowConfirm(message,actionType,data){
   document.getElementById('aiMessages').appendChild(wrap); aiScroll();
 }
 
-// ── ΕΚΤΕΛΕΣΗ ────────────────────────────────────────────
 async function aiExecute(actionType,data){
   aiShowTyping();
   try{
@@ -1251,10 +1213,8 @@ async function aiExecute(actionType,data){
     for(var si=0;si<sheetsToUpdate.length;si++){
       var s=sheetsToUpdate[si];
       if(!s.data||s.data.__multi__||!s.data.rows) continue;
-      var headers=s.data.headers||[];
-      var rows=s.data.rows||[];
-      var priceCol=aiFindPriceCol(headers);
-      if(priceCol<0) continue;
+      var headers=s.data.headers||[]; var rows=s.data.rows||[];
+      var priceCol=aiFindPriceCol(headers); if(priceCol<0) continue;
 
       var updated=0;
       rows.forEach(function(row){
@@ -1273,8 +1233,7 @@ async function aiExecute(actionType,data){
       if(updated>0){
         await aiSaveSheet(s.name,headers,rows);
         if(cur===s.name&&typeof showSheet==='function') showSheet(cur);
-        totalUpdated+=updated;
-        sheetsChanged.push(s.name+' ('+updated+')');
+        totalUpdated+=updated; sheetsChanged.push(s.name+' ('+updated+')');
       }
     }
 
@@ -1283,8 +1242,7 @@ async function aiExecute(actionType,data){
       aiAddMsg('bot','Δεν βρέθηκαν εγγραφές'+(data.searchTerm?' για «'+data.searchTerm+'»':'')+'.','error');
     } else {
       aiAddMsg('bot','✅ Ολοκληρώθηκε!\n\nΕνημερώθηκαν '+totalUpdated+' τιμές:\n'+
-        sheetsChanged.map(function(x){return '• '+x;}).join('\n')+
-        '\n\nΑποθηκεύτηκαν στη βάση.','success');
+        sheetsChanged.map(function(x){return '• '+x;}).join('\n')+'\n\nΑποθηκεύτηκαν στη βάση.','success');
     }
   }catch(err){
     aiHideTyping();
@@ -1292,7 +1250,6 @@ async function aiExecute(actionType,data){
   }
 }
 
-// ── SUPABASE ─────────────────────────────────────────────
 async function aiGetAllSheetNames(){
   try{
     var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?select=sheet_name',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
@@ -1329,7 +1286,6 @@ function aiFindPriceCol(headers){
   return headers.findIndex(function(h){return h&&/ιδιωτ/i.test(h);});
 }
 
-// ── UI ───────────────────────────────────────────────────
 function aiAddMsg(role,text,type){
   var wrap=document.createElement('div'); wrap.className='ai-msg '+role;
   var bubble=document.createElement('div'); bubble.className='ai-bubble'+(type?' '+type:''); bubble.textContent=text;
