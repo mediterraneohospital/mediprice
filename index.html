@@ -2,291 +2,1008 @@
 <html lang="el">
 <head>
 <meta charset="UTF-8">
-<title>MediPrice AI Chatbot Widget</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediPrice</title>
 <style>
-/* ── PASTE ΑΥΤΟ ΤΟ CSS ΜΕΣΑ ΣΤΟ <style> ΤΟΥ MEDIPRICE ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+:root{--bg:#f5f7fa;--sur:#fff;--s2:#f0f2f5;--brd:#e2e6ed;--acc:#1a56db;--txt:#111827;--mut:#6b7280;--dim:#374151;--grn:#059669;--r:8px;--th-bg:#eef1f6;--th-ec:#f0fdf4;--th-pc:#eff6ff;--row-even:#f7f9fc;--row-sel:#eff6ff;--price-sel:#fef08a;}
+[data-dark]{--bg:#1e2130;--sur:#252837;--s2:#2d3148;--brd:#3d4266;--acc:#4d7ff5;--txt:#e2e6f0;--mut:#8b92b0;--dim:#c5cade;--grn:#34d399;--th-bg:#2a2e45;--th-ec:#1a3a2a;--th-pc:#1a2a45;--row-even:#2a2e45;--row-sel:#1e3a6e;--price-sel:#5a4a00;--note-bg:#2a2510;--note-txt:#f59e0b;--th-lux:#2a1a3a;--lux:#c084fc;--th-suite:#2a1a0a;--suite:#fb923c;}
+*{transition:background-color .2s,border-color .2s,color .15s;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;font-size:13px;background:var(--bg);color:var(--txt);}
+header{height:48px;background:var(--sur);border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:12px;padding:0 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);flex-shrink:0;}
+.logo{font-size:16px;letter-spacing:-.3px;white-space:nowrap;}
+.logo .m{font-weight:700;color:#1a56db;}.logo .p{font-weight:700;color:#e53e3e;}
+.sep{width:1px;height:20px;background:var(--brd);}
+.hosp{font-size:12px;color:var(--mut);white-space:nowrap;}
+.badge{background:var(--s2);border:1px solid var(--brd);border-radius:20px;padding:2px 10px;font-size:11px;color:var(--mut);font-family:'DM Mono',monospace;white-space:nowrap;margin-left:auto;}
+.sw{position:relative;flex:1;max-width:420px;}
+.si{width:100%;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r);padding:6px 28px 6px 30px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;transition:all .2s;}
+.si:focus{border-color:var(--acc);background:var(--sur);box-shadow:0 0 0 3px rgba(26,86,219,.1);}
+.si::placeholder{color:var(--mut);}
+.sico{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--mut);pointer-events:none;}
+.sclr{position:absolute;right:7px;top:50%;transform:translateY(-50%);background:var(--mut);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:9px;cursor:pointer;display:none;align-items:center;justify-content:center;}
+.main{display:grid;grid-template-columns:220px 1fr;height:calc(100vh - 48px);overflow:hidden;}
+.sidebar{background:var(--sur);border-right:1px solid var(--brd);display:flex;flex-direction:column;overflow:hidden;}
+.sbh{padding:8px 12px;border-bottom:1px solid var(--brd);font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0;}
+.sbs{padding:8px;border-bottom:1px solid var(--brd);flex-shrink:0;}
+.spl{flex:1;overflow-y:auto;padding:4px;}
+.spl::-webkit-scrollbar{width:3px;}
+.spl::-webkit-scrollbar-thumb{background:var(--brd);border-radius:3px;}
+.spi{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:6px;cursor:pointer;gap:6px;border:1px solid transparent;transition:background .12s;}
+.spi:hover{background:var(--s2);}
+.spi.active{background:var(--row-sel);border-color:var(--acc);}
+.spi.active .spn{color:var(--acc);font-weight:600;}
+.spn{font-size:12px;font-weight:500;color:var(--dim);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.spc{font-size:10px;font-family:'DM Mono',monospace;color:var(--mut);background:var(--s2);padding:1px 5px;border-radius:8px;flex-shrink:0;}
+.spi.active .spc{background:#dbeafe;color:var(--acc);}
+.content{display:flex;flex-direction:column;overflow:hidden;}
+.ch{padding:8px 14px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:10px;background:var(--sur);flex-shrink:0;min-height:42px;}
+.ct{font-size:14px;font-weight:600;white-space:nowrap;}
+.cs{font-size:12px;color:var(--mut);}
+#ta{flex:1;overflow:auto;}
+#ta::-webkit-scrollbar{width:5px;height:5px;}
+#ta::-webkit-scrollbar-thumb{background:var(--brd);border-radius:3px;}
+table{border-collapse:collapse;font-size:13px;background:var(--sur);table-layout:fixed;width:max-content;}
+thead{position:sticky;top:0;z-index:10;}
+th{background:var(--th-bg);color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.3px;padding:6px 8px;text-align:left;border-bottom:2px solid var(--brd);border-right:1px solid var(--brd);white-space:normal;word-break:break-word;vertical-align:top;position:relative;}
+th:last-child{border-right:none;}
+th.ec{background:var(--th-ec);color:var(--grn);}
+th.pc{background:var(--th-pc);color:var(--acc);}
+td{padding:5px 8px;border-bottom:1px solid #f1f5f9;border-right:1px solid #eef0f5;white-space:normal;word-break:break-word;line-height:1.4;vertical-align:top;}
+td.wrap{white-space:normal;word-break:break-word;line-height:1.4;} /* same as td */
+td.ev{background:var(--th-ec);font-weight:600;color:var(--grn);text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
+td.pv{background:var(--th-pc);font-weight:600;color:var(--acc);text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
+td.lv{background:var(--th-lux,#fdf4ff);font-weight:600;color:var(--lux,#7e22ce);text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
+td.sv{background:var(--th-suite,#fff7ed);font-weight:600;color:var(--suite,#c2410c);text-align:right;font-family:'DM Mono',monospace;font-size:12px;}
+td:last-child{border-right:none;}
+tbody tr{height:56px;}tbody tr:nth-child(even) td{background:var(--row-even);}
+tbody tr:nth-child(even) td.ev{background:var(--th-ec);}
+tbody tr:nth-child(even) td.pv{background:var(--th-pc);}
+tbody tr:nth-child(even) td.lv{background:var(--th-lux,#fdf4ff);}
+tbody tr:nth-child(even) td.sv{background:var(--th-suite,#fff7ed);}
+tbody tr:hover td{background:var(--row-sel)!important;cursor:pointer;}
+tbody tr.sel td{background:var(--row-sel)!important;}
+.spbadge{font-size:10px;font-weight:600;color:var(--acc);background:#eff6ff;border-radius:4px;padding:2px 5px;white-space:nowrap;}
+mark{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px;}
+.state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:80px 40px;height:100%;color:var(--mut);}
+.state-icon{font-size:40px;opacity:.2;}
+.state-title{font-size:15px;font-weight:600;color:var(--dim);}
+.state-sub{font-size:13px;text-align:center;max-width:300px;line-height:1.6;}
+.spin{width:24px;height:24px;border:2px solid var(--brd);border-top-color:var(--acc);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.resizer{position:absolute;right:0;top:0;width:6px;height:100%;cursor:col-resize;z-index:2;}
+.resizer:hover{background:rgba(26,86,219,.3);}
+.tbl-title{background:var(--acc);color:#fff;font-size:12px;font-weight:600;padding:6px 10px;letter-spacing:.3px;}
+#tooltip{position:fixed;background:#1f2937;color:#fff;padding:6px 10px;border-radius:6px;font-size:12px;max-width:340px;white-space:normal;word-break:break-word;z-index:9999;pointer-events:none;line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,.25);display:none;}
 
-/* Floating Button */
-#aiBtn {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 52px;
-  height: 52px;
-  background: var(--acc, #1a56db);
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  font-size: 22px;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(26,86,219,.35);
-  z-index: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform .2s, box-shadow .2s;
-}
-#aiBtn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(26,86,219,.45); }
-#aiBtn.open { background: #374151; }
+/* Edit mode */
+.edit-bar{display:none;position:fixed;bottom:0;left:220px;right:0;background:#1e40af;color:#fff;padding:8px 16px;z-index:500;align-items:center;gap:10px;font-size:12px;}
+.edit-bar.show{display:flex;}
+.edit-bar button{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:inherit;}
+.edit-bar button:hover{background:rgba(255,255,255,.3);}
+.edit-bar .spacer{flex:1;}
+.edit-bar .saved{background:#059669;border-color:#059669;}
+.edit-btn{position:fixed;bottom:60px;right:20px;background:#1e40af;color:#fff;border:none;border-radius:50px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:600;font-family:inherit;}
+.edit-btn.active{background:#059669;}
+.edit-mode th{cursor:pointer;}
+.edit-mode th.col-selected{background:var(--row-sel)!important;color:var(--acc)!important;outline:2px solid var(--acc);}
+.edit-mode th:hover{background:var(--row-sel);}
+.edit-mode td{cursor:cell;}
+td.editing, th.editing{padding:0!important;overflow:visible!important;}
+td.editing input, th.editing input{width:100%;min-width:200px;border:2px solid var(--acc);outline:none;padding:4px 8px;font-size:13px;font-family:inherit;background:var(--sur);color:var(--txt);min-height:28px;position:relative;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.15);}
+.row-actions{display:none;position:absolute;left:-28px;top:50%;transform:translateY(-50%);gap:2px;}
+.edit-mode tbody tr{position:relative;}
+.edit-mode tr:hover .row-actions{display:flex;}
+.row-actions button{width:22px;height:22px;border:none;border-radius:4px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;padding:0;}
+.row-actions .ins{background:var(--row-sel);color:var(--acc);}
+.row-actions .del{background:#fee2e2;color:#e53e3e;}
+.add-row-btn{display:none;background:var(--th-ec);border:1px dashed var(--grn);color:var(--grn);width:100%;padding:6px;text-align:center;cursor:pointer;font-size:12px;font-family:inherit;}
+.edit-mode .add-row-btn{display:block;}
+.add-col-btn{display:none;background:var(--th-pc);border:1px dashed var(--acc);color:var(--acc);padding:6px 10px;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;}
+.edit-mode .add-col-btn{display:inline-block;}
+.notice{position:fixed;top:60px;right:20px;background:#1e40af;color:#fff;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,.2);}
+.price-mode th[data-hi]{cursor:crosshair!important;}
+.price-mode th[data-hi]:hover{background:#fef9c3!important;color:#713f12!important;}
+th.price-selected{background:var(--price-sel)!important;color:#d4a017!important;outline:2px solid #eab308!important;}
+td.price-highlight{background:#fef9c3!important;}
+#pricePanel{display:none;position:fixed;bottom:52px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;border-radius:10px;padding:12px 16px;z-index:700;box-shadow:0 8px 24px rgba(0,0,0,.3);align-items:center;gap:8px;font-size:12px;white-space:nowrap;}
+#pricePanel.show{display:flex;}
+#pricePanel .pcol-name{font-weight:700;color:#fde68a;margin-right:4px;}
+#pricePanel button{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;}
+#pricePanel button:hover{background:rgba(255,255,255,.28);}
+#pricePanel .apply-btn{background:#eab308;color:#1f2937;border-color:#eab308;font-weight:700;}
+#pricePanel .apply-btn:hover{background:#ca9a06;}
+#pricePanel .cancel-btn{background:#e53e3e;border-color:#e53e3e;}
+#pricePanel input[type=number]{width:64px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:4px 8px;color:#fff;font-size:12px;font-family:inherit;text-align:center;}
+#pricePanel input[type=number]::-webkit-inner-spin-button{opacity:1;}
 
-/* Side Panel */
-#aiPanel {
-  position: fixed;
-  right: 0; top: 48px; bottom: 0;
-  width: 380px;
-  background: var(--sur, #fff);
-  border-left: 1px solid var(--brd, #e2e6ed);
-  display: flex;
-  flex-direction: column;
-  z-index: 800;
-  transform: translateX(100%);
-  transition: transform .28s cubic-bezier(.4,0,.2,1);
-  box-shadow: -4px 0 24px rgba(0,0,0,.1);
-}
-#aiPanel.open { transform: translateX(0); }
-
-/* Panel Header */
-.ai-header {
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--brd, #e2e6ed);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--sur, #fff);
-  flex-shrink: 0;
-}
-.ai-header-icon {
-  width: 32px; height: 32px;
-  background: linear-gradient(135deg, #1a56db, #4d7ff5);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px; flex-shrink: 0;
-}
-.ai-header-title { font-size: 13px; font-weight: 700; color: var(--txt, #111827); }
-.ai-header-sub { font-size: 11px; color: var(--mut, #6b7280); }
-.ai-close {
-  margin-left: auto;
-  background: none; border: none;
-  color: var(--mut, #6b7280);
-  cursor: pointer; font-size: 18px; padding: 4px;
-  border-radius: 6px; line-height: 1;
-}
-.ai-close:hover { background: var(--s2, #f0f2f5); color: var(--txt, #111827); }
-
-/* Messages Area */
-#aiMessages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  scroll-behavior: smooth;
-}
-#aiMessages::-webkit-scrollbar { width: 3px; }
-#aiMessages::-webkit-scrollbar-thumb { background: var(--brd, #e2e6ed); border-radius: 3px; }
-
-/* Message Bubbles */
-.ai-msg {
-  display: flex;
-  flex-direction: column;
-  max-width: 88%;
-  animation: fadeUp .2s ease;
-}
-@keyframes fadeUp {
-  from { opacity:0; transform: translateY(6px); }
-  to   { opacity:1; transform: translateY(0); }
-}
-.ai-msg.user { align-self: flex-end; }
-.ai-msg.bot  { align-self: flex-start; }
-
-.ai-bubble {
-  padding: 10px 13px;
-  border-radius: 14px;
-  font-size: 13px;
-  line-height: 1.55;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-.ai-msg.user .ai-bubble {
-  background: var(--acc, #1a56db);
-  color: #fff;
-  border-bottom-right-radius: 4px;
-}
-.ai-msg.bot .ai-bubble {
-  background: var(--s2, #f0f2f5);
-  color: var(--txt, #111827);
-  border-bottom-left-radius: 4px;
-  border: 1px solid var(--brd, #e2e6ed);
-}
-.ai-msg.bot .ai-bubble.confirm {
-  background: #fffbeb;
-  border-color: #f59e0b;
-}
-.ai-msg.bot .ai-bubble.success {
-  background: #f0fdf4;
-  border-color: #22c55e;
-}
-.ai-msg.bot .ai-bubble.error {
-  background: #fef2f2;
-  border-color: #ef4444;
-}
-
-.ai-meta {
-  font-size: 10px;
-  color: var(--mut, #6b7280);
-  margin-top: 3px;
-  padding: 0 4px;
-}
-.ai-msg.user .ai-meta { text-align: right; }
-
-/* Confirm Buttons */
-.ai-confirm-btns {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-}
-.ai-confirm-btns button {
-  flex: 1;
-  padding: 7px 12px;
-  border-radius: 8px;
-  border: none;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: opacity .15s;
-}
-.ai-confirm-btns button:hover { opacity: .85; }
-.ai-btn-yes { background: #22c55e; color: #fff; }
-.ai-btn-no  { background: var(--brd, #e2e6ed); color: var(--dim, #374151); }
-
-/* Typing Indicator */
-.ai-typing {
-  display: flex;
-  gap: 4px;
-  padding: 12px 14px;
-  background: var(--s2, #f0f2f5);
-  border: 1px solid var(--brd, #e2e6ed);
-  border-radius: 14px;
-  border-bottom-left-radius: 4px;
-  width: fit-content;
-  align-self: flex-start;
-}
-.ai-typing span {
-  width: 6px; height: 6px;
-  background: var(--mut, #6b7280);
-  border-radius: 50%;
-  animation: bounce .9s infinite;
-}
-.ai-typing span:nth-child(2) { animation-delay: .15s; }
-.ai-typing span:nth-child(3) { animation-delay: .3s; }
-@keyframes bounce {
-  0%,60%,100% { transform: translateY(0); }
-  30% { transform: translateY(-5px); }
-}
-
-/* Quick Actions */
-.ai-quickbar {
-  padding: 10px 14px;
-  border-top: 1px solid var(--brd, #e2e6ed);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  flex-shrink: 0;
-  background: var(--sur, #fff);
-}
-.ai-quick {
-  padding: 5px 10px;
-  background: var(--s2, #f0f2f5);
-  border: 1px solid var(--brd, #e2e6ed);
-  border-radius: 20px;
-  font-size: 11px;
-  color: var(--dim, #374151);
-  cursor: pointer;
-  font-family: inherit;
-  transition: background .15s, border-color .15s;
-  white-space: nowrap;
-}
-.ai-quick:hover {
-  background: #dbeafe;
-  border-color: var(--acc, #1a56db);
-  color: var(--acc, #1a56db);
-}
-
-/* Input Area */
-.ai-inputbar {
-  padding: 12px 14px;
-  border-top: 1px solid var(--brd, #e2e6ed);
-  display: flex;
-  gap: 8px;
-  align-items: flex-end;
-  flex-shrink: 0;
-  background: var(--sur, #fff);
-}
-#aiInput {
-  flex: 1;
-  background: var(--s2, #f0f2f5);
-  border: 1px solid var(--brd, #e2e6ed);
-  border-radius: 10px;
-  padding: 9px 12px;
-  font-size: 13px;
-  font-family: inherit;
-  color: var(--txt, #111827);
-  resize: none;
-  outline: none;
-  max-height: 100px;
-  min-height: 38px;
-  transition: border-color .2s, box-shadow .2s;
-  line-height: 1.4;
-}
-#aiInput:focus {
-  border-color: var(--acc, #1a56db);
-  box-shadow: 0 0 0 3px rgba(26,86,219,.1);
-}
-#aiInput::placeholder { color: var(--mut, #6b7280); }
-#aiSend {
-  width: 38px; height: 38px;
-  background: var(--acc, #1a56db);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  transition: background .15s, transform .1s;
-}
-#aiSend:hover { background: #1741b6; }
-#aiSend:active { transform: scale(.95); }
-#aiSend:disabled { background: var(--brd, #e2e6ed); cursor: not-allowed; }
-#aiSend svg { width: 16px; height: 16px; }
+/* ── AI CHATBOT ── */
+#aiBtn{position:fixed;bottom:24px;right:24px;width:52px;height:52px;background:var(--acc);color:#fff;border:none;border-radius:50%;font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(26,86,219,.35);z-index:900;display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s;}
+#aiBtn:hover{transform:scale(1.08);box-shadow:0 6px 20px rgba(26,86,219,.45);}
+#aiBtn.open{background:#374151;}
+#aiPanel{position:fixed;right:0;top:48px;bottom:0;width:380px;background:var(--sur);border-left:1px solid var(--brd);display:flex;flex-direction:column;z-index:800;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:-4px 0 24px rgba(0,0,0,.1);}
+#aiPanel.open{transform:translateX(0);}
+.ai-header{padding:14px 16px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:10px;background:var(--sur);flex-shrink:0;}
+.ai-header-icon{width:32px;height:32px;background:linear-gradient(135deg,#1a56db,#4d7ff5);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.ai-header-title{font-size:13px;font-weight:700;color:var(--txt);}
+.ai-header-sub{font-size:11px;color:var(--mut);}
+.ai-close{margin-left:auto;background:none;border:none;color:var(--mut);cursor:pointer;font-size:18px;padding:4px;border-radius:6px;line-height:1;}
+.ai-close:hover{background:var(--s2);color:var(--txt);}
+#aiMessages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth;}
+#aiMessages::-webkit-scrollbar{width:3px;}
+#aiMessages::-webkit-scrollbar-thumb{background:var(--brd);border-radius:3px;}
+.ai-msg{display:flex;flex-direction:column;max-width:88%;animation:fadeUp .2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.ai-msg.user{align-self:flex-end;}
+.ai-msg.bot{align-self:flex-start;}
+.ai-bubble{padding:10px 13px;border-radius:14px;font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:break-word;}
+.ai-msg.user .ai-bubble{background:var(--acc);color:#fff;border-bottom-right-radius:4px;}
+.ai-msg.bot .ai-bubble{background:var(--s2);color:var(--txt);border-bottom-left-radius:4px;border:1px solid var(--brd);}
+.ai-msg.bot .ai-bubble.confirm{background:#fffbeb;border-color:#f59e0b;}
+.ai-msg.bot .ai-bubble.success{background:#f0fdf4;border-color:#22c55e;}
+.ai-msg.bot .ai-bubble.error{background:#fef2f2;border-color:#ef4444;}
+.ai-meta{font-size:10px;color:var(--mut);margin-top:3px;padding:0 4px;}
+.ai-msg.user .ai-meta{text-align:right;}
+.ai-confirm-btns{display:flex;gap:8px;margin-top:8px;}
+.ai-confirm-btns button{flex:1;padding:7px 12px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;}
+.ai-confirm-btns button:hover{opacity:.85;}
+.ai-btn-yes{background:#22c55e;color:#fff;}
+.ai-btn-no{background:var(--brd);color:var(--dim);}
+.ai-typing{display:flex;gap:4px;padding:12px 14px;background:var(--s2);border:1px solid var(--brd);border-radius:14px;border-bottom-left-radius:4px;width:fit-content;align-self:flex-start;}
+.ai-typing span{width:6px;height:6px;background:var(--mut);border-radius:50%;animation:bounce .9s infinite;}
+.ai-typing span:nth-child(2){animation-delay:.15s;}
+.ai-typing span:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-5px);}}
+.ai-quickbar{padding:10px 14px;border-top:1px solid var(--brd);display:flex;flex-wrap:wrap;gap:6px;flex-shrink:0;background:var(--sur);}
+.ai-quick{padding:5px 10px;background:var(--s2);border:1px solid var(--brd);border-radius:20px;font-size:11px;color:var(--dim);cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s;white-space:nowrap;}
+.ai-quick:hover{background:#dbeafe;border-color:var(--acc);color:var(--acc);}
+.ai-inputbar{padding:12px 14px;border-top:1px solid var(--brd);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;background:var(--sur);}
+#aiInput{flex:1;background:var(--s2);border:1px solid var(--brd);border-radius:10px;padding:9px 12px;font-size:13px;font-family:inherit;color:var(--txt);resize:none;outline:none;max-height:100px;min-height:38px;transition:border-color .2s,box-shadow .2s;line-height:1.4;}
+#aiInput:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(26,86,219,.1);}
+#aiInput::placeholder{color:var(--mut);}
+#aiSend{width:38px;height:38px;background:var(--acc);color:#fff;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,transform .1s;}
+#aiSend:hover{background:#1741b6;}
+#aiSend:active{transform:scale(.95);}
+#aiSend:disabled{background:var(--brd);cursor:not-allowed;}
 </style>
 </head>
 <body>
+<div id="tooltip"></div>
+<button class="edit-btn" id="editBtn" onclick="toggleEdit()">✏️ Επεξεργασία</button>
+<div class="edit-bar" id="editBar">
+  <span>✏️ Λειτουργία Επεξεργασίας</span>
+  <span style="opacity:.7;font-size:11px">Διπλό κλικ σε κελί/header για επεξεργασία</span>
+  <div class="spacer"></div>
+  <button id="undoBtn" onclick="undo()" disabled style="opacity:.5">↩ Αναίρεση</button>
+  <button id="priceBtn" onclick="togglePriceMode()" style="background:#eab308;border-color:#ca9a06;color:#1f2937;font-weight:600;">💰 Αλλαγές Τιμών</button>
+  <button onclick="addRow()">+ Γραμμή</button>
+  <button onclick="delRow()" style="background:#e53e3e;border-color:#e53e3e;">− Γραμμή</button>
+  <button onclick="addColumn()">+ Στήλη</button>
+  <button id="saveBtn" onclick="saveAll()" style="background:#1a56db;">💾 Αποθήκευση</button>
+  <button onclick="toggleEdit()" style="background:#374151;border-color:#374151;">✕ Έξοδος</button>
+</div>
+<div id="pricePanel">
+  <span>💰 Αλλαγές Τιμών —</span>
+  <span>Κλικ σε header στήλης για επιλογή</span>
+  <span id="pricePanelCol" class="pcol-name" style="display:none"></span>
+  <div id="priceBtns" style="display:none;align-items:center;gap:6px;display:none">
+    <button onclick="applyPct(-20)">−20%</button>
+    <button onclick="applyPct(-10)">−10%</button>
+    <button onclick="applyPct(10)">+10%</button>
+    <button onclick="applyPct(20)">+20%</button>
+    <button onclick="applyPct(40)">+40%</button>
+    <span style="opacity:.6">|</span>
+    <input type="number" id="customPct" placeholder="%" step="1">
+    <button onclick="applyCustomPct()" class="apply-btn">✓ Εφαρμογή</button>
+  </div>
+  <button onclick="cancelPriceMode()" class="cancel-btn">✕ Άκυρο</button>
+</div>
+<header>
+  <div class="logo" onclick="goHome()" style="cursor:pointer"><span class="m">Medi</span><span class="p">Price</span></div>
+  <div class="sep"></div>
+  <div class="hosp">Τιμοκατάλογος Mediterraneo Hospital</div>
+  <button id="darkBtn" onclick="toggleDark()" title="Dark Mode" style="background:none;border:1px solid var(--brd);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:14px;color:var(--mut);line-height:1;flex-shrink:0;">🌙</button>
+  <div class="sw">
+    <svg class="sico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="si" id="gS" placeholder="Αναζήτηση πράξης σε όλες τις ειδικότητες..." type="text">
+    <button class="sclr" id="gC">✕</button>
+  </div>
+  <div class="badge" id="badge">Φόρτωση...</div>
+</header>
+<div class="main">
+  <div class="sidebar">
+    <div class="sbh">🏥 Ειδικότητες</div>
+    <div class="sbs"><div class="sw">
+      <svg class="sico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="si" id="spF" placeholder="Φιλτράρισμα..." type="text">
+    </div></div>
+    <div class="spl" id="spL"><div style="padding:20px;text-align:center"><div class="spin"></div></div></div>
+  </div>
+  <div class="content">
+    <div class="ch" id="cH" style="display:none"><span class="ct" id="cT"></span><span class="cs" id="cS"></span></div>
+    <div id="ta"><div class="state"><div class="spin"></div></div></div>
+  </div>
+</div>
+<script>
+var D={}, cur=null, sMode=false, EDIT_MODE=false;
+var SB_URL='https://odtbtugzilxsfqxlpofq.supabase.co';
+var SB_KEY='sb_publishable_ch-7C1ihpZRrxEhXFqV1xA_hXPwq61S';
+var EDIT_PASS='mediterraneo';
+var PENDING=false;
+var UNDO_STACK=[];
+var SEL_COL=null;
+var COL_WIDTHS={}; // { sheetName: { headerName: px } }
 
-<!-- ════════════════════════════════════════════════════════
-     ΟΔΗΓΙΕΣ ΕΓΚΑΤΑΣΤΑΣΗΣ
-     ════════════════════════════════════════════════════════
-  1. Αντέγραψε το CSS παραπάνω μέσα στο <style> του index.html
-  2. Αντέγραψε το HTML παρακάτω πριν το κλείσιμο </body>
-  3. Αντέγραψε το JavaScript στο τέλος, πριν </script> ή σε νέο <script>
-  4. Πρόσθεσε το ANTHROPIC_API_KEY στο κατάλληλο σημείο
-     ════════════════════════════════════════════════════════ -->
+function pushUndo(){
+  if(!cur||!D[cur]) return;
+  if(D[cur].__multi__){
+    UNDO_STACK.push({sheet:cur,multi:true,tables:JSON.parse(JSON.stringify(D[cur].tables))});
+  } else {
+    var d=D[cur];
+    UNDO_STACK.push({sheet:cur,multi:false,headers:JSON.parse(JSON.stringify(d.headers)),rows:JSON.parse(JSON.stringify(d.rows))});
+  }
+  if(UNDO_STACK.length>20) UNDO_STACK.shift();
+  document.getElementById('undoBtn').disabled=false;
+}
 
-<!-- HTML: Floating Button + Panel -->
-<div id="aiBtn-preview" style="position:relative;display:inline-block;margin:20px;">
+function undo(){
+  if(!UNDO_STACK.length) return;
+  var state=UNDO_STACK.pop();
+  if(D[state.sheet]){
+    if(state.multi) D[state.sheet].tables=state.tables;
+    else{D[state.sheet].headers=state.headers;D[state.sheet].rows=state.rows;}
+    if(cur===state.sheet) showSheet(cur);
+    markPending();
+  }
+  if(!UNDO_STACK.length) document.getElementById('undoBtn').disabled=true;
+}
 
-<!-- ── FLOATING BUTTON ── -->
+var ECOLS=['ΕΟΠΥΥ ΒΑ3','ΕΟΠΥΥ ΒΑ','ΕΟΠΥΥ ΒΑ3 2026','ΕΟΠΥΥ ΒΑ 2026','ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ ΜΕ ΦΠΑ 24%','ΕΟΠΥΥ ΒΑ ΜΕ ΦΠΑ','ODC ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ODC ΕΟΠΥΥ ΜΕ ΦΠΑ','ΒΑ ΕΟΠΥΥ ΠΡΟ ΦΠΑ','ΒΑ ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ Α','ΤΕΛΙΚΟΣ ΕΟΠΥΥ ΜΕ ΦΠΑ','ΕΟΠΥΥ','ΕΟΠΥΥ 2026','ΒΑ NET','Α NET','ΕΟΠΥΥ ΚΛΙΝΙΚΗ','ΕΟΠΥΥ ΑΝΑΙΣΘ.'];
+var PCOLS=['ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ ΒΑ','ΙΔΙΩΤΗΣ ΒΑ3 2026','ΙΔΙΩΤΗΣ ΒΑ 2026','ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ 24%','ΙΔΙΩΤΗΣ ΒΑ ΜΕ ΦΠΑ','ODC ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ','ODC ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΒΑ ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ','ΒΑ ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ','ΙΔΙΩΤΗΣ Α','ΙΔΙΩΤΗΣ','ΙΔΙΩΤΗΣ 2026','ΒΑ ΜΕ ΦΠΑ','Α ΜΕ ΦΠΑ','LUX ΜΕ ΦΠΑ','SUITE ΜΕ ΦΠΑ','ODC ΜΕ ΦΠΑ','ΒΑ','Α','ODC','ΙΔΙΩΤΗΣ ΚΛΙΝΙΚΗ','ΙΔΙΩΤΗΣ ΑΝΑΙΣΘ.','ΤΟΠΙΚΗ','ΜΕΘΗ','ΓΕΝΙΚΗ'];
+var LCOLS=['LUX ΜΕ ΦΠΑ','LUX NET','LUX'];
+var SCOLS=['SUITE ΜΕ ΦΠΑ','SUITE NET','SUITE'];
+var WCOLS=['ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ','ΠΕΡΙΓΡΑΦΗ','ΕΙΔΟΣ ΠΡΑΞΗΣ','ΠΡΑΞΗ','ΤΙΤΛΟΣ ΕΠΕΜΒΑΣΗΣ','ΠΑΡΑΤΗΡΗΣΕΙΣ','ΣΧΟΛΙΑ','EXTRA','ΥΛΙΚΑ ΙΔΙΩΤΗ','ΑΠΟΦΑΣΗ ΚΕΣΥ','ΕΞΕΤΑΣΕΙΣ ΠΑΚΕΤΟΥ','ΠΑΡΑΤΗΡΗΣΕΙΣ - ΠΑΡΑΔΟΧΕΣ','ΥΛΙΚΑ MEDTRONIC','ΥΛΙΚΟ','ΚΑΤΗΓΟΡΙΑ','ΥΠΟΚΑΤΗΓΟΡΙΑ'];
+var ORDER=['ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ','ΓΑΣΤΡΕΝΤΕΡΟΛΟΓΙΚΑ','ΓΝΑΘΟΧΕΙΡΟΥΡΓΙΚΑ','ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ','ΓΥΝΑΙΚΟΛΟΓΙΚΗ','ΕΠΕΜΒΑΤΙΚΗ ΑΚΤΙΝΟΛΟΓΙΑ','ΕΠΕΜΒΑΤΙΚΗ ΚΑΡΔΙΟΛΟΓΙΑ','ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ','ΘΕΡΑΠΕΙΕΣ ΠΟΝΟ ΜΕ ΣΥΣΚΕΥΕΣ','INTERSTIM','ΘΩΡΑΚΟΧΕΙΡΟΥΡΓΙΚΗ','ΚΑΡΔΙΟΧΕΙΡΟΥΡΓΙΚΗ','ΜΟΝΑΔΑ ΜΑΣΤΟΥ','ΝΕΥΡΟΧΕΙΡΟΥΡΓΙΚΗ','ΟΝΠ','ΟΡΘΟΠΕΔΙΚΗ','ΟΥΡΟΛΟΓΙΚΗ','ΟΦΘΑΛΜΟΛΟΓΙΑ','ΠΛΑΣΤΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ','ΠΝΕΥΜΟΝΟΛΟΓΙΚΟ','ΠΟΝΟΣ','ΧΟΛΗΦΟΡΑ','ΣΠΟΝΔΥΛΙΚΗ ΣΤΗΛΗ','ΩΡΛ'];
+
+function rowCount(d){
+  if(!d) return 0;
+  if(d.__multi__) return d.tables.reduce(function(s,t){return s+t.rows.length;},0);
+  return d.rows?d.rows.length:0;
+}
+
+// ── SUPABASE ──────────────────────────────────────────────
+async function sbGet(sheet){
+  var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?sheet_name=eq.'+encodeURIComponent(sheet)+'&select=*',{
+    headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}
+  });
+  var d=await r.json();
+  return d&&d[0]?d[0]:null;
+}
+
+async function sbSave(sheet, headers, rows){
+  var existing=await sbGet(sheet);
+  var method=existing?'PATCH':'POST';
+  var url=SB_URL+'/rest/v1/mediprice_sheets'+(existing?'?sheet_name=eq.'+encodeURIComponent(sheet):'');
+  var payload={sheet_name:sheet,headers:headers,rows:rows,updated_at:new Date().toISOString()};
+  if(COL_WIDTHS[sheet]) payload.col_widths=COL_WIDTHS[sheet];
+  var resp=await fetch(url,{
+    method:method,
+    headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+    body:JSON.stringify(payload)
+  });
+  // Αν αποτύχει λόγω missing col_widths column, δοκίμασε χωρίς αυτό
+  if(!resp.ok && COL_WIDTHS[sheet]){
+    delete payload.col_widths;
+    await fetch(url,{
+      method:method,
+      headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+      body:JSON.stringify(payload)
+    });
+    showNotice('⚠️ Τα πλάτη στηλών χρειάζονται migration DB');
+  }
+}
+
+async function sbSaveMulti(sheet){
+  var d=D[sheet]; if(!d||!d.__multi__) return;
+  var existing=await sbGet(sheet);
+  var method=existing?'PATCH':'POST';
+  var url=SB_URL+'/rest/v1/mediprice_sheets'+(existing?'?sheet_name=eq.'+encodeURIComponent(sheet):'');
+  var payload={sheet_name:sheet,headers:JSON.stringify(d.tables),rows:[],updated_at:new Date().toISOString()};
+  if(COL_WIDTHS[sheet]) payload.col_widths=COL_WIDTHS[sheet];
+  var resp=await fetch(url,{
+    method:method,
+    headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+    body:JSON.stringify(payload)
+  });
+  if(!resp.ok && COL_WIDTHS[sheet]){
+    delete payload.col_widths;
+    await fetch(url,{
+      method:method,
+      headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+      body:JSON.stringify(payload)
+    });
+    showNotice('⚠️ Τα πλάτη στηλών χρειάζονται migration DB');
+  }
+}
+
+function markPending(){
+  PENDING=true;
+  document.getElementById('saveBtn').style.background='#f59e0b';
+  document.getElementById('saveBtn').style.borderColor='#f59e0b';
+  document.getElementById('saveBtn').textContent='⚠️ Αποθήκευση εκκρεμεί';
+}
+
+async function saveAll(){
+  if(!cur||!D[cur]) return;
+  document.getElementById('saveBtn').textContent='⏳ Αποθήκευση...';
+  if(D[cur].__multi__){
+    await sbSaveMulti(cur);
+  } else {
+    var d=D[cur];
+    await sbSave(cur, d.headers, d.rows);
+  }
+  PENDING=false;
+  document.getElementById('saveBtn').style.background='#059669';
+  document.getElementById('saveBtn').textContent='✓ Αποθηκεύτηκε';
+  setTimeout(function(){
+    document.getElementById('saveBtn').style.background='';
+    document.getElementById('saveBtn').style.borderColor='';
+    document.getElementById('saveBtn').textContent='💾 Αποθήκευση';
+  },2000);
+}
+
+async function loadSheetFromSB(sheet){
+  var d=await sbGet(sheet);
+  if(d){
+    if(D[sheet]&&D[sheet].__multi__&&d.headers){
+      try{
+        var tables=typeof d.headers==='string'?JSON.parse(d.headers):d.headers;
+        if(Array.isArray(tables)) D[sheet].tables=tables;
+      }catch(e){}
+    } else if(D[sheet]&&!D[sheet].__multi__){
+      D[sheet].headers=d.headers;
+      D[sheet].rows=d.rows;
+    }
+    // Load saved column widths
+    if(d.col_widths && typeof d.col_widths==='object'){
+      COL_WIDTHS[sheet]=d.col_widths;
+    }
+    return true;
+  }
+  return false;
+}
+
+function showNotice(msg){
+  var n=document.createElement('div');
+  n.className='notice';n.textContent=msg;
+  document.body.appendChild(n);
+  setTimeout(function(){n.remove();},2000);
+}
+
+// ── EDIT MODE ─────────────────────────────────────────────
+function toggleEdit(){
+  if(!EDIT_MODE){
+    var pass=prompt('Κωδικός επεξεργασίας:');
+    if(pass!==EDIT_PASS){if(pass!==null)alert('Λάθος κωδικός!');return;}
+    EDIT_MODE=true;
+    document.body.classList.add('edit-mode');
+    document.getElementById('editBtn').textContent='✅ Επεξεργασία';
+    document.getElementById('editBtn').classList.add('active');
+    document.getElementById('editBar').classList.add('show');
+    document.getElementById('ta').style.paddingBottom='50px';
+  } else {
+    EDIT_MODE=false;
+    document.body.classList.remove('edit-mode');
+    document.getElementById('editBtn').textContent='✏️ Επεξεργασία';
+    document.getElementById('editBtn').classList.remove('active');
+    document.getElementById('editBar').classList.remove('show');
+    document.getElementById('ta').style.paddingBottom='';
+  }
+  if(cur) showSheet(cur);
+}
+
+function getCurrentData(tableIdx){
+  if(!cur||!D[cur]) return null;
+  if(D[cur].__multi__){
+    if(tableIdx===undefined) return null;
+    return D[cur].tables[tableIdx]||null;
+  }
+  return D[cur];
+}
+
+function makeEditable(el, onSave){
+  pushUndo();
+  var orig=el.textContent;
+  el.classList.add('editing');
+  var isTh=el.tagName==='TH'||!!el.closest('th');
+  var inp=document.createElement(isTh?'input':'textarea');
+  if(isTh) inp.type='text';
+  inp.value=orig;
+  inp.style.width='100%';
+  inp.style.boxSizing='border-box';
+  inp.style.border='2px solid #1a56db';
+  inp.style.outline='none';
+  inp.style.padding='4px 8px';
+  inp.style.fontSize='13px';
+  inp.style.fontFamily='inherit';
+  inp.style.background='var(--sur)';inp.style.color='var(--txt)';
+  inp.style.lineHeight='1.4';
+  if(!isTh){
+    inp.style.resize='none';
+    inp.style.overflow='hidden';
+    inp.style.whiteSpace='pre-wrap';
+    inp.style.wordBreak='break-word';
+  }
+  el.innerHTML=''; el.appendChild(inp);
+  inp.focus(); inp.select();
+  if(!isTh){
+    inp.style.height='auto';
+    inp.style.height=Math.max(inp.scrollHeight,28)+'px';
+    inp.addEventListener('input',function(){inp.style.height='auto';inp.style.height=Math.max(inp.scrollHeight,28)+'px';});
+  }
+  var saved=false;
+  function done(){
+    if(saved) return; saved=true;
+    var nv=inp.value;
+    el.classList.remove('editing');
+    el.textContent=nv;
+    if(nv!==orig){onSave(nv); markPending();}
+  }
+  inp.addEventListener('blur',done);
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){saved=true;el.classList.remove('editing');el.textContent=orig;}
+    if(isTh&&e.key==='Enter'){e.preventDefault();inp.blur();}
+    if(!isTh&&e.key==='Enter'&&e.ctrlKey){inp.blur();}
+    e.stopPropagation();
+  });
+}
+
+// ── DARK MODE ─────────────────────────────────────────────
+function toggleDark(){
+  var isDark=document.documentElement.hasAttribute('data-dark');
+  if(isDark){
+    document.documentElement.removeAttribute('data-dark');
+    document.getElementById('darkBtn').textContent='🌙';
+    localStorage.setItem('mediDark','0');
+  } else {
+    document.documentElement.setAttribute('data-dark','');
+    document.getElementById('darkBtn').textContent='☀️';
+    localStorage.setItem('mediDark','1');
+  }
+}
+// Φόρτωση προτίμησης
+(function(){
+  if(localStorage.getItem('mediDark')==='1'){
+    document.documentElement.setAttribute('data-dark','');
+    // Ενημέρωση κουμπιού μετά το DOM load
+    document.addEventListener('DOMContentLoaded',function(){
+      var b=document.getElementById('darkBtn');
+      if(b) b.textContent='☀️';
+    });
+  }
+})();
+
+// ── PRICE MODE ────────────────────────────────────────────
+var PRICE_MODE=false, PRICE_COL=null, PRICE_COL_NAME='';
+
+function togglePriceMode(){
+  if(PRICE_MODE){ cancelPriceMode(); return; }
+  PRICE_MODE=true;
+  document.getElementById('pricePanel').classList.add('show');
+  document.getElementById('pricePanelCol').style.display='none';
+  document.getElementById('priceBtns').style.display='none';
+  document.querySelector('#pricePanel span:nth-child(2)').style.display='';
+  document.getElementById('priceBtn').style.background='#ca9a06';
+  document.getElementById('ta').classList.add('price-mode');
+  // Προσθήκη click listeners στα headers
+  document.querySelectorAll('thead th[data-hi]').forEach(function(th){
+    th.addEventListener('click', onPriceHeaderClick);
+  });
+}
+
+function onPriceHeaderClick(e){
+  if(!PRICE_MODE) return;
+  e.stopPropagation();
+  // Αφαίρεση προηγούμενης επιλογής
+  document.querySelectorAll('thead th.price-selected').forEach(function(t){t.classList.remove('price-selected');});
+  document.querySelectorAll('td.price-highlight').forEach(function(t){t.classList.remove('price-highlight');});
+  var th=e.currentTarget;
+  th.classList.add('price-selected');
+  PRICE_COL=parseInt(th.dataset.hi);
+  PRICE_COL_NAME=th.textContent.replace(/\s+/g,' ').trim();
+  // Highlight στήλης
+  document.querySelectorAll('tbody td[data-ci="'+PRICE_COL+'"]').forEach(function(td){
+    var v=parseFloat(td.textContent.trim());
+    if(!isNaN(v) && v!==0) td.classList.add('price-highlight');
+  });
+  // Εμφάνιση panel με κουμπιά
+  document.getElementById('pricePanelCol').textContent=PRICE_COL_NAME;
+  document.getElementById('pricePanelCol').style.display='';
+  document.getElementById('priceBtns').style.display='flex';
+  document.querySelector('#pricePanel span:nth-child(2)').style.display='none';
+}
+
+function applyPct(pct){
+  if(PRICE_COL===null) return;
+  var d=getCurrentData(); if(!d) return;
+  pushUndo();
+  d.rows.forEach(function(row){
+    var v=parseFloat(String(row[PRICE_COL]).trim());
+    if(!isNaN(v) && v!==0){
+      row[PRICE_COL]=String(Math.round(v*(1+pct/100)));
+    }
+  });
+  showNotice((pct>0?'+':'')+pct+'% εφαρμόστηκε στη στήλη "'+PRICE_COL_NAME+'"');
+  markPending();
+  cancelPriceMode();
+  showSheet(cur);
+}
+
+function applyCustomPct(){
+  var pct=parseFloat(document.getElementById('customPct').value);
+  if(isNaN(pct)){ alert('Εισάγετε έγκυρο ποσοστό'); return; }
+  applyPct(pct);
+}
+
+function cancelPriceMode(){
+  PRICE_MODE=false; PRICE_COL=null; PRICE_COL_NAME='';
+  document.getElementById('pricePanel').classList.remove('show');
+  document.getElementById('priceBtn').style.background='#eab308';
+  document.getElementById('ta').classList.remove('price-mode');
+  document.querySelectorAll('thead th.price-selected').forEach(function(t){t.classList.remove('price-selected');});
+  document.querySelectorAll('td.price-highlight').forEach(function(t){t.classList.remove('price-highlight');});
+  document.querySelectorAll('thead th[data-hi]').forEach(function(th){
+    th.removeEventListener('click', onPriceHeaderClick);
+  });
+}
+
+function addRow(){
+  var d=getCurrentData(); if(!d) return;
+  pushUndo();
+  var empty=d.headers.map(function(){return '';});
+  var ta=document.getElementById('ta');
+  var scrollTop=ta.scrollTop;
+  var insertedRi=null;
+  var selTr=document.querySelector('#ta tbody tr.sel');
+  if(selTr){
+    var ri=parseInt(selTr.dataset.ri);
+    if(!isNaN(ri)){ d.rows.splice(ri+1,0,empty); insertedRi=ri+1; }
+    else { d.rows.push(empty); insertedRi=d.rows.length-1; }
+  } else {
+    d.rows.push(empty); insertedRi=d.rows.length-1;
+  }
+  showSheet(cur);
+  markPending();
+  ta.scrollTop=scrollTop;
+  if(insertedRi!==null){
+    var newTr=document.querySelector('#ta tbody tr[data-ri="'+insertedRi+'"]');
+    if(newTr){
+      newTr.classList.add('sel');
+      newTr.querySelectorAll('td').forEach(function(td){ td.style.minHeight='32px'; });
+      newTr.scrollIntoView({block:'nearest',behavior:'smooth'});
+    }
+  }
+}
+
+function delRow(){
+  var selTr=document.querySelector('#ta tbody tr.sel');
+  if(!selTr){alert('Επιλέξτε γραμμή πρώτα!');return;}
+  var ri=parseInt(selTr.dataset.ri);
+  if(isNaN(ri)) return;
+  if(!confirm('Διαγραφή γραμμής;')) return;
+  pushUndo();
+  if(D[cur].__multi__){
+    var ti=parseInt(selTr.dataset.ti);
+    D[cur].tables[ti].rows.splice(ri,1);
+  } else {
+    var d=getCurrentData(); if(!d) return;
+    d.rows.splice(ri,1);
+  }
+  showSheet(cur);
+  markPending();
+}
+
+function addColumn(){
+  var name=prompt('Όνομα νέας στήλης:');
+  if(!name) return;
+  pushUndo();
+  if(D[cur].__multi__){
+    // Βρες ποιος πίνακας είναι επιλεγμένος
+    var selTh=document.querySelector('#ta thead th.col-selected');
+    var ti=selTh?parseInt(selTh.closest('[data-ti]').dataset.ti):0;
+    var t=D[cur].tables[ti];
+    var idx=SEL_COL!==null&&SEL_COL<t.headers.length?SEL_COL+1:t.headers.length;
+    t.headers.splice(idx,0,name);
+    t.rows.forEach(function(r){r.splice(idx,0,'');});
+  } else {
+    var d=getCurrentData(); if(!d) return;
+    var idx2=SEL_COL!==null&&SEL_COL<d.headers.length?SEL_COL+1:d.headers.length;
+    d.headers.splice(idx2,0,name);
+    d.rows.forEach(function(r){r.splice(idx2,0,'');});
+  }
+  SEL_COL=null;
+  showSheet(cur);
+  markPending();
+}
+
+// ── COLWIDTH ──────────────────────────────────────────────
+function colW(h){
+  if(cur && COL_WIDTHS[cur] && COL_WIDTHS[cur][h]!==undefined) return COL_WIDTHS[cur][h];
+  var W={'ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ':187,'ΠΕΡΙΓΡΑΦΗ':187,'ΕΙΔΟΣ ΠΡΑΞΗΣ':187,'ΠΡΑΞΗ':187,'ΤΙΤΛΟΣ ΕΠΕΜΒΑΣΗΣ':187,'ΠΑΡΑΤΗΡΗΣΕΙΣ':180,'ΣΧΟΛΙΑ':180,'EXTRA':180,'ΥΛΙΚΑ ΙΔΙΩΤΗ':250,'ΑΠΟΦΑΣΗ ΚΕΣΥ':180,'ΕΞΕΤΑΣΕΙΣ ΠΑΚΕΤΟΥ':180,'ΠΑΡΑΤΗΡΗΣΕΙΣ - ΠΑΡΑΔΟΧΕΣ':180,'ΥΛΙΚΑ MEDTRONIC':250,'ΥΛΙΚΟ':250,'ΚΑΤΗΓΟΡΙΑ':180,'ΥΠΟΚΑΤΗΓΟΡΙΑ':180,'ΙΔΙΩΤΗΣ ΒΑ3':75,'ΙΔΙΩΤΗΣ ΒΑ':75,'ΙΔΙΩΤΗΣ ΒΑ3 2026':75,'ΙΔΙΩΤΗΣ ΒΑ 2026':75,'ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ':75,'ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ 24%':75,'ΙΔΙΩΤΗΣ ΒΑ ΜΕ ΦΠΑ':75,'ODC ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ':75,'ODC ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ':75,'ΒΑ ΙΔΙΩΤΗΣ ΠΡΟ ΦΠΑ':75,'ΒΑ ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ':75,'ΙΔΙΩΤΗΣ Α':75,'ΙΔΙΩΤΗΣ':75,'ΙΔΙΩΤΗΣ 2026':75,'ΒΑ ΜΕ ΦΠΑ':75,'Α ΜΕ ΦΠΑ':75,'LUX ΜΕ ΦΠΑ':75,'SUITE ΜΕ ΦΠΑ':75,'ODC ΜΕ ΦΠΑ':75,'ΒΑ':75,'Α':75,'LUX':75,'SUITE':75,'ODC':75,'ΙΔΙΩΤΗΣ ΚΛΙΝΙΚΗ':75,'ΙΔΙΩΤΗΣ ΑΝΑΙΣΘ.':75,'ΤΟΠΙΚΗ':75,'ΜΕΘΗ':75,'ΓΕΝΙΚΗ':75,'ΕΟΠΥΥ ΒΑ3':75,'ΕΟΠΥΥ ΒΑ':75,'ΕΟΠΥΥ ΒΑ3 2026':75,'ΕΟΠΥΥ ΒΑ 2026':75,'ΕΟΠΥΥ ΜΕ ΦΠΑ':75,'ΕΟΠΥΥ ΜΕ ΦΠΑ 24%':75,'ΕΟΠΥΥ ΒΑ ΜΕ ΦΠΑ':75,'ODC ΕΟΠΥΥ ΠΡΟ ΦΠΑ':75,'ODC ΕΟΠΥΥ ΜΕ ΦΠΑ':75,'ΒΑ ΕΟΠΥΥ ΠΡΟ ΦΠΑ':75,'ΒΑ ΕΟΠΥΥ ΜΕ ΦΠΑ':75,'ΕΟΠΥΥ Α':65,'ΙΔΙΩΤΗΣ Α':65,'ΤΕΛΙΚΟΣ ΕΟΠΥΥ ΜΕ ΦΠΑ':75,'ΕΟΠΥΥ':75,'ΕΟΠΥΥ 2026':75,'ΒΑ NET':75,'Α NET':75,'LUX NET':75,'SUITE NET':75,'ΕΟΠΥΥ ΚΛΙΝΙΚΗ':75,'ΕΟΠΥΥ ΑΝΑΙΣΘ.':75,'ΚΕΝ':70,'ΚΕΝ/Π.Δ.':70,'ΚΕΝ (2)':70,'ΗΜ':40,'HM':40,'Α/Α':40,'ΜΕΘ':40,'REF':40,'ΦΠΑ':40,'ICD10':55,'ΠΑΡΑΜΟΝΗ':70,'ΗΜΕΡΕΣ':65,'ΗΜΕΡΕΣ ΝΟΣΗΛΕΙΑΣ':65,'ΧΡΟΝΟΣ':65,'ΔΩΜΑΤΙΟ':65,'ΝΟΣΗΛΕΙΑ ΚΛΙΝΗ ΘΑΛΑΜΟΥ':75,'ΝΟΣΗΛΕΙΑ ΜΑΠ/ΜΕΘ':75,'ΔΙΑΡΚΕΙΑ ΩΡΕΣ':72,'ΗΜ. ΝΟΣ':55,'ΧΕΙΡ. ΧΡΟΝΟΣ':70,'ΧΡΟΝΟΙ Χ/ΓΕΙΟΥ':70,'ΧΡΟΝΟΙ Χ/ΓΕΙΟΥ ΕΝΔΕΙΚΤΙΚΑ':70,'ΩΡΕΣ ΧΕΙΡΟΥΡΓΕΙΟΥ':70,'ΑΜΟΙΒΗ ΑΝΑΙΣΘΗΣΙΟΛΟΓΟΥ':85,'ΚΟΣΤΟΣ ΥΛΙΚΟΥ ΧΩΡΙΣ ΦΠΑ':85,'ΧΕΙΡΟΥΡΓΙΚΟΣ ΧΡΟΝΟΣ (ΛΕΠΤΑ)':85,'ΜΕΓΙΣΤΟ ΚΟΣΤΟΣ ΡΑΜΜΑΤΩΝ':90,'ΑΠΟΔΟΣΗ ΜΕΡΙΔΟΛΟΓΙΟΥ':90,'ΚΩΔΙΚΟΣ Ι.Π.':75,'ΥΛΙΚΑ':250,'ΗΜΕΡΟΜΗΝΙΑ':85,'ΥΛΙΚΟ ΚΟΣΤΟΣ':75,'ΠΟΣΟΤΗΤΑ (ΤΕΜ)':75,'ΤΙΜΗ ΠΑΡΑΤΗΡΙΟΥ (ΤΕΜ)':85,'ΠΑΡΑΤΗΡΙΟ':75,'ΧΡΟΝΟΧΡΕΩΣΗ':80,'ΙΣΤΟΛΟΓΙΚΗ':75};
+  if(W[h]!==undefined) return W[h];
+  return Math.max(40,h.split(' ')[0].length*9+16);
+}
+function thCls(h){return ECOLS.indexOf(h)>=0?' ec':PCOLS.indexOf(h)>=0?' pc':'';}
+function tdCls(h,v){
+  if(ECOLS.indexOf(h)>=0) return ' class="ev"';
+  if(LCOLS.indexOf(h)>=0) return ' class="lv"';
+  if(SCOLS.indexOf(h)>=0) return ' class="sv"';
+  if(PCOLS.indexOf(h)>=0) return ' class="pv"';
+  if(WCOLS.indexOf(h)>=0||String(v).length>45) return ' class="wrap"';
+  return '';
+}
+function fmtH(h){
+  var p=h.trim().split(' ');
+  if(p.length<=1) return h;
+  return p[0]+'<br><span style="font-weight:400;font-size:10px;opacity:.8">'+p.slice(1).join(' ')+'</span>';
+}
+function hl(v,q){
+  if(!q||!v) return String(v||'');
+  // Highlight χωρίς να χρειάζονται τόνοι
+  var str=String(v);
+  var norm=str.normalize('NFD').replace(/[̀-ͯ]/g,'');
+  var qn=q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  var esc=qn.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  var result=''; var i=0;
+  norm.replace(new RegExp(esc,'gi'),function(m,offset){
+    result+=str.slice(i,offset)+'<mark>'+str.slice(offset,offset+m.length)+'</mark>';
+    i=offset+m.length;
+  });
+  result+=str.slice(i);
+  return result||str;
+}
+
+// ── RENDER ────────────────────────────────────────────────
+function buildTH(headers,showSp,tableIdx){
+  var s=showSp?'<th style="width:120px">Ειδικότητα<div class="resizer"></div></th>':'';
+  return s+headers.map(function(h,hi){
+    return '<th class="'+thCls(h).trim()+'" style="width:'+colW(h)+'px" data-hi="'+hi+'">'+fmtH(h)+'<div class="resizer"></div></th>';
+  }).join('')+(EDIT_MODE?'<th class="add-col-btn" onclick="addColumn()" style="width:40px;cursor:pointer;background:#eff6ff;color:#1a56db;font-size:16px;text-align:center">+</th>':'');
+}
+
+function buildRows(headers,rows,showSp,q){
+  return rows.map(function(row,ri){
+    if(!Array.isArray(row)) return '';
+    if(row[0]&&String(row[0]).startsWith('📌')){
+      return '<tr><td colspan="'+(headers.length+(showSp?1:0))+'" style="background:var(--note-bg,#fffbeb);color:var(--note-txt,#92400e);font-size:12px;padding:6px 8px;font-style:italic;white-space:normal;word-break:break-word;">'+String(row[0]).replace('📌 ','')+'</td></tr>';
+    }
+    var sp=showSp?'<td><span class="spbadge">'+cur+'</span></td>':'';
+    var acts='';
+    var cells=row.map(function(cell,ci){
+      var cls=tdCls(headers[ci],cell);
+      var vs=hl(String(cell||''),q);
+      var title=String(cell||'').length>35&&cls===''?' title="'+String(cell||'').replace(/"/g,'&quot;')+'"':'';
+      return '<td'+cls+title+' data-ri="'+ri+'" data-ci="'+ci+'">'+vs+'</td>';
+    }).join('');
+    return '<tr data-ri="'+ri+'">'+acts+sp+cells+'</tr>';
+  }).join('');
+}
+
+function renderTbl(headers,rows,showSp,q){
+  if(!rows.length){
+    document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';
+    return;
+  }
+  var html='<table><thead><tr>'+buildTH(headers,showSp)+'</tr></thead><tbody>'+buildRows(headers,rows,showSp,q)+'</tbody></table>';
+  if(EDIT_MODE) html+='<button class="add-row-btn" onclick="addRow()">+ Προσθήκη γραμμής</button>';
+  document.getElementById('ta').innerHTML=html;
+  addResizers();
+  if(EDIT_MODE) addEditListeners(headers);
+}
+
+function addEditListeners(headers){
+  // Header edit
+  document.querySelectorAll('thead th[data-hi]').forEach(function(th){
+    th.addEventListener('click',function(e){
+      if(e.detail>1) return;
+      document.querySelectorAll('#ta thead th').forEach(function(t){t.classList.remove('col-selected');});
+      SEL_COL=parseInt(th.dataset.hi);
+      th.classList.add('col-selected');
+    });
+    th.addEventListener('dblclick',function(e){
+      e.stopPropagation();
+      var hi=parseInt(th.dataset.hi);
+      var d=getCurrentData(); if(!d) return;
+      makeEditable(th,function(nv){
+        d.headers[hi]=nv;
+        markPending();
+        showSheet(cur);
+      });
+    });
+  });
+  // Cell edit
+  document.querySelectorAll('tbody td[data-ri]').forEach(function(td){
+    td.addEventListener('dblclick',function(e){
+      var ri=parseInt(td.dataset.ri);
+      var ci=parseInt(td.dataset.ci);
+      var d=getCurrentData(); if(!d) return;
+      makeEditable(td,function(nv){
+        d.rows[ri][ci]=nv;
+        markPending();
+      });
+    });
+  });
+}
+
+function renderMulti(tables,q){
+  var html='<div style="padding:8px;display:flex;flex-direction:column;gap:16px">';
+  tables.forEach(function(t,ti){
+    var th=buildTH(t.headers,false,ti);
+    var rows=buildRowsMulti(t.headers,t.rows,q,ti);
+    html+='<div data-ti="'+ti+'"><div class="tbl-title">'+t.title+'</div><table><thead><tr>'+th+'</tr></thead><tbody>'+rows+'</tbody></table>';
+    if(EDIT_MODE) html+='<button class="add-row-btn" onclick="addRowMulti('+ti+')">+ Προσθήκη γραμμής</button>';
+    html+='</div>';
+  });
+  html+='</div>';
+  document.getElementById('ta').innerHTML=html;
+  addResizers();
+  if(EDIT_MODE) addEditListenersMulti(tables);
+}
+
+function buildRowsMulti(headers,rows,q,ti){
+  return rows.map(function(row,ri){
+    if(!Array.isArray(row)) return '';
+    if(row[0]&&String(row[0]).startsWith('📌')){
+      return '<tr><td colspan="'+headers.length+'" style="background:var(--note-bg,#fffbeb);color:var(--note-txt,#92400e);font-size:12px;padding:6px 8px;font-style:italic;white-space:normal;word-break:break-word;">'+String(row[0]).replace('📌 ','')+'</td></tr>';
+    }
+    var cells=row.map(function(cell,ci){
+      var cls=tdCls(headers[ci],cell);
+      var vs=hl(String(cell||''),q);
+      var title=String(cell||'').length>35&&cls===''?' title="'+String(cell||'').replace(/"/g,'&quot;')+'"':'';
+      return '<td'+cls+title+' data-ri="'+ri+'" data-ci="'+ci+'" data-ti="'+ti+'">'+vs+'</td>';
+    }).join('');
+    return '<tr data-ri="'+ri+'" data-ti="'+ti+'">'+cells+'</tr>';
+  }).join('');
+}
+
+function addEditListenersMulti(tables){
+  // Header edit for multi
+  document.querySelectorAll('[data-ti] thead th[data-hi]').forEach(function(th){
+    var ti=parseInt(th.closest('[data-ti]').dataset.ti);
+    th.addEventListener('click',function(e){
+      if(e.detail>1) return;
+      document.querySelectorAll('#ta thead th').forEach(function(t){t.classList.remove('col-selected');});
+      SEL_COL=parseInt(th.dataset.hi);
+      th.classList.add('col-selected');
+    });
+    th.addEventListener('dblclick',function(e){
+      e.stopPropagation();
+      var hi=parseInt(th.dataset.hi);
+      pushUndo();
+      makeEditable(th,function(nv){
+        tables[ti].headers[hi]=nv;
+        markPending();
+        showSheet(cur);
+      });
+    });
+  });
+  // Cell edit for multi
+  document.querySelectorAll('[data-ti] tbody td[data-ri]').forEach(function(td){
+    td.addEventListener('dblclick',function(e){
+      var ti=parseInt(td.dataset.ti);
+      var ri=parseInt(td.dataset.ri);
+      var ci=parseInt(td.dataset.ci);
+      makeEditable(td,function(nv){
+        tables[ti].rows[ri][ci]=nv;
+        markPending();
+      });
+    });
+  });
+}
+
+function addRowMulti(ti){
+  if(!cur||!D[cur]||!D[cur].__multi__) return;
+  pushUndo();
+  var t=D[cur].tables[ti];
+  var empty=t.headers.map(function(){return '';});
+  var selTr=document.querySelector('[data-ti="'+ti+'"] tbody tr.sel');
+  if(selTr){
+    var ri=parseInt(selTr.dataset.ri);
+    if(!isNaN(ri)) t.rows.splice(ri+1,0,empty);
+    else t.rows.push(empty);
+  } else t.rows.push(empty);
+  showSheet(cur);
+  markPending();
+}
+
+// ── INIT ──────────────────────────────────────────────────
+async function init(){
+  try{
+    var r=await fetch('data.json'); D=await r.json();
+    // Load overrides from Supabase for non-multi sheets
+    var loadPromises=Object.keys(D).map(function(k){return loadSheetFromSB(k);});
+    await Promise.all(loadPromises);
+    var ks=Object.keys(D),total=ks.reduce(function(s,k){return s+rowCount(D[k]);},0);
+    document.getElementById('badge').textContent=ks.length+' ειδικότητες · '+total+' εγγραφές';
+    renderSB(); welcome();
+  }catch(e){
+    document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">⚠️</div><div class="state-title">'+e.message+'</div></div>';
+  }
+}
+
+function goHome(){
+  sMode=false; cur=null;
+  document.getElementById('gS').value='';
+  document.getElementById('gC').style.display='none';
+  renderSB();
+  welcome();
+}
+
+function welcome(){
+  document.getElementById('cH').style.display='none';
+  document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🏥</div><div class="state-title">Καλώς ήρθατε στο MediPrice</div><div class="state-sub">Επιλέξτε ειδικότητα ή αναζητήστε πράξη</div></div>';
+}
+
+function renderSB(f){
+  f=f||''; var el=document.getElementById('spL');
+  var all=Object.keys(D);
+  var keys=ORDER.filter(function(k){return all.indexOf(k)>=0&&k.toLowerCase().indexOf(f.toLowerCase())>=0;});
+  all.forEach(function(k){if(ORDER.indexOf(k)<0&&k.toLowerCase().indexOf(f.toLowerCase())>=0) keys.push(k);});
+  if(!keys.length){el.innerHTML='<div style="padding:12px;text-align:center;color:var(--mut);font-size:12px">Δεν βρέθηκε</div>';return;}
+  el.innerHTML=keys.map(function(k){
+    return '<div class="spi'+(cur===k&&!sMode?' active':'')+'" onclick="showSheet(\''+k.replace(/'/g,"\\'")+'\')">'
+      +'<span class="spn">'+k+'</span><span class="spc">'+rowCount(D[k])+'</span></div>';
+  }).join('');
+}
+
+function showSheet(name){
+  sMode=false;
+  document.getElementById('gS').value='';
+  document.getElementById('gC').style.display='none';
+  cur=name; renderSB(document.getElementById('spF').value);
+  document.getElementById('ta').scrollTop=0;
+  var d=D[name]; if(!d) return;
+  document.getElementById('cH').style.display='flex';
+  document.getElementById('cT').textContent=name;
+  document.getElementById('cS').textContent='· '+rowCount(d)+' εγγραφές';
+  if(d.__multi__) renderMulti(d.tables,'');
+  else renderTbl(d.headers,d.rows,false,'');
+}
+
+function doSearch(q){
+  if(!q||q.length<2) return;
+  sMode=true; cur=null; renderSB(document.getElementById('spF').value);
+  var normalize=function(s){return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');};
+  var ql=normalize(q), grouped={};
+  Object.keys(D).forEach(function(sp){
+    var d=D[sp];
+    if(d.__multi__){
+      d.tables.forEach(function(t){
+        t.rows.forEach(function(row){
+          if(!Array.isArray(row)) return;
+          if(normalize(t.title).indexOf(ql)>=0||row.some(function(c){return normalize(String(c)).indexOf(ql)>=0;})){
+            if(!grouped[sp]) grouped[sp]={headers:t.headers,items:[]};
+            grouped[sp].items.push(row);
+          }
+        });
+      });
+    } else {
+      if(!d.rows) return;
+      d.rows.forEach(function(row){
+        if(!Array.isArray(row)) return;
+        if(row.some(function(c){return normalize(String(c)).indexOf(ql)>=0;})){
+          if(!grouped[sp]) grouped[sp]={headers:d.headers,items:[]};
+          grouped[sp].items.push(row);
+        }
+      });
+    }
+  });
+  var total=Object.values(grouped).reduce(function(s,g){return s+g.items.length;},0);
+  document.getElementById('cH').style.display='flex';
+  document.getElementById('cT').textContent='"'+q+'"';
+  document.getElementById('cS').textContent='· '+total+' αποτελέσματα';
+  if(!total){document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">🔍</div><div class="state-title">Δεν βρέθηκαν αποτελέσματα</div></div>';return;}
+  var html='<div style="padding:8px;display:flex;flex-direction:column;gap:12px">';
+  Object.keys(grouped).forEach(function(sp){
+    var g=grouped[sp];
+    var th='<th style="width:120px;background:#eff6ff;color:var(--acc)">Ειδικότητα<div class="resizer"></div></th>'+g.headers.map(function(h){return '<th class="'+thCls(h).trim()+'" style="width:'+colW(h)+'px">'+fmtH(h)+'<div class="resizer"></div></th>';}).join('');
+    var rows=g.items.map(function(row){
+      var cells=row.map(function(cell,ci){var cls=tdCls(g.headers[ci],cell);return '<td'+cls+'>'+hl(String(cell||''),q)+'</td>';}).join('');
+      return '<tr><td><span class="spbadge">'+sp+'</span></td>'+cells+'</tr>';
+    }).join('');
+    html+='<table><thead><tr>'+th+'</tr></thead><tbody>'+rows+'</tbody></table>';
+  });
+  html+='</div>';
+  document.getElementById('ta').innerHTML=html;
+  document.getElementById('ta').scrollTop=0;
+  addResizers();
+}
+
+function addResizers(){
+  document.querySelectorAll('thead th').forEach(function(th){
+    var r=th.querySelector('.resizer'); if(!r) return;
+    // Βρες το header name από το data-hi attribute
+    var hi=th.dataset.hi!==undefined?parseInt(th.dataset.hi):-1;
+    var sx,sw;
+    r.addEventListener('mousedown',function(e){
+      e.preventDefault(); sx=e.pageX; sw=th.offsetWidth;
+      document.body.style.cursor='col-resize';
+      var lastW=sw;
+      function mv(e){
+        lastW=Math.max(30,sw+e.pageX-sx);
+        th.style.width=lastW+'px';
+      }
+      function up(){
+        document.removeEventListener('mousemove',mv);
+        document.removeEventListener('mouseup',up);
+        document.body.style.cursor='';
+        // Αποθήκευση width αν είμαστε σε edit mode
+        if(EDIT_MODE && cur && hi>=0){
+          var headers=null;
+          if(D[cur]&&D[cur].__multi__){
+            var wrap=th.closest('[data-ti]');
+            if(wrap){
+              var ti=parseInt(wrap.dataset.ti);
+              headers=D[cur].tables[ti].headers;
+            }
+          } else if(D[cur]){
+            headers=D[cur].headers;
+          }
+          if(headers && headers[hi]!==undefined){
+            if(!COL_WIDTHS[cur]) COL_WIDTHS[cur]={};
+            COL_WIDTHS[cur][headers[hi]]=lastW;
+            markPending();
+          }
+        }
+      }
+      document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+    });
+  });
+}
+
+// Row selection
+document.getElementById('ta').addEventListener('click',function(e){
+  if(e.target.closest('button')) return;
+  var tr=e.target.closest('tbody tr'); if(!tr) return;
+  var was=tr.classList.contains('sel');
+  document.querySelectorAll('#ta tbody tr.sel').forEach(function(r){r.classList.remove('sel');});
+  if(!was) tr.classList.add('sel');
+});
+
+// Tooltip
+var tip=document.getElementById('tooltip');
+document.getElementById('ta').addEventListener('mouseover',function(e){
+  var td=e.target.closest('td[title]');
+  if(!td){tip.style.display='none';return;}
+  tip.textContent=td.getAttribute('title'); tip.style.display='block';
+});
+document.getElementById('ta').addEventListener('mousemove',function(e){tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY+12)+'px';});
+document.getElementById('ta').addEventListener('mouseleave',function(){tip.style.display='none';});
+
+var st;
+document.getElementById('gS').addEventListener('input',function(e){
+  var q=e.target.value.trim();
+  document.getElementById('gC').style.display=q?'flex':'none';
+  clearTimeout(st);
+  if(q.length>=2) st=setTimeout(function(){doSearch(q);},350);
+  else if(!q){sMode=false;cur=null;renderSB();welcome();}
+});
+document.getElementById('gC').addEventListener('click',function(){
+  document.getElementById('gS').value=''; document.getElementById('gC').style.display='none';
+  sMode=false;cur=null;renderSB();welcome();
+});
+document.getElementById('spF').addEventListener('input',function(e){renderSB(e.target.value);});
+
+init();
+</script>
+
+<!-- ── AI CHATBOT BUTTON + PANEL ── -->
 <button id="aiBtn" onclick="toggleAI()" title="AI Βοηθός">
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-  </svg>
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
 </button>
 
-<!-- ── SIDE PANEL ── -->
 <div id="aiPanel">
-
-  <!-- Header -->
   <div class="ai-header">
     <div class="ai-header-icon">🤖</div>
     <div>
@@ -295,406 +1012,418 @@
     </div>
     <button class="ai-close" onclick="toggleAI()">✕</button>
   </div>
-
-  <!-- Messages -->
   <div id="aiMessages">
     <div class="ai-msg bot">
       <div class="ai-bubble">Γεια σου! 👋 Μπορώ να σε βοηθήσω με:
 
 • Αναζήτηση τιμής επέμβασης
-• Αλλαγή τιμής (+/- % ή σταθερή)
+• Αλλαγή τιμής (+/- % ή σταθερή τιμή)
 • Μαζική αλλαγή σε κατηγορία
 
 Τι θέλεις να κάνουμε;</div>
       <div class="ai-meta">Τώρα</div>
     </div>
   </div>
-
-  <!-- Quick Actions -->
   <div class="ai-quickbar">
-    <button class="ai-quick" onclick="quickAsk('Ποια η τιμή της χολοκυστεκτομής;')">💰 Τιμή χολής</button>
-    <button class="ai-quick" onclick="quickAsk('Αύξησε τις τιμές χολοκυστεκτομής +10%')">📈 +10% χολή</button>
-    <button class="ai-quick" onclick="quickAsk('Δείξε μου τις τιμές ορθοπεδικής')">🦴 Ορθοπεδική</button>
-    <button class="ai-quick" onclick="quickAsk('Αλλαγές τιμών σε όλη την ουρολογική +5%')">⚕️ Ουρολογική +5%</button>
+    <button class="ai-quick" onclick="aiQuick('Ποια η τιμή της χολοκυστεκτομής;')">💰 Τιμή χολής</button>
+    <button class="ai-quick" onclick="aiQuick('Αύξησε τιμές χολοκυστεκτομής +10%')">📈 Χολή +10%</button>
+    <button class="ai-quick" onclick="aiQuick('Δείξε μου τιμές ορθοπεδικής')">🦴 Ορθοπεδική</button>
+    <button class="ai-quick" onclick="aiQuick('Αύξησε όλες τις τιμές ουρολογικής +5%')">⚕️ Ουρολογική +5%</button>
   </div>
-
-  <!-- Input -->
   <div class="ai-inputbar">
-    <textarea id="aiInput" placeholder="Γράψε εντολή... π.χ. 'άλλαξε χολή +30%'" rows="1"
-      onkeydown="aiKeyDown(event)" oninput="autoResize(this)"></textarea>
+    <textarea id="aiInput" placeholder="π.χ. «άλλαξε χολή +30%»" rows="1"
+      onkeydown="aiKeyDown(event)" oninput="aiResize(this)"></textarea>
     <button id="aiSend" onclick="sendAI()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-      </svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
   </div>
-
-</div><!-- /aiPanel -->
-</div><!-- /preview wrapper -->
+</div>
 
 <script>
-// ════════════════════════════════════════════════════════
-// MEDIPRICE AI CHATBOT - JAVASCRIPT
-// Βάλε αυτό μέσα στο <script> tag του index.html
-// ════════════════════════════════════════════════════════
+// ── SMART CHATBOT (χωρίς API) ────────────────────────────
+var AI_OPEN = false;
+var AI_PENDING = null;
+var AI_TYPING_EL = null;
 
-// ── CONFIG ──
-var AI_KEY = 'ΑΝΤΙΚΑΤΕΣΤΗΣΕ_ΜΕ_ANTHROPIC_API_KEY'; // ← βάλε εδώ το κλειδί σου
-var AI_PANEL_OPEN = false;
-var AI_PENDING_ACTION = null; // Αποθηκεύει action που περιμένει επιβεβαίωση
-var AI_HISTORY = []; // Ιστορικό συνομιλίας
+// Χάρτης ειδικοτήτων — ελληνικές λέξεις → sheet name
+var AI_SHEETS = {
+  'χολ':'ΧΟΛΗΦΟΡΑ','χοληφορ':'ΧΟΛΗΦΟΡΑ','χολοκυστ':'ΧΟΛΗΦΟΡΑ',
+  'ορθοπεδ':'ΟΡΘΟΠΕΔΙΚΗ','ορθοπαιδ':'ΟΡΘΟΠΕΔΙΚΗ',
+  'ουρολογ':'ΟΥΡΟΛΟΓΙΚΗ',
+  'καρδιοχειρ':'ΚΑΡΔΙΟΧΕΙΡΟΥΡΓΙΚΗ','καρδιοχ':'ΚΑΡΔΙΟΧΕΙΡΟΥΡΓΙΚΗ',
+  'καρδιολογ':'ΕΠΕΜΒΑΤΙΚΗ ΚΑΡΔΙΟΛΟΓΙΑ','επεμβατικη καρδ':'ΕΠΕΜΒΑΤΙΚΗ ΚΑΡΔΙΟΛΟΓΙΑ',
+  'νευροχειρ':'ΝΕΥΡΟΧΕΙΡΟΥΡΓΙΚΗ','νευρο':'ΝΕΥΡΟΧΕΙΡΟΥΡΓΙΚΗ',
+  'γυναικολογ':'ΓΥΝΑΙΚΟΛΟΓΙΚΗ','γυναικ':'ΓΥΝΑΙΚΟΛΟΓΙΚΗ',
+  'γενικη χειρ':'ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ','γενικη':'ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ',
+  'αγγειοχειρ':'ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ','αγγειο':'ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ',
+  'θωρακ':'ΘΩΡΑΚΟΧΕΙΡΟΥΡΓΙΚΗ',
+  'πλαστικ':'ΠΛΑΣΤΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ',
+  'οφθαλμ':'ΟΦΘΑΛΜΟΛΟΓΙΑ',
+  'ωρλ':'ΩΡΛ',
+  'γαστρ':'ΓΑΣΤΡΕΝΤΕΡΟΛΟΓΙΚΑ',
+  'ηλεκτροφυσ':'ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ','ηφε':'ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ',
+  'επεμβατικη ακτιν':'ΕΠΕΜΒΑΤΙΚΗ ΑΚΤΙΝΟΛΟΓΙΑ','ακτινολογ':'ΕΠΕΜΒΑΤΙΚΗ ΑΚΤΙΝΟΛΟΓΙΑ',
+  'σπονδυλ':'ΣΠΟΝΔΥΛΙΚΗ ΣΤΗΛΗ',
+  'πνευμον':'ΠΝΕΥΜΟΝΟΛΟΓΙΚΟ',
+  'μαστ':'ΜΟΝΑΔΑ ΜΑΣΤΟΥ',
+  'ονπ':'ΟΝΠ',
+  'πονο':'ΠΟΝΟΣ','interstim':'INTERSTIM',
+  'θεραπει':'ΘΕΡΑΠΕΙΕΣ ΠΟΝΟ ΜΕ ΣΥΣΚΕΥΕΣ'
+};
 
-// ── SUPABASE CONFIG (ήδη υπάρχει στο MediPrice, χρησιμοποιεί τα ίδια) ──
-// Αν το βάλεις μέσα στο index.html, χρησιμοποιεί ήδη SB_URL και SB_KEY
-// Αν είναι standalone, ορίζουμε εδώ:
-var AI_SB_URL = typeof SB_URL !== 'undefined' ? SB_URL : 'https://odtbtugzilxsfqxlpofq.supabase.co';
-var AI_SB_KEY = typeof SB_KEY !== 'undefined' ? SB_KEY : 'sb_publishable_ch-7C1ihpZRrxEhXFqV1xA_hXPwq61S';
+// Στήλες τιμών — προτεραιότητα αναζήτησης
+var AI_PRICE_COLS = ['ΙΔΙΩΤΗΣ ΒΑ','ΙΔΙΩΤΗΣ','ΒΑ','ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ 2026','ΙΔΙΩΤΗΣ ΒΑ 2026'];
 
-// ── TOGGLE PANEL ──
-function toggleAI() {
-  AI_PANEL_OPEN = !AI_PANEL_OPEN;
-  document.getElementById('aiPanel').classList.toggle('open', AI_PANEL_OPEN);
-  document.getElementById('aiBtn').classList.toggle('open', AI_PANEL_OPEN);
-  if (AI_PANEL_OPEN) {
-    setTimeout(function(){ document.getElementById('aiInput').focus(); }, 300);
-  }
+function toggleAI(){
+  AI_OPEN = !AI_OPEN;
+  document.getElementById('aiPanel').classList.toggle('open', AI_OPEN);
+  document.getElementById('aiBtn').classList.toggle('open', AI_OPEN);
+  if(AI_OPEN) setTimeout(function(){ document.getElementById('aiInput').focus(); }, 300);
 }
 
-// ── QUICK ACTIONS ──
-function quickAsk(text) {
+function aiQuick(text){
   document.getElementById('aiInput').value = text;
   sendAI();
 }
 
-// ── AUTO RESIZE TEXTAREA ──
-function autoResize(el) {
+function aiResize(el){
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 100) + 'px';
 }
 
-// ── KEYBOARD SEND ──
-function aiKeyDown(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendAI();
-  }
+function aiKeyDown(e){
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendAI(); }
 }
 
-// ── SEND MESSAGE ──
-async function sendAI() {
+function sendAI(){
   var input = document.getElementById('aiInput');
   var text = input.value.trim();
-  if (!text) return;
+  if(!text) return;
+  input.value = ''; input.style.height = 'auto';
+  aiAddMsg('user', text);
+  aiShowTyping();
+  setTimeout(function(){ aiHideTyping(); aiProcess(text); }, 400);
+}
 
-  input.value = '';
-  input.style.height = 'auto';
-  document.getElementById('aiSend').disabled = true;
+// ── ΚΕΝΤΡΙΚΟ PARSING ────────────────────────────────────
+function aiProcess(text){
+  var t = text.toLowerCase().trim();
 
-  addMsg('user', text);
-  AI_HISTORY.push({ role: 'user', content: text });
+  // Βοήθεια
+  if(/βοηθ|help|τι μπορ|τι ξερ|εντολ/.test(t)){
+    aiAddMsg('bot',
+      '📋 Τι μπορώ να κάνω:\n\n' +
+      '🔍 ΑΝΑΖΗΤΗΣΗ:\n«τιμή χολοκυστεκτομής»\n«τιμές ορθοπεδικής»\n«βρες αμυγδαλεκτομή»\n\n' +
+      '📈 ΑΛΛΑΓΗ ΤΙΜΗΣ:\n«χολοκυστεκτομή +30%»\n«αμυγδαλεκτομή -10%»\n«χολοκυστεκτομή = 850»\n\n' +
+      '📊 ΜΑΖΙΚΗ ΑΛΛΑΓΗ:\n«ορθοπεδική +5%»\n«ουρολογική -10%»\n«χολοκυστεκτομή όλες +20%»'
+    );
+    return;
+  }
 
-  showTyping();
+  // Ανίχνευση ποσοστού ή σταθερής τιμής
+  var pctMatch = t.match(/([+\-]?\s*\d+[.,]?\d*)\s*%/);
+  var fixMatch = !pctMatch && t.match(/[=:]\s*(\d+[.,]?\d*)/);
+  var hasChange = pctMatch || fixMatch;
 
+  // Ανίχνευση ειδικότητας
+  var detectedSheet = aiDetectSheet(t);
+
+  // Ανίχνευση λέξης αναζήτησης (αφαιρούμε keywords)
+  var searchTerm = aiExtractSearch(t);
+
+  if(hasChange){
+    // Εντολή αλλαγής τιμής
+    var pct = null, fixVal = null;
+    if(pctMatch){
+      pct = parseFloat(pctMatch[1].replace(',','.').replace(' ',''));
+    } else {
+      fixVal = parseFloat(fixMatch[1].replace(',','.'));
+    }
+
+    var isBulk = !searchTerm || (detectedSheet && !searchTerm);
+
+    if(isBulk && detectedSheet){
+      // Μαζική αλλαγή σε ολόκληρη ειδικότητα
+      var desc = pct!==null
+        ? (pct>=0?'+':'')+pct+'%'
+        : '= '+fixVal+'€';
+      aiShowConfirm(
+        '📊 Μαζική αλλαγή:\n\nΕιδικότητα: '+detectedSheet+'\nΑλλαγή: '+desc+'\n\nΘέλεις να συνεχίσω;',
+        'bulk', { sheet:detectedSheet, changeType:pct!==null?'percent':'fixed', value:pct!==null?pct:fixVal }
+      );
+    } else if(searchTerm){
+      // Αλλαγή συγκεκριμένης επέμβασης
+      var sheet = detectedSheet || null;
+      var desc2 = pct!==null ? (pct>=0?'+':'')+pct+'%' : '= '+fixVal+'€';
+      aiShowConfirm(
+        '✏️ Αλλαγή τιμής:\n\nΕπέμβαση: «'+searchTerm+'»' +
+        (sheet ? '\nΕιδικότητα: '+sheet : '\n(σε όλες τις ειδικότητες)') +
+        '\nΑλλαγή: '+desc2+'\n\nΘέλεις να συνεχίσω;',
+        'update', { sheet:sheet, searchTerm:searchTerm, changeType:pct!==null?'percent':'fixed', value:pct!==null?pct:fixVal }
+      );
+    } else {
+      aiAddMsg('bot', '❓ Δεν κατάλαβα τι να αλλάξω. Δοκίμασε:\n«χολοκυστεκτομή +30%»\nή\n«ουρολογική +5%»');
+    }
+
+  } else if(/τιμ|τιμες|δειξ|βρες|ποι|πόσ|κοστ|search|ψαξ|ψάξ/.test(t) || searchTerm){
+    // Αναζήτηση
+    var qTerm = searchTerm || (detectedSheet ? '' : t);
+    aiSearch(qTerm, detectedSheet);
+  } else {
+    aiAddMsg('bot', '❓ Δεν κατάλαβα την εντολή.\n\nΔοκίμασε:\n• «τιμή χολοκυστεκτομής»\n• «χολοκυστεκτομή +30%»\n• «ορθοπεδική +5%»\n\nΓράψε «βοήθεια» για όλες τις εντολές.');
+  }
+}
+
+// ── ΑΝΙΧΝΕΥΣΗ ΕΙΔΙΚΟΤΗΤΑΣ ───────────────────────────────
+function aiDetectSheet(t){
+  // Πρώτα έλεγξε αν υπάρχει ακριβής ειδικότητα στα φορτωμένα δεδομένα
+  var loaded = Object.keys(D||{});
+  for(var i=0;i<loaded.length;i++){
+    if(t.includes(loaded[i].toLowerCase())) return loaded[i];
+  }
+  // Μετά fuzzy με τον χάρτη
+  var keys = Object.keys(AI_SHEETS);
+  for(var k=0;k<keys.length;k++){
+    if(t.includes(keys[k])) return AI_SHEETS[keys[k]];
+  }
+  return null;
+}
+
+// ── ΕΞΑΓΩΓΗ ΟΡΟΥ ΑΝΑΖΗΤΗΣΗΣ ─────────────────────────────
+function aiExtractSearch(t){
+  // Αφαίρεσε keywords και ειδικότητες, κράτα ουσιαστικά
+  var clean = t
+    .replace(/τιμ[ηή]\s*/g,'').replace(/τιμες\s*/g,'')
+    .replace(/δειξε\s*(μου)?\s*/g,'').replace(/βρες\s*/g,'')
+    .replace(/αλλαξε\s*/g,'').replace(/αυξησε\s*/g,'').replace(/μειωσε\s*/g,'')
+    .replace(/ολες\s*(τις)?\s*/g,'').replace(/τις\s*/g,'').replace(/της\s*/g,'')
+    .replace(/[+\-]?\d+[.,]?\d*\s*%/g,'').replace(/[=:]\s*\d+[.,]?\d*/g,'')
+    .replace(/ποια\s*/g,'').replace(/ποιες\s*/g,'').replace(/πόσο\s*/g,'')
+    .trim();
+
+  // Αφαίρεσε ονόματα ειδικοτήτων
+  var sheetKeys = Object.keys(AI_SHEETS);
+  for(var s=0;s<sheetKeys.length;s++){
+    clean = clean.replace(new RegExp(sheetKeys[s],'g'),'').trim();
+  }
+
+  return clean.length >= 3 ? clean : null;
+}
+
+// ── ΑΝΑΖΗΤΗΣΗ ───────────────────────────────────────────
+async function aiSearch(term, sheetFilter){
+  aiShowTyping();
   try {
-    var response = await callClaude(text);
-    hideTyping();
-    handleResponse(response);
-  } catch(err) {
-    hideTyping();
-    addMsg('bot', '❌ Σφάλμα επικοινωνίας: ' + err.message, 'error');
-  }
+    var results = [];
+    var sheetsToSearch = [];
 
-  document.getElementById('aiSend').disabled = false;
-}
+    if(sheetFilter){
+      // Φόρτωσε μόνο αυτή την ειδικότητα
+      var sd = D[sheetFilter] || await aiLoadSheet(sheetFilter);
+      if(sd) sheetsToSearch.push({ name:sheetFilter, data:sd });
+    } else {
+      // Ψάξε σε όλα τα φορτωμένα sheets
+      Object.keys(D||{}).forEach(function(s){ sheetsToSearch.push({ name:s, data:D[s] }); });
+    }
 
-// ── CALL CLAUDE API ──
-async function callClaude(userText) {
-  // Φτιάχνουμε context με τα διαθέσιμα sheets
-  var sheetsContext = await getAvailableSheets();
+    sheetsToSearch.forEach(function(s){
+      var data = s.data;
+      if(!data || data.__multi__) return;
+      var headers = data.headers || [];
+      var rows = data.rows || [];
 
-  var systemPrompt = `Είσαι ο AI βοηθός του MediPrice, του τιμοκαταλόγου του Mediterraneo Hospital.
+      // Βρες στήλη τιμής
+      var priceCol = aiFindPriceCol(headers);
 
-ΔΙΑΘΕΣΙΜΕΣ ΕΙΔΙΚΟΤΗΤΕΣ/SHEETS:
-${sheetsContext}
+      rows.forEach(function(row){
+        if(!term || row.some(function(cell){
+          return cell && cell.toString().toLowerCase().includes(term.toLowerCase());
+        })){
+          var name = row[0] || '';
+          var price = priceCol >= 0 ? row[priceCol] : '';
+          if(name && price){
+            results.push({ sheet:s.name, name:name, price:price, headers:headers, row:row, priceColName:priceCol>=0?headers[priceCol]:'' });
+          }
+        }
+      });
+    });
 
-ΔΥΝΑΤΟΤΗΤΕΣ ΣΟΥ:
-1. search_price: Αναζήτηση τιμής επέμβασης
-2. update_price: Αλλαγή τιμής (απαιτεί επιβεβαίωση πρώτα)
-3. bulk_update: Μαζική αλλαγή ανά ειδικότητα/κατηγορία (απαιτεί επιβεβαίωση)
+    aiHideTyping();
 
-ΚΑΝΟΝΕΣ:
-- Απάντα ΠΑΝΤΑ στα ελληνικά
-- Για αλλαγές τιμών: ΠΑΝΤΑ ζήτα επιβεβαίωση πριν κάνεις οτιδήποτε
-- Να είσαι συνοπτικός και φιλικός
-- Αν δεν βρεις ακριβή αποτέλεσμα, πρότεινε παρόμοια
+    if(!results.length){
+      aiAddMsg('bot', '🔍 Δεν βρέθηκαν αποτελέσματα'+(term?' για «'+term+'»':'')+'\n\nΔοκίμασε διαφορετικές λέξεις.', 'error');
+      return;
+    }
 
-ΜΟΡΦΗ ΑΠΑΝΤΗΣΗΣ - Επέστρεψε ΠΑΝΤΑ JSON:
-{
-  "message": "το μήνυμα που θα δείξεις στον χρήστη",
-  "action": null | "search" | "confirm_update" | "confirm_bulk",
-  "data": { ... } // παράμετροι για την ενέργεια
-}
+    // Δείξε αποτελέσματα (max 8)
+    var shown = results.slice(0, 8);
+    var msg = '🔍 Βρέθηκαν '+results.length+' αποτελέσματα'+(results.length>8?' (εμφανίζω τα πρώτα 8)':'')+':\n\n';
+    shown.forEach(function(r){
+      var priceNum = parseFloat((r.price||'').toString().replace(/[^0-9.,]/g,'').replace(',','.'));
+      var priceStr = priceNum ? priceNum.toLocaleString('el-GR',{minimumFractionDigits:0,maximumFractionDigits:0})+'€' : r.price;
+      msg += '• '+r.name+'\n  💰 '+priceStr+' ('+r.priceColName+') — '+r.sheet+'\n\n';
+    });
 
-Για αναζητήσεις: action=null, δείξε αποτελέσματα στο message
-Για αλλαγές: action="confirm_update" ή "confirm_bulk" με τα δεδομένα στο data
-Το data για confirm_update: { sheet, searchTerm, column, changeType: "percent"|"fixed", value, preview }
-Το data για confirm_bulk: { sheet, column, changeType: "percent"|"fixed", value }`;
-
-  var resp = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1000,
-      system: systemPrompt,
-      messages: AI_HISTORY
-    })
-  });
-
-  if (!resp.ok) throw new Error('API error ' + resp.status);
-  var data = await resp.json();
-  var content = data.content[0].text;
-
-  // Parse JSON response
-  try {
-    var clean = content.replace(/```json|```/g, '').trim();
-    return JSON.parse(clean);
-  } catch(e) {
-    return { message: content, action: null, data: null };
+    aiAddMsg('bot', msg.trim());
+  } catch(err){
+    aiHideTyping();
+    aiAddMsg('bot','❌ Σφάλμα αναζήτησης: '+err.message,'error');
   }
 }
 
-// ── HANDLE CLAUDE RESPONSE ──
-function handleResponse(resp) {
-  AI_HISTORY.push({ role: 'assistant', content: JSON.stringify(resp) });
-
-  if (!resp.action || resp.action === null) {
-    // Απλή απάντηση
-    addMsg('bot', resp.message);
-  } else if (resp.action === 'confirm_update' || resp.action === 'confirm_bulk') {
-    // Ζητά επιβεβαίωση
-    AI_PENDING_ACTION = resp;
-    showConfirm(resp.message, resp.action, resp.data);
-  }
-}
-
-// ── SHOW CONFIRM ──
-function showConfirm(message, actionType, data) {
-  var msgDiv = document.createElement('div');
-  msgDiv.className = 'ai-msg bot';
-
+// ── CONFIRM ──────────────────────────────────────────────
+function aiShowConfirm(message, actionType, data){
+  var wrap = document.createElement('div');
+  wrap.className = 'ai-msg bot';
   var bubble = document.createElement('div');
   bubble.className = 'ai-bubble confirm';
   bubble.textContent = message;
-
   var btns = document.createElement('div');
   btns.className = 'ai-confirm-btns';
-
   var yes = document.createElement('button');
-  yes.className = 'ai-btn-yes';
-  yes.textContent = '✓ Ναι, εφάρμοσε';
-  yes.onclick = function() { executeAction(actionType, data); btns.remove(); };
-
+  yes.className = 'ai-btn-yes'; yes.textContent = '✓ Ναι, εφάρμοσε';
+  yes.onclick = function(){ yes.disabled=true; no.disabled=true; aiExecute(actionType, data); };
   var no = document.createElement('button');
-  no.className = 'ai-btn-no';
-  no.textContent = '✕ Ακύρωση';
-  no.onclick = function() {
-    AI_PENDING_ACTION = null;
-    btns.remove();
-    addMsg('bot', 'Ακυρώθηκε. Τι άλλο θέλεις;');
-  };
-
-  btns.appendChild(yes);
-  btns.appendChild(no);
-  msgDiv.appendChild(bubble);
-  msgDiv.appendChild(btns);
-
+  no.className = 'ai-btn-no'; no.textContent = '✕ Ακύρωση';
+  no.onclick = function(){ AI_PENDING=null; btns.remove(); aiAddMsg('bot','Ακυρώθηκε. Τι άλλο θέλεις;'); };
+  btns.appendChild(yes); btns.appendChild(no);
   var meta = document.createElement('div');
-  meta.className = 'ai-meta';
-  meta.textContent = aiTime();
-  msgDiv.appendChild(meta);
-
-  document.getElementById('aiMessages').appendChild(msgDiv);
-  scrollAI();
+  meta.className = 'ai-meta'; meta.textContent = aiNow();
+  wrap.appendChild(bubble); wrap.appendChild(btns); wrap.appendChild(meta);
+  document.getElementById('aiMessages').appendChild(wrap);
+  aiScroll();
 }
 
-// ── EXECUTE ACTION (μετά από επιβεβαίωση) ──
-async function executeAction(actionType, data) {
-  showTyping();
-
+// ── ΕΚΤΕΛΕΣΗ ΑΛΛΑΓΗΣ ────────────────────────────────────
+async function aiExecute(actionType, data){
+  aiShowTyping();
   try {
-    if (actionType === 'confirm_update') {
-      await executeSingleUpdate(data);
-    } else if (actionType === 'confirm_bulk') {
-      await executeBulkUpdate(data);
+    var sheetsToUpdate = [];
+
+    if(data.sheet){
+      var sd = D[data.sheet] || await aiLoadSheet(data.sheet);
+      if(sd) sheetsToUpdate.push({ name:data.sheet, data:sd });
+    } else {
+      // Όλα τα φορτωμένα sheets
+      Object.keys(D||{}).forEach(function(s){ if(D[s] && !D[s].__multi__) sheetsToUpdate.push({ name:s, data:D[s] }); });
     }
-  } catch(err) {
-    hideTyping();
-    addMsg('bot', '❌ Σφάλμα κατά την αποθήκευση: ' + err.message, 'error');
-  }
 
-  AI_PENDING_ACTION = null;
-}
+    var totalUpdated = 0;
+    var sheetsChanged = [];
 
-// ── SINGLE PRICE UPDATE ──
-async function executeSingleUpdate(data) {
-  // Φέρε το sheet από Supabase
-  var sheetData = await sbGetSheet(data.sheet);
-  if (!sheetData) { hideTyping(); addMsg('bot', '❌ Δεν βρέθηκε το sheet: ' + data.sheet, 'error'); return; }
+    for(var si=0; si<sheetsToUpdate.length; si++){
+      var s = sheetsToUpdate[si];
+      var sd2 = s.data;
+      if(!sd2 || sd2.__multi__) continue;
+      var headers = sd2.headers || [];
+      var rows = sd2.rows || [];
+      var priceCol = aiFindPriceCol(headers);
+      if(priceCol < 0) continue;
 
-  var headers = sheetData.headers;
-  var rows = sheetData.rows;
+      var updated = 0;
+      rows.forEach(function(row){
+        var match = true;
+        if(actionType==='update' && data.searchTerm){
+          match = row.some(function(cell){
+            return cell && cell.toString().toLowerCase().includes(data.searchTerm.toLowerCase());
+          });
+        }
+        if(match){
+          var oldVal = parseFloat((row[priceCol]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.')) || 0;
+          if(oldVal > 0){
+            var newVal = data.changeType==='percent' ? oldVal*(1+data.value/100) : data.value;
+            row[priceCol] = Math.round(newVal).toString();
+            updated++;
+          }
+        }
+      });
 
-  // Βρες το column index
-  var colIdx = headers.indexOf(data.column);
-  if (colIdx < 0) { hideTyping(); addMsg('bot', '❌ Δεν βρέθηκε η στήλη: ' + data.column, 'error'); return; }
-
-  // Βρες τις γραμμές που ταιριάζουν
-  var updated = 0;
-  var term = (data.searchTerm || '').toLowerCase();
-  rows.forEach(function(row) {
-    // Ψάξε σε όλα τα cells της γραμμής
-    var match = row.some(function(cell) {
-      return cell && cell.toString().toLowerCase().includes(term);
-    });
-    if (match) {
-      var oldVal = parseFloat((row[colIdx] || '0').toString().replace(/[^0-9.,]/g, '').replace(',', '.')) || 0;
-      var newVal;
-      if (data.changeType === 'percent') {
-        newVal = oldVal * (1 + data.value / 100);
-      } else {
-        newVal = data.value;
+      if(updated > 0){
+        await aiSaveSheet(s.name, headers, rows);
+        // Refresh live
+        if(D[s.name]){ D[s.name].rows = rows; if(cur===s.name) showSheet(cur); }
+        totalUpdated += updated;
+        sheetsChanged.push(s.name+' ('+updated+')');
       }
-      row[colIdx] = Math.round(newVal).toString();
-      updated++;
     }
-  });
 
-  if (updated === 0) { hideTyping(); addMsg('bot', '⚠️ Δεν βρέθηκαν εγγραφές για: ' + data.searchTerm, 'error'); return; }
+    aiHideTyping();
 
-  // Αποθήκευση
-  await sbSaveSheet(data.sheet, headers, rows);
-
-  // Refresh αν είμαστε στο ίδιο sheet
-  if (typeof showSheet === 'function' && typeof cur !== 'undefined' && cur === data.sheet) {
-    if (typeof D !== 'undefined' && D[cur]) {
-      D[cur].rows = rows;
-      showSheet(cur);
+    if(totalUpdated === 0){
+      aiAddMsg('bot', '⚠️ Δεν βρέθηκαν εγγραφές'+(data.searchTerm?' για «'+data.searchTerm+'»':'')+'.', 'error');
+    } else {
+      aiAddMsg('bot',
+        '✅ Ολοκληρώθηκε!\n\n'+
+        'Ενημερώθηκαν '+totalUpdated+' τιμές:\n'+
+        sheetsChanged.map(function(s){ return '• '+s; }).join('\n')+
+        '\n\nΟι αλλαγές αποθηκεύτηκαν στη βάση.',
+        'success'
+      );
     }
+  } catch(err){
+    aiHideTyping();
+    aiAddMsg('bot','❌ Σφάλμα: '+err.message,'error');
   }
-
-  hideTyping();
-  addMsg('bot', '✅ Ενημερώθηκαν ' + updated + ' εγγραφές στο "' + data.sheet + '"!\n\nΟι αλλαγές αποθηκεύτηκαν στη βάση.', 'success');
 }
 
-// ── BULK UPDATE ──
-async function executeBulkUpdate(data) {
-  var sheetData = await sbGetSheet(data.sheet);
-  if (!sheetData) { hideTyping(); addMsg('bot', '❌ Δεν βρέθηκε το sheet.', 'error'); return; }
+// ── SUPABASE HELPERS ─────────────────────────────────────
+async function aiLoadSheet(name){
+  var r = await fetch(SB_URL+'/rest/v1/mediprice_sheets?sheet_name=eq.'+encodeURIComponent(name)+'&select=*',
+    {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+  var d = await r.json();
+  if(!d||!d[0]) return null;
+  var row = d[0];
+  // Αποθήκευσε στο D για μελλοντική χρήση
+  if(!D[name]) D[name] = { headers: row.headers, rows: row.rows };
+  return D[name];
+}
 
-  var headers = sheetData.headers;
-  var rows = sheetData.rows;
-  var colIdx = headers.indexOf(data.column);
-  if (colIdx < 0) { hideTyping(); addMsg('bot', '❌ Δεν βρέθηκε η στήλη: ' + data.column, 'error'); return; }
-
-  var updated = 0;
-  rows.forEach(function(row) {
-    var oldVal = parseFloat((row[colIdx] || '0').toString().replace(/[^0-9.,]/g, '').replace(',', '.')) || 0;
-    if (oldVal > 0) {
-      var newVal;
-      if (data.changeType === 'percent') {
-        newVal = oldVal * (1 + data.value / 100);
-      } else {
-        newVal = data.value;
-      }
-      row[colIdx] = Math.round(newVal).toString();
-      updated++;
-    }
+async function aiSaveSheet(name, headers, rows){
+  var r = await fetch(SB_URL+'/rest/v1/mediprice_sheets?sheet_name=eq.'+encodeURIComponent(name)+'&select=id',
+    {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+  var ex = await r.json();
+  var method = (ex&&ex[0]) ? 'PATCH' : 'POST';
+  var url = SB_URL+'/rest/v1/mediprice_sheets'+(ex&&ex[0]?'?sheet_name=eq.'+encodeURIComponent(name):'');
+  await fetch(url,{
+    method:method,
+    headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+    body:JSON.stringify({sheet_name:name,headers:headers,rows:rows,updated_at:new Date().toISOString()})
   });
+}
 
-  await sbSaveSheet(data.sheet, headers, rows);
-
-  if (typeof showSheet === 'function' && typeof cur !== 'undefined' && cur === data.sheet) {
-    if (typeof D !== 'undefined' && D[cur]) {
-      D[cur].rows = rows;
-      showSheet(cur);
-    }
+function aiFindPriceCol(headers){
+  for(var i=0;i<AI_PRICE_COLS.length;i++){
+    var idx = headers.indexOf(AI_PRICE_COLS[i]);
+    if(idx >= 0) return idx;
   }
-
-  hideTyping();
-  addMsg('bot', '✅ Μαζική αλλαγή ολοκληρώθηκε!\n\nΕνημερώθηκαν ' + updated + ' τιμές στο "' + data.sheet + '".', 'success');
+  // Fuzzy fallback
+  return headers.findIndex(function(h){ return h && /ιδιωτ|ιδιωτη/i.test(h); });
 }
 
-// ── SUPABASE HELPERS ──
-async function getAvailableSheets() {
-  try {
-    var r = await fetch(AI_SB_URL + '/rest/v1/mediprice_sheets?select=sheet_name', {
-      headers: { apikey: AI_SB_KEY, Authorization: 'Bearer ' + AI_SB_KEY }
-    });
-    var data = await r.json();
-    return data.map(function(d){ return d.sheet_name; }).join(', ');
-  } catch(e) { return 'Δεν ήταν δυνατή η φόρτωση ειδικοτήτων'; }
-}
-
-async function sbGetSheet(sheetName) {
-  var r = await fetch(AI_SB_URL + '/rest/v1/mediprice_sheets?sheet_name=eq.' + encodeURIComponent(sheetName) + '&select=*', {
-    headers: { apikey: AI_SB_KEY, Authorization: 'Bearer ' + AI_SB_KEY }
-  });
-  var data = await r.json();
-  return data && data[0] ? data[0] : null;
-}
-
-async function sbSaveSheet(sheetName, headers, rows) {
-  var existing = await sbGetSheet(sheetName);
-  var method = existing ? 'PATCH' : 'POST';
-  var url = AI_SB_URL + '/rest/v1/mediprice_sheets' + (existing ? '?sheet_name=eq.' + encodeURIComponent(sheetName) : '');
-  await fetch(url, {
-    method: method,
-    headers: { apikey: AI_SB_KEY, Authorization: 'Bearer ' + AI_SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-    body: JSON.stringify({ sheet_name: sheetName, headers: headers, rows: rows, updated_at: new Date().toISOString() })
-  });
-}
-
-// ── UI HELPERS ──
-function addMsg(role, text, type) {
-  var msgDiv = document.createElement('div');
-  msgDiv.className = 'ai-msg ' + role;
-
+// ── UI HELPERS ───────────────────────────────────────────
+function aiAddMsg(role, text, type){
+  var wrap = document.createElement('div');
+  wrap.className = 'ai-msg '+role;
   var bubble = document.createElement('div');
-  bubble.className = 'ai-bubble' + (type ? ' ' + type : '');
+  bubble.className = 'ai-bubble'+(type?' '+type:'');
   bubble.textContent = text;
-
   var meta = document.createElement('div');
-  meta.className = 'ai-meta';
-  meta.textContent = aiTime();
-
-  msgDiv.appendChild(bubble);
-  msgDiv.appendChild(meta);
-  document.getElementById('aiMessages').appendChild(msgDiv);
-  scrollAI();
+  meta.className = 'ai-meta'; meta.textContent = aiNow();
+  wrap.appendChild(bubble); wrap.appendChild(meta);
+  document.getElementById('aiMessages').appendChild(wrap);
+  aiScroll();
 }
 
-var typingEl = null;
-function showTyping() {
-  typingEl = document.createElement('div');
-  typingEl.className = 'ai-typing';
-  typingEl.innerHTML = '<span></span><span></span><span></span>';
-  document.getElementById('aiMessages').appendChild(typingEl);
-  scrollAI();
+function aiShowTyping(){
+  AI_TYPING_EL = document.createElement('div');
+  AI_TYPING_EL.className = 'ai-typing';
+  AI_TYPING_EL.innerHTML = '<span></span><span></span><span></span>';
+  document.getElementById('aiMessages').appendChild(AI_TYPING_EL);
+  aiScroll();
 }
-function hideTyping() {
-  if (typingEl) { typingEl.remove(); typingEl = null; }
-}
-
-function scrollAI() {
-  var m = document.getElementById('aiMessages');
-  m.scrollTop = m.scrollHeight;
-}
-
-function aiTime() {
-  return new Date().toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' });
-}
+function aiHideTyping(){ if(AI_TYPING_EL){ AI_TYPING_EL.remove(); AI_TYPING_EL=null; } }
+function aiScroll(){ var m=document.getElementById('aiMessages'); m.scrollTop=m.scrollHeight; }
+function aiNow(){ return new Date().toLocaleTimeString('el-GR',{hour:'2-digit',minute:'2-digit'}); }
 </script>
-
 </body>
 </html>
