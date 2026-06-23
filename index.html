@@ -1590,8 +1590,9 @@ async function aiSearch(term,sheetFilter,priceFilter){
         }
         if(!name||/^\d+$/.test(name)||name.length<3) return;
 
-        // Τιμές
+        // Τιμές — δυναμική εύρεση από headers
         var prices=[];
+        // Πρώτα δοκίμασε με fixed indices
         st.prices.forEach(function(pc){
           if(priceFilter && !aiPriceMatch(pc.n,priceFilter)) return;
           var v=row[pc.i];
@@ -1599,6 +1600,22 @@ async function aiSearch(term,sheetFilter,priceFilter){
           var pn=parseFloat(v.toString().replace(/[^0-9.,]/g,'').replace(',','.'));
           if(pn>0) prices.push({n:pc.n,v:pn});
         });
+        // Αν δεν βρήκε τίποτα, ψάξε δυναμικά στα headers
+        if(prices.length===0){
+          h.forEach(function(hdr,hi){
+            if(!hdr) return;
+            var hn=nt(hdr.toString().replace(/
+/g,' '));
+            var isPrice=(/ιδιωτ|εοπυ|odc|lux|suite|μεθη|τοπικ/.test(hn));
+            if(!isPrice) return;
+            if(priceFilter && !aiPriceMatch(hdr,priceFilter)) return;
+            var v=row[hi];
+            if(!v) return;
+            var pn=parseFloat(v.toString().replace(/[^0-9.,]/g,'').replace(',','.'));
+            if(pn>0) prices.push({n:hdr.toString().replace(/
+/g,' ').trim().substring(0,20),v:pn});
+          });
+        }
 
         // Παρατηρήσεις
         var notes='';
