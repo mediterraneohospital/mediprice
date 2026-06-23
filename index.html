@@ -1052,12 +1052,12 @@ function nt(s){
 
 function isPriceCol(h){
   var hn=nt((h||'').toString().split('\n').join(' '));
-  var bad=['υλικ','κοστ','αμοιβ','περιλαμβ','ημερ','κλιν','χρον','διαρκ','παρατ','σχολ','αποφ','αγορ','εσοδ','διαφ','ωρε','μεγιστ','ken','κεν','κωδ','extra','notes'];
+  var bad=['υλικ','κοστ','αμοιβ','περιλαμβ','ημερ','κλιν','χρον','διαρκ','παρατ','σχολ','αποφ','αγορ','εσοδ','διαφ','ωρε','μεγιστ','κεν','κωδ','extra','notes'];
   for(var i=0;i<bad.length;i++) if(hn.indexOf(bad[i])>=0) return false;
   return hn.indexOf('ιδιωτ')>=0||hn.indexOf('εοπυ')>=0||hn.indexOf('εοππ')>=0||
     hn.indexOf('odc')>=0||hn.indexOf('lux')>=0||hn.indexOf('suite')>=0||
     hn.indexOf('μεθη')>=0||hn.indexOf('τοπικ')>=0||
-    hn.indexOf('βα3')>=0||hn.indexOf('ba3')>=0||hn.indexOf('τελικ')>=0;
+    hn.indexOf('βα3')>=0||hn.indexOf('ba3')>=0;
 }
 
 function matchPrice(h,filter){
