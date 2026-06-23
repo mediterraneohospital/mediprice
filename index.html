@@ -1046,37 +1046,32 @@ init();
 </div>
 
 <script>
-// ── CLAUDE CHATBOT ───────────────────────────────────────
-var AI_OPEN = false;
-var AI_TYPING_EL = null;
-var AI_HISTORY = [];
-var CLAUDE_KEY = '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';
+// CLAUDE CHATBOT
+var AI_OPEN=false,AI_TYPING_EL=null,AI_HISTORY=[];
+var CLAUDE_KEY='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';
 
 function nt(s){
-  return (s||'').toLowerCase()
-    .replace(/ά/g,'α').replace(/έ/g,'ε').replace(/ή/g,'η')
-    .replace(/ί/g,'ι').replace(/ϊ/g,'ι').replace(/ΐ/g,'ι')
-    .replace(/ό/g,'ο').replace(/ύ/g,'υ').replace(/ϋ/g,'υ').replace(/ΰ/g,'υ')
-    .replace(/ώ/g,'ω');
+  s=(s||'').toLowerCase();
+  var from='άέήίϊΐόύϋΰώ',to='αεηιιιουυυω';
+  for(var i=0;i<from.length;i++) s=s.split(from[i]).join(to[i]);
+  return s;
 }
 
 function isPriceCol(h){
-  var hn=nt((h||'').toString().replace(/
-/g,' '));
-  var notPrice=['υλικ','κοστ','αμοιβ','περιλαμβ','ημερ','κλιν','χρον','διαρκ','παρατ','σχολ','αποφ','αγορ','εσοδ','διαφ','ωρε','μεγιστ','ken','κεν','κωδ','α/α','extra','notes'];
-  if(notPrice.some(function(k){return hn.indexOf(k)>=0;})) return false;
-  return /ιδιωτ|εοπυ|odc|lux|suite|μεθη|τοπικ|βα3|ba3/.test(hn);
+  var hn=nt((h||'').toString().split('\n').join(' '));
+  var bad=['υλικ','κοστ','αμοιβ','περιλαμβ','ημερ','κλιν','χρον','διαρκ','παρατ','σχολ','αποφ','αγορ','εσοδ','διαφ','ωρε','μεγιστ','ken','κεν','κωδ','extra','notes'];
+  for(var i=0;i<bad.length;i++) if(hn.indexOf(bad[i])>=0) return false;
+  return hn.indexOf('ιδιωτ')>=0||hn.indexOf('εοπυ')>=0||hn.indexOf('odc')>=0||hn.indexOf('lux')>=0||hn.indexOf('suite')>=0||hn.indexOf('μεθη')>=0||hn.indexOf('τοπικ')>=0||hn.indexOf('βα3')>=0||hn.indexOf('ba3')>=0;
 }
 
 function matchPrice(h,filter){
   if(!filter) return true;
-  var hn=nt((h||'').toString().replace(/
-/g,' '));
+  var hn=nt((h||'').toString().split('\n').join(' '));
   var f=nt(filter);
   if(f==='ιδιωτης'||f==='ιδιωτ') return hn.indexOf('ιδιωτ')>=0;
-  if(f==='εοπυυ'||f==='εοπυ') return /εοπυ|ασφ/.test(hn);
-  if(f==='βα3'||f==='ba3') return /βα3|ba3/.test(hn);
-  if(f==='βα') return (/βα|ba/.test(hn))&&!/βα3|ba3/.test(hn);
+  if(f==='εοπυυ'||f==='εοπυ') return hn.indexOf('εοπυ')>=0||hn.indexOf('ασφ')>=0;
+  if(f==='βα3'||f==='ba3') return hn.indexOf('βα3')>=0||hn.indexOf('ba3')>=0;
+  if(f==='βα') return (hn.indexOf('βα')>=0||hn.indexOf('ba')>=0)&&hn.indexOf('βα3')<0&&hn.indexOf('ba3')<0;
   if(f==='odc') return hn.indexOf('odc')>=0;
   if(f==='lux') return hn.indexOf('lux')>=0;
   if(f==='suite') return hn.indexOf('suite')>=0;
@@ -1086,14 +1081,14 @@ function matchPrice(h,filter){
 function getRowName(row,headers){
   for(var i=0;i<(headers||[]).length&&i<row.length;i++){
     var h=nt((headers[i]||'').toString());
-    if(/περιγραφ|πραξ|τιτλ|ειδο/.test(h)){
+    if(h.indexOf('περιγραφ')>=0||h.indexOf('πραξ')>=0||h.indexOf('τιτλ')>=0||h.indexOf('ειδο')>=0){
       var v=(row[i]||'').toString().trim();
-      if(v&&v.length>3&&!/^\d+$/.test(v)) return v;
+      if(v&&v.length>3&&!/^[0-9]+$/.test(v)) return v;
     }
   }
   for(var j=0;j<Math.min(row.length,6);j++){
     var v2=(row[j]||'').toString().trim();
-    if(v2&&v2.length>3&&!/^\d+[.,]?\d*$/.test(v2)&&!/^[A-Z]\d+/.test(v2)) return v2;
+    if(v2&&v2.length>3&&!/^[0-9]+[.,]?[0-9]*$/.test(v2)&&!/^[A-Z][0-9]+/.test(v2)) return v2;
   }
   return '';
 }
@@ -1101,7 +1096,7 @@ function getRowName(row,headers){
 function getRowNotes(row,headers){
   for(var i=0;i<(headers||[]).length&&i<row.length;i++){
     var h=nt((headers[i]||'').toString());
-    if(/παρατ|σχολ/.test(h)){
+    if(h.indexOf('παρατ')>=0||h.indexOf('σχολ')>=0){
       var v=(row[i]||'').toString().trim();
       if(v&&v.length>3&&v!=='Υλικά'&&v!=='EXTRA') return v;
     }
@@ -1121,8 +1116,8 @@ function aiKeyDown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAI
 
 function sendAI(){
   var input=document.getElementById('aiInput');
-  var text=input.value.trim(); if(!text) return;
-  input.value=''; input.style.height='auto';
+  var text=input.value.trim();if(!text)return;
+  input.value='';input.style.height='auto';
   aiAddMsg('user',text);
   aiShowTyping();
   aiCallClaude(text);
@@ -1131,20 +1126,22 @@ function sendAI(){
 async function aiCallClaude(userText){
   try{
     var sheetNames=await aiAllNames();
-    var sys='Ειμαι βοηθος του MediPrice (Mediterraneo Hospital). '
-      +'Ειδικοτητες: '+sheetNames.join(', ')+'. '
-      +'Μπορω να αναζητω τιμες επεμβασεων, να κανω αλλαγες τιμων (με επιβεβαιωση), '
-      +'να απαντω σε ερωτησεις οπως ποια ειναι η ακριβοτερη επεμβαση. '
-      +'Απαντω ΠΑΝΤΑ σε JSON χωρις markdown: '
-      +'{"intent":"search"|"confirm_update"|"confirm_bulk"|"chat","message":"...","data":{...}} '
-      +'search: data={searchTerm:"...",sheet:"ακριβες ονομα η null",priceFilter:"ιδιωτης"|"εοπυυ"|"βα3"|"βα"|"odc"|null,sortBy:"max"|"min"|null} '
-      +'confirm_update: data={searchTerm:"...",sheet:"..." η null,changeType:"percent"|"fixed",value:30,priceFilter:null} '
-      +'confirm_bulk: data={sheet:"...",changeType:"percent"|"fixed",value:5,priceFilter:null} '
-      +'chat: data=null. '
-      +'Κανονες: Ελληνικα. Αλλαγες=confirm παντα. sortBy=max για ακριβοτερη, min για φθηνοτερη.';
+    var sys='Eisai voithos tou MediPrice (Mediterraneo Hospital). '
+      +'Eidikotites: '+sheetNames.join(', ')+'. '
+      +'Mporeis na anazitateis times epembaseon, na kaneis allages timon (me epivevaiosi), '
+      +'na apantash se erotiseis. '
+      +'Apanta PANTA se JSON xoris markdown: '
+      +'{"intent":"search","message":"...","data":{}} i '
+      +'{"intent":"confirm_update","message":"...","data":{}} i '
+      +'{"intent":"confirm_bulk","message":"...","data":{}} i '
+      +'{"intent":"chat","message":"...","data":null}. '
+      +'search data: {searchTerm:"...",sheet:"akrivesOnoma_i_null",priceFilter:"ιδιωτης"|"εοπυυ"|"βα3"|"βα"|"odc"|null,sortBy:"max"|"min"|null}. '
+      +'confirm_update data: {searchTerm:"...",sheet:"..."|null,changeType:"percent"|"fixed",value:30,priceFilter:null}. '
+      +'confirm_bulk data: {sheet:"...",changeType:"percent"|"fixed",value:5,priceFilter:null}. '
+      +'Kanonies: Ellinika. Allages=confirm panta. sortBy=max gia akrivoteri, min gia fthinoteri.';
 
     var msgs=[];
-    AI_HISTORY.forEach(function(m){msgs.push(m);});
+    for(var hi=0;hi<AI_HISTORY.length;hi++) msgs.push(AI_HISTORY[hi]);
     msgs.push({role:'user',content:userText});
 
     var resp=await fetch('https://api.anthropic.com/v1/messages',{
@@ -1155,17 +1152,12 @@ async function aiCallClaude(userText){
         'anthropic-version':'2023-06-01',
         'anthropic-dangerous-direct-browser-access':'true'
       },
-      body:JSON.stringify({
-        model:'claude-haiku-4-5-20251001',
-        max_tokens:600,
-        system:sys,
-        messages:msgs
-      })
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:600,system:sys,messages:msgs})
     });
 
-    if(!resp.ok){var err=await resp.json();throw new Error(err.error&&err.error.message||'HTTP '+resp.status);}
+    if(!resp.ok){var err=await resp.json();throw new Error((err.error&&err.error.message)||'HTTP '+resp.status);}
     var data=await resp.json();
-    var raw=(data.content&&data.content[0]&&data.content[0].text||'').replace(/```json|```/g,'').trim();
+    var raw=((data.content&&data.content[0]&&data.content[0].text)||'').replace(/```json|```/g,'').trim();
 
     var parsed;
     try{var m=raw.match(/\{[\s\S]*\}/);parsed=JSON.parse(m?m[0]:raw);}
@@ -1177,17 +1169,16 @@ async function aiCallClaude(userText){
 
     aiHideTyping();
     aiHandle(parsed);
-
   }catch(err){
     aiHideTyping();
-    aiAddMsg('bot','Σφαλμα: '+err.message,'error');
+    aiAddMsg('bot','Σφάλμα: '+err.message,'error');
   }
 }
 
 function aiHandle(p){
   var d=p.data||{};
   if(p.intent==='search'){
-    aiAddMsg('bot',p.message||'Αναζητω...');
+    aiAddMsg('bot',p.message||'Αναζητώ...');
     aiSearch(d.searchTerm||'',d.sheet||null,d.priceFilter||null,d.sortBy||null);
   } else if(p.intent==='confirm_update'||p.intent==='confirm_bulk'){
     aiShowConfirm(p.message,p.intent,d);
@@ -1212,37 +1203,44 @@ async function aiSearch(term,sheetFilter,priceFilter,sortBy){
     }
 
     var results=[];
-    var words=term?nt(term).split(/\s+/).filter(function(w){return w.length>=3;}):[];
+    var words=[];
+    if(term){var tw=nt(term).split(' ');for(var wi=0;wi<tw.length;wi++) if(tw[wi].length>=3) words.push(tw[wi]);}
 
-    sheets.forEach(function(sname){
-      var d=D[sname]; if(!d||d.__multi__||!d.rows) return;
-      var h=d.headers||[]; var rows=d.rows||[];
+    for(var si=0;si<sheets.length;si++){
+      var sname=sheets[si];
+      var d=D[sname];if(!d||d.__multi__||!d.rows) continue;
+      var h=d.headers||[];var rows=d.rows||[];
       var priceCols=[];
-      h.forEach(function(hdr,i){
-        if(isPriceCol(hdr)) priceCols.push({i:i,n:(hdr||'').toString().replace(/
-/g,' ').trim()});
-      });
+      for(var pi=0;pi<h.length;pi++){
+        if(isPriceCol(h[pi])) priceCols.push({i:pi,n:(h[pi]||'').toString().split('\n').join(' ').trim()});
+      }
 
-      rows.forEach(function(row){
-        if(!row||!row.length) return;
-        var rowText=row.map(function(c){return c?nt(c.toString()):'';}).join(' ');
-        var match=words.length===0||words.every(function(w){return rowText.indexOf(w)>=0;});
-        if(!match) return;
+      for(var ri=0;ri<rows.length;ri++){
+        var row=rows[ri];if(!row||!row.length) continue;
+        var rowParts=[];for(var ci=0;ci<row.length;ci++) rowParts.push(row[ci]?nt(row[ci].toString()):'');
+        var rowText=rowParts.join(' ');
+        var match=words.length===0;
+        if(!match){match=true;for(var wi2=0;wi2<words.length;wi2++) if(rowText.indexOf(words[wi2])<0){match=false;break;}}
+        if(!match) continue;
+
         var name=getRowName(row,h);
-        if(!name||name.length<3) return;
+        if(!name||name.length<3) continue;
+
         var prices=[];
-        priceCols.forEach(function(pc){
-          if(!matchPrice(pc.n,priceFilter)) return;
-          var v=row[pc.i]; if(!v) return;
+        for(var pci=0;pci<priceCols.length;pci++){
+          var pc=priceCols[pci];
+          if(!matchPrice(pc.n,priceFilter)) continue;
+          var v=row[pc.i];if(!v) continue;
           var pn=parseFloat(v.toString().replace(/[^0-9.,]/g,'').replace(',','.'));
           if(pn>0) prices.push({n:pc.n.substring(0,25),v:pn});
-        });
-        if(!prices.length) return;
+        }
+        if(!prices.length) continue;
+
         var notes=getRowNotes(row,h);
-        var maxPrice=Math.max.apply(null,prices.map(function(p){return p.v;}));
-        results.push({sheet:sname,name:name,prices:prices,notes:notes,maxPrice:maxPrice});
-      });
-    });
+        var maxP=0;for(var pri=0;pri<prices.length;pri++) if(prices[pri].v>maxP) maxP=prices[pri].v;
+        results.push({sheet:sname,name:name,prices:prices,notes:notes,maxPrice:maxP});
+      }
+    }
 
     if(sortBy==='max') results.sort(function(a,b){return b.maxPrice-a.maxPrice;});
     if(sortBy==='min') results.sort(function(a,b){return a.maxPrice-b.maxPrice;});
@@ -1250,48 +1248,44 @@ async function aiSearch(term,sheetFilter,priceFilter,sortBy){
     aiHideTyping();
 
     if(!results.length){
-      aiAddMsg('bot','Δεν βρεθηκαν αποτελεσματα'+(term?' για: '+term:'')+'. Δοκιμασε αλλη λεξη.','error');
+      aiAddMsg('bot','Δεν βρέθηκαν αποτελέσματα'+(term?' για: '+term:'')+'.','error');
       return;
     }
 
     var limit=sortBy?3:6;
     var shown=results.slice(0,limit);
-    var msg='Βρεθηκαν '+results.length+(results.length>limit?' (εμφανιζω '+limit+')':'')+' αποτελεσματα:
-
-';
-    shown.forEach(function(r){
-      msg+='- '+r.name+'
-';
-      r.prices.forEach(function(p){
-        msg+='  '+p.n+': '+p.v.toLocaleString('el-GR',{minimumFractionDigits:0})+'EUR
-';
-      });
-      if(r.notes) msg+='  Σημ: '+r.notes+'
-';
-      msg+='  ('+r.sheet.trim()+')
-
-';
-    });
-    aiAddMsg('bot',msg.trim());
+    var lines=['Βρέθηκαν '+results.length+(results.length>limit?' (εμφανίζω '+limit+')':'')+' αποτελέσματα:',''];
+    for(var sri=0;sri<shown.length;sri++){
+      var r=shown[sri];
+      lines.push('• '+r.name);
+      for(var pri2=0;pri2<r.prices.length;pri2++){
+        var p=r.prices[pri2];
+        lines.push('  '+p.n+': '+p.v.toLocaleString('el-GR',{minimumFractionDigits:0})+'€');
+      }
+      if(r.notes) lines.push('  📝 '+r.notes);
+      lines.push('  — '+r.sheet.trim());
+      lines.push('');
+    }
+    aiAddMsg('bot',lines.join('\n').trim());
 
   }catch(err){
     aiHideTyping();
-    aiAddMsg('bot','Σφαλμα: '+err.message,'error');
+    aiAddMsg('bot','Σφάλμα αναζήτησης: '+err.message,'error');
   }
 }
 
 function aiShowConfirm(msg,actionType,data){
-  var wrap=document.createElement('div'); wrap.className='ai-msg bot';
-  var bubble=document.createElement('div'); bubble.className='ai-bubble confirm'; bubble.textContent=msg;
-  var btns=document.createElement('div'); btns.className='ai-confirm-btns';
-  var yes=document.createElement('button'); yes.className='ai-btn-yes'; yes.textContent='Ναι, εφαρμοσε';
-  var no=document.createElement('button'); no.className='ai-btn-no'; no.textContent='Ακυρωση';
+  var wrap=document.createElement('div');wrap.className='ai-msg bot';
+  var bubble=document.createElement('div');bubble.className='ai-bubble confirm';bubble.textContent=msg;
+  var btns=document.createElement('div');btns.className='ai-confirm-btns';
+  var yes=document.createElement('button');yes.className='ai-btn-yes';yes.textContent='✓ Ναι';
+  var no=document.createElement('button');no.className='ai-btn-no';no.textContent='✕ Ακύρωση';
   yes.onclick=function(){yes.disabled=true;no.disabled=true;aiExecute(actionType,data);};
-  no.onclick=function(){btns.remove();aiAddMsg('bot','Ακυρωθηκε.');};
-  btns.appendChild(yes); btns.appendChild(no);
-  var meta=document.createElement('div'); meta.className='ai-meta'; meta.textContent=aiNow();
-  wrap.appendChild(bubble); wrap.appendChild(btns); wrap.appendChild(meta);
-  document.getElementById('aiMessages').appendChild(wrap); aiScroll();
+  no.onclick=function(){btns.remove();aiAddMsg('bot','Ακυρώθηκε.');};
+  btns.appendChild(yes);btns.appendChild(no);
+  var meta=document.createElement('div');meta.className='ai-meta';meta.textContent=aiNow();
+  wrap.appendChild(bubble);wrap.appendChild(btns);wrap.appendChild(meta);
+  document.getElementById('aiMessages').appendChild(wrap);aiScroll();
 }
 
 async function aiExecute(actionType,data){
@@ -1310,61 +1304,65 @@ async function aiExecute(actionType,data){
       }
     }
     var total=0,changed=[];
-    var words=data.searchTerm?nt(data.searchTerm).split(/\s+/).filter(function(w){return w.length>=2;}):[];
+    var words=[];
+    if(data.searchTerm){var tw=nt(data.searchTerm).split(' ');for(var wi=0;wi<tw.length;wi++) if(tw[wi].length>=2) words.push(tw[wi]);}
+
     for(var si=0;si<sheets.length;si++){
       var sname=sheets[si];
-      var d=D[sname]; if(!d||d.__multi__||!d.rows) continue;
-      var h=d.headers||[]; var rows=d.rows||[];
+      var d=D[sname];if(!d||d.__multi__||!d.rows) continue;
+      var h=d.headers||[];var rows=d.rows||[];
       var priceCols=[];
-      h.forEach(function(hdr,i){
-        if(isPriceCol(hdr)&&matchPrice(hdr,data.priceFilter||null)) priceCols.push(i);
-      });
+      for(var pi=0;pi<h.length;pi++){
+        if(isPriceCol(h[pi])&&matchPrice(h[pi],data.priceFilter||null)) priceCols.push(pi);
+      }
       if(!priceCols.length) continue;
       var upd=0;
-      rows.forEach(function(row){
-        if(!row||!row.length) return;
-        var rowText=row.map(function(c){return c?nt(c.toString()):'';}).join(' ');
-        var match=isBulk||words.length===0||words.every(function(w){return rowText.indexOf(w)>=0;});
-        if(!match) return;
-        priceCols.forEach(function(pi){
-          var old=parseFloat((row[pi]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'));
+      for(var ri=0;ri<rows.length;ri++){
+        var row=rows[ri];if(!row||!row.length) continue;
+        var rowParts=[];for(var ci=0;ci<row.length;ci++) rowParts.push(row[ci]?nt(row[ci].toString()):'');
+        var rowText=rowParts.join(' ');
+        var match=isBulk||words.length===0;
+        if(!match){match=true;for(var wi2=0;wi2<words.length;wi2++) if(rowText.indexOf(words[wi2])<0){match=false;break;}}
+        if(!match) continue;
+        for(var pci=0;pci<priceCols.length;pci++){
+          var old=parseFloat((row[priceCols[pci]]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'));
           if(old>0){
-            row[pi]=(data.changeType==='percent'?Math.round(old*(1+data.value/100)):data.value).toString();
+            row[priceCols[pci]]=(data.changeType==='percent'?Math.round(old*(1+data.value/100)):data.value).toString();
             upd++;
           }
-        });
-      });
+        }
+      }
       if(upd>0){
         await aiSave(sname,h,rows);
         if(cur===sname&&typeof showSheet==='function') showSheet(cur);
-        total+=upd; changed.push(sname.trim()+' ('+upd+')');
+        total+=upd;changed.push(sname.trim()+' ('+upd+')');
       }
     }
     aiHideTyping();
     if(total===0){
-      aiAddMsg('bot','Δεν βρεθηκαν εγγραφες.','error');
+      aiAddMsg('bot','Δεν βρέθηκαν εγγραφές.','error');
     } else {
-      aiAddMsg('bot','Ολοκληρωθηκε! '+changed.join(', ')+'. Αποθηκευτηκαν.','success');
+      aiAddMsg('bot','✅ Ολοκληρώθηκε! '+changed.join(', ')+'. Αποθηκεύτηκαν.','success');
     }
   }catch(err){
     aiHideTyping();
-    aiAddMsg('bot','Σφαλμα: '+err.message,'error');
+    aiAddMsg('bot','Σφάλμα: '+err.message,'error');
   }
 }
 
 async function aiAllNames(){
   try{
     var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?select=sheet_name',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
-    var d=await r.json(); return (d||[]).map(function(x){return x.sheet_name;});
+    var d=await r.json();return (d||[]).map(function(x){return x.sheet_name;});
   }catch(e){return Object.keys(D||{});}
 }
 async function aiLoad(name){
   try{
     var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?sheet_name=eq.'+encodeURIComponent(name)+'&select=*',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
-    var d=await r.json(); if(!d||!d[0]) return null;
-    var row=d[0]; var h=row.headers; var rows=row.rows;
+    var d=await r.json();if(!d||!d[0]) return null;
+    var row=d[0];var h=row.headers;var rows=row.rows;
     if(typeof h==='string'){try{var p=JSON.parse(h);if(Array.isArray(p)&&p[0]&&p[0].headers){D[name]={__multi__:true,tables:p};return D[name];}}catch(e){}}
-    D[name]={headers:h,rows:rows}; return D[name];
+    D[name]={headers:h,rows:rows};return D[name];
   }catch(e){return null;}
 }
 async function aiSave(name,headers,rows){
@@ -1376,20 +1374,21 @@ async function aiSave(name,headers,rows){
 }
 
 function aiAddMsg(role,text,type){
-  var wrap=document.createElement('div'); wrap.className='ai-msg '+role;
-  var bubble=document.createElement('div'); bubble.className='ai-bubble'+(type?' '+type:''); bubble.textContent=text;
-  var meta=document.createElement('div'); meta.className='ai-meta'; meta.textContent=aiNow();
-  wrap.appendChild(bubble); wrap.appendChild(meta);
-  document.getElementById('aiMessages').appendChild(wrap); aiScroll();
+  var wrap=document.createElement('div');wrap.className='ai-msg '+role;
+  var bubble=document.createElement('div');bubble.className='ai-bubble'+(type?' '+type:'');bubble.textContent=text;
+  var meta=document.createElement('div');meta.className='ai-meta';meta.textContent=aiNow();
+  wrap.appendChild(bubble);wrap.appendChild(meta);
+  document.getElementById('aiMessages').appendChild(wrap);aiScroll();
 }
 function aiShowTyping(){
-  AI_TYPING_EL=document.createElement('div'); AI_TYPING_EL.className='ai-typing';
+  AI_TYPING_EL=document.createElement('div');AI_TYPING_EL.className='ai-typing';
   AI_TYPING_EL.innerHTML='<span></span><span></span><span></span>';
-  document.getElementById('aiMessages').appendChild(AI_TYPING_EL); aiScroll();
+  document.getElementById('aiMessages').appendChild(AI_TYPING_EL);aiScroll();
 }
 function aiHideTyping(){if(AI_TYPING_EL){AI_TYPING_EL.remove();AI_TYPING_EL=null;}}
 function aiScroll(){var m=document.getElementById('aiMessages');m.scrollTop=m.scrollHeight;}
 function aiNow(){return new Date().toLocaleTimeString('el-GR',{hour:'2-digit',minute:'2-digit'});}
+
 </script>
 </body>
 </html>
