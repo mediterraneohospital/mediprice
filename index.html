@@ -1047,41 +1047,20 @@ init();
 </div>
 
 <script>
-// ── GROQ + SMART CHATBOT v5 ──────────────────────────────
+// ── GROQ + SMART CHATBOT v6 ──────────────────────────────
 var AI_OPEN = false;
 var AI_TYPING_EL = null;
 var AI_HISTORY = [];
 var WORKER_URL = 'https://empty-bush-9e4b.giorgosdanalatos.workers.dev';
 
-// Ακριβής δομή κάθε sheet: nameCol + όλες οι στήλες τιμών
-var AI_STRUCT = {
-  'ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ':          {nc:1, prices:[{col:6,label:'ΙΔΙΩΤΗΣ'},{col:8,label:'ΕΟΠΥΥ'}]},
-  'ΓΑΣΤΡΕΝΤΕΡΟΛΟΓΙΚΑ ':         {nc:0, prices:[{col:6,label:'ΙΔΙΩΤΗΣ'},{col:5,label:'ΕΟΠΥΥ'}]},
-  'ΓΝΑΘΟΧΕΙΡΟΥΡΓΙΚΑ':           {nc:0, prices:[{col:1,label:'ΤΟΠΙΚΗ'},{col:2,label:'ΜΕΘΗ'},{col:3,label:'ΓΕΝΙΚΗ'}]},
-  'ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ':         {nc:1, prices:[{col:8,label:'ΙΔΙΩΤΗΣ ΒΑ3'},{col:9,label:'ΙΔΙΩΤΗΣ ΒΑ'},{col:6,label:'ΕΟΠΥΥ ΒΑ3'},{col:7,label:'ΕΟΠΥΥ ΒΑ'}]},
-  'ΓΥΝΑΙΚΟΛΟΓΙΚΗ':              {nc:1, prices:[{col:10,label:'ΒΑ'},{col:6,label:'ODC'}]},
-  'ΕΠΕΜΒΑΤΙΚΗ ΑΚΤΙΝΟΛΟΓΙΑ':     {nc:1, prices:[{col:11,label:'ΒΑ'},{col:12,label:'ΒΑ2'},{col:7,label:'ODC ΙΔΙΩΤΗΣ'},{col:8,label:'ODC ΕΟΠΥΥ'},{col:15,label:'LUX'},{col:17,label:'SUITE'}]},
-  'ΕΠΕΜΒΑΤΙΚΗ ΚΑΡΔΙΟΛΟΓΙΑ':     {nc:0, prices:[{col:5,label:'ΙΔΙΩΤΗΣ ΒΑ3'},{col:7,label:'ΕΟΠΥΥ ΒΑ3'}]},
-  'ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ':          {nc:0, prices:[{col:5,label:'ΕΟΠΥΥ'},{col:6,label:'ΕΟΠΥΥ ΜΕ ΦΠΑ'}]},
-  'ΘΕΡΑΠΕΙΕΣ ΠΟΝΟ ΜΕ ΣΥΣΚΕΥΕΣ':{nc:0, prices:[{col:2,label:'ΙΔΙΩΤΗΣ'},{col:3,label:'ΕΟΠΥΥ'}]},
-  'INTERSTIM':                  {nc:0, prices:[{col:7,label:'ΕΟΠΥΥ'},{col:10,label:'ΚΟΣΤΟΣ ΜΕ ΦΠΑ'}]},
-  'ΘΩΡΑΚΟΧΕΙΡΟΥΡΓΙΚΗ':          {nc:1, prices:[{col:6,label:'ΙΔΙΩΤΗΣ'},{col:8,label:'ΕΟΠΥΥ'}]},
-  'ΚΑΡΔΙΟΧΕΙΡΟΥΡΓΙΚΗ ':         {nc:1, prices:[{col:9,label:'ΙΔΙΩΤΗΣ'},{col:6,label:'ΕΟΠΥΥ'}]},
-  'ΜΟΝΑΔΑ ΜΑΣΤΟΥ ':             {nc:1, prices:[{col:4,label:'ΙΔΙΩΤΗΣ'},{col:6,label:'ΕΟΠΥΥ'}]},
-  'ΝΕΥΡΟΧΕΙΡΟΥΡΓΙΚΗ':           {nc:0, prices:[{col:4,label:'ΙΔΙΩΤΗΣ'},{col:6,label:'ΕΟΠΥΥ'}]},
-  'ΟΝΠ':                        {nc:0, prices:[{col:2,label:'ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ'},{col:3,label:'ΕΟΠΥΥ ΜΕ ΦΠΑ'}]},
-  'ΟΡΘΟΠΕΔΙΚΗ':                 {nc:1, prices:[{col:4,label:'ΙΔΙΩΤΗΣ ΒΑ3'},{col:5,label:'ΙΔΙΩΤΗΣ ΒΑ'},{col:6,label:'ΕΟΠΥΥ ΒΑ3'},{col:7,label:'ΕΟΠΥΥ ΒΑ'}]},
-  'ΟΥΡΟΛΟΓΙΚΗ':                 {nc:1, prices:[{col:5,label:'ΙΔΙΩΤΗΣ'},{col:7,label:'ΕΟΠΥΥ'}]},
-  'ΟΦΘΑΛΜΟΛΟΓΙΑ':               {nc:0, prices:[{col:5,label:'ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ'},{col:6,label:'ΕΟΠΥΥ ΜΕ ΦΠΑ'}]},
-  'ΠΛΑΣΤΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ':       {nc:0, prices:[{col:4,label:'ΒΑ'},{col:2,label:'ODC'},{col:8,label:'LUX'},{col:10,label:'SUITE'}]},
-  'ΠΝΕΥΜΟΝΟΛΟΓΙΚΟ':             {nc:1, prices:[{col:6,label:'ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ'},{col:7,label:'ΕΟΠΥΥ ΜΕ ΦΠΑ'}]},
-  'ΠΟΝΟΣ':                      {nc:0, prices:[{col:5,label:'ΙΔΙΩΤΗΣ'},{col:4,label:'ΕΟΠΥΥ'}]},
-  'ΧΟΛΗΦΟΡΑ':                   {nc:0, prices:[{col:3,label:'ΙΔΙΩΤΗΣ 2026'},{col:4,label:'ΕΟΠΥΥ 2026'}]},
-  'ΣΠΟΝΔΥΛΙΚΗ ΣΤΗΛΗ ':          {nc:0, prices:[{col:5,label:'ΙΔΙΩΤΗΣ'},{col:6,label:'ΕΟΠΥΥ'}]},
-  'ΩΡΛ':                        {nc:1, prices:[{col:5,label:'ΙΔΙΩΤΗΣ ΒΑ'},{col:6,label:'ΕΟΠΥΥ ΒΑ'}]}
-};
-
-var AI_SHEET_NAMES = Object.keys(AI_STRUCT);
+// Λέξεις που δείχνουν ότι μια στήλη έχει τιμή ΙΔΙΩΤΗ
+var PRICE_IDIWTHS = ['ιδιωτ'];
+// Λέξεις που δείχνουν ΕΟΠΥΥ
+var PRICE_EOPUU = ['εοπυ','ασφ/ν','ασφαλ'];
+// Όλες οι στήλες τιμών
+var PRICE_ANY = ['ιδιωτ','εοπυ','ασφ/ν','ασφαλ','odc','lux','suite','μεθη','τοπικ','γενικ αναισθ','ba3','βα3','βα ','βα$'];
+// Στήλες που ΔΕΝ είναι τιμές αν και περιέχουν αυτές τις λέξεις
+var NOT_PRICE = ['υλικ','κοστ','αμοιβ','περιλαμβ','ημερ','κλιν','χρον','διαρκ','παρατ','σχολ','extra','notes','αποφ','αγορ','εσοδ','διαφ'];
 
 function nt(s){
   return (s||'').toLowerCase()
@@ -1091,368 +1070,58 @@ function nt(s){
     .replace(/ώ/g,'ω');
 }
 
-function toggleAI(){
-  AI_OPEN=!AI_OPEN;
-  document.getElementById('aiPanel').classList.toggle('open',AI_OPEN);
-  document.getElementById('aiBtn').classList.toggle('open',AI_OPEN);
-  if(AI_OPEN) setTimeout(function(){document.getElementById('aiInput').focus();},300);
-}
-function aiQuick(t){document.getElementById('aiInput').value=t;sendAI();}
-function aiResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
-function aiKeyDown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAI();}}
-
-function sendAI(){
-  var input=document.getElementById('aiInput');
-  var text=input.value.trim(); if(!text) return;
-  input.value=''; input.style.height='auto';
-  aiAddMsg('user',text);
-  aiShowTyping();
-  aiCallGroq(text);
+// Βρες αν μια στήλη header είναι τιμή
+function isPriceCol(h){
+  var hn = nt((h||'').toString().replace(/\n/g,' '));
+  // Αν έχει NOT_PRICE keyword, όχι τιμή
+  if(NOT_PRICE.some(function(k){return hn.indexOf(k)>=0;})) return false;
+  // Αν έχει PRICE keyword, είναι τιμή
+  return PRICE_ANY.some(function(k){return hn.indexOf(k)>=0;});
 }
 
-// ── GROQ CALL ────────────────────────────────────────────
-async function aiCallGroq(userText){
-  try{
-    var sys =
-      'Είσαι ο βοηθός του MediPrice του Mediterraneo Hospital.\n\n'+
-      'ΕΙΔΙΚΟΤΗΤΕΣ:\n'+AI_SHEET_NAMES.join(', ')+'\n\n'+
-      'ΤΙΜΕΣ ΑΝΑ ΘΕΣΗ ΝΟΣΗΛΕΙΑΣ:\n'+
-      '- ΒΑ3 = Β θέση (3 κλίνες)\n'+
-      '- ΒΑ = Β θέση (άγνωστη)\n'+
-      '- Α = Α θέση\n'+
-      '- ODC = Day Care / Εξωτερικό\n'+
-      '- LUX = Luxury\n'+
-      '- SUITE = Suite\n'+
-      '- ΙΔΙΩΤΗΣ = ιδιωτική ασφάλιση\n'+
-      '- ΕΟΠΥΥ = ταμείο\n\n'+
-      'ΑΠΑΝΤΑ ΠΑΝΤΑ σε JSON χωρίς markdown:\n'+
-      '{"intent":"search"|"confirm_update"|"confirm_bulk"|"chat",'+
-      '"message":"κείμενο","data":{...}}\n\n'+
-      'intent=search: data={"searchTerm":"...","sheet":"ή null","priceFilter":"label ή null"}\n'+
-      '  priceFilter: αν ο χρήστης ζητά συγκεκριμένη θέση (π.χ. "ΒΑ3", "ΕΟΠΥΥ", "ODC") βάλε το label\n'+
-      'intent=confirm_update: data={"searchTerm":"...","sheet":"ή null","priceLabel":"label ή null","changeType":"percent"|"fixed","value":30}\n'+
-      'intent=confirm_bulk: data={"sheet":"ακριβές όνομα","priceLabel":"label ή null","changeType":"percent"|"fixed","value":5}\n'+
-      'intent=chat: data=null\n\n'+
-      'ΚΑΝΟΝΕΣ:\n'+
-      '- Απάντα φυσικά στα ελληνικά\n'+
-      '- Χολοκυστεκτομή → ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ\n'+
-      '- Για αλλαγές ΠΑΝΤΑ intent=confirm_* πρώτα\n'+
-      '- Το sheet να είναι ΑΚΡΙΒΩΣ όπως στη λίστα';
-
-    var messages=[{role:'system',content:sys}];
-    AI_HISTORY.forEach(function(m){messages.push(m);});
-    messages.push({role:'user',content:userText});
-
-    var resp=await fetch(WORKER_URL,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages:messages})
-    });
-    if(!resp.ok) throw new Error('Worker '+resp.status);
-    var data=await resp.json();
-    if(data.error) throw new Error(data.error);
-
-    var raw=(data.choices?.[0]?.message?.content||'').trim();
-    // Πάρε το πρώτο JSON object
-    var jsonStr=raw.replace(/```json|```/g,'').trim();
-    var m=jsonStr.match(/(\{[\s\S]*\})/);
-    if(m) jsonStr=m[1];
-
-    var parsed;
-    try{parsed=JSON.parse(jsonStr);}
-    catch(e){parsed={intent:'chat',message:raw,data:null};}
-
-    AI_HISTORY.push({role:'user',content:userText});
-    AI_HISTORY.push({role:'assistant',content:JSON.stringify(parsed)});
-    if(AI_HISTORY.length>10) AI_HISTORY=AI_HISTORY.slice(-10);
-
-    aiHideTyping();
-    aiHandleResponse(parsed);
-
-  }catch(err){
-    aiHideTyping();
-    aiAddMsg('bot','⚠️ Σφάλμα σύνδεσης: '+err.message,'error');
-  }
+// Βρες αν τιμή ταιριάζει σε priceFilter
+function matchPrice(h, filter){
+  if(!filter) return true;
+  var hn=nt((h||'').toString().replace(/\n/g,' '));
+  var f=nt(filter);
+  if(f==='ιδιωτης'||f==='ιδιωτ') return PRICE_IDIWTHS.some(function(k){return hn.indexOf(k)>=0;});
+  if(f==='εοπυυ'||f==='εοπυ') return PRICE_EOPUU.some(function(k){return hn.indexOf(k)>=0;});
+  if(f==='βα3'||f==='ba3') return hn.indexOf('βα3')>=0||hn.indexOf('ba3')>=0;
+  if(f==='βα'||f==='ba') return (hn.indexOf('βα')>=0||hn.indexOf(' βα')>=0) && hn.indexOf('βα3')<0;
+  if(f==='odc') return hn.indexOf('odc')>=0;
+  if(f==='lux') return hn.indexOf('lux')>=0;
+  if(f==='suite') return hn.indexOf('suite')>=0;
+  return true;
 }
 
-function aiHandleResponse(r){
-  var d=r.data||{};
-  if(r.intent==='search'){
-    aiAddMsg('bot',r.message||'Αναζητώ...');
-    aiDoSearch(d.searchTerm||'',d.sheet||null,d.priceFilter||null);
-  } else if(r.intent==='confirm_update'||r.intent==='confirm_bulk'){
-    aiShowConfirm(r.message,r.intent,d);
-  } else {
-    aiAddMsg('bot',r.message||'...');
-  }
-}
-
-// ── ΑΝΑΖΗΤΗΣΗ ────────────────────────────────────────────
-async function aiDoSearch(term,sheetFilter,priceFilter){
-  aiShowTyping();
-  try{
-    var sheets=[];
-    if(sheetFilter){
-      if(!D[sheetFilter]||!D[sheetFilter].rows) await aiLoad(sheetFilter);
-      if(D[sheetFilter]) sheets.push(sheetFilter);
-    } else if(term){
-      var all=await aiAllNames();
-      for(var i=0;i<all.length;i++){
-        if(!D[all[i]]||!D[all[i]].rows) await aiLoad(all[i]);
-        if(D[all[i]]) sheets.push(all[i]);
-      }
-    }
-
-    var results=[];
-    var tl=nt(term||'');
-    var pfl=priceFilter?nt(priceFilter):'';
-
-    sheets.forEach(function(sname){
-      var d=D[sname]; if(!d||d.__multi__||!d.rows) return;
-      var rows=d.rows||[];
-      var struct=AI_STRUCT[sname]; if(!struct) return;
-      var nc=struct.nc;
-
-      // Φιλτράρισε τιμές αν ζητήθηκε συγκεκριμένη θέση
-      var priceCols=struct.prices;
-      if(pfl){
-        priceCols=struct.prices.filter(function(p){return nt(p.label).indexOf(pfl)>=0;});
-        if(!priceCols.length) priceCols=struct.prices; // fallback σε όλες
-      }
-
-      rows.forEach(function(row){
-        if(!row||!row.length) return;
-        var name=(row[nc]||'').toString().trim();
-        if(!name||/^\d+$/.test(name)||name.length<3) return;
-        var match=!term||row.some(function(c){return c&&nt(c.toString()).indexOf(tl)>=0;});
-        if(!match) return;
-
-        // Μάζεψε τιμές
-        var prices=[];
-        priceCols.forEach(function(p){
-          var v=row[p.col];
-          if(v){
-            var pn=parseFloat((v||'').toString().replace(/[^0-9.,]/g,'').replace(',','.'));
-            if(pn>0) prices.push({label:p.label,val:pn});
-          }
-        });
-        if(prices.length>0){
-          results.push({sheet:sname,name:name,prices:prices});
-        }
-      });
-    });
-
-    aiHideTyping();
-
-    if(!results.length){
-      aiAddMsg('bot','Δεν βρέθηκαν αποτελέσματα'+(term?' για «'+term+'»':'')+'.','error');
-      return;
-    }
-
-    var shown=results.slice(0,6);
-    var msg='🔍 Βρέθηκαν '+results.length+(results.length>6?' (εμφανίζω 6)':'')+' αποτελέσματα:\n\n';
-    shown.forEach(function(r){
-      msg+='• '+r.name+'\n';
-      r.prices.forEach(function(p){
-        if(!p||p.v===undefined) return;
-        msg+='  '+p.n+': '+p.v.toLocaleString('el-GR',{minimumFractionDigits:0})+'€\n';
-      });
-      if(r.notes) msg+='  📝 '+r.notes+'\n';
-      msg+='  — '+r.sheet.trim()+'\n\n';
-    });
-    aiAddMsg('bot',msg.trim());
-
-  }catch(err){
-    aiHideTyping();
-    aiAddMsg('bot','Σφάλμα: '+err.message,'error');
-  }
-}
-
-// ── CONFIRM ──────────────────────────────────────────────
-function aiShowConfirm(message,actionType,data){
-  var wrap=document.createElement('div'); wrap.className='ai-msg bot';
-  var bubble=document.createElement('div'); bubble.className='ai-bubble confirm'; bubble.textContent=message;
-  var btns=document.createElement('div'); btns.className='ai-confirm-btns';
-  var yes=document.createElement('button'); yes.className='ai-btn-yes'; yes.textContent='✓ Ναι, εφάρμοσε';
-  var no=document.createElement('button'); no.className='ai-btn-no'; no.textContent='✕ Ακύρωση';
-  yes.onclick=function(){yes.disabled=true;no.disabled=true;aiExecute(actionType,data);};
-  no.onclick=function(){btns.remove();aiAddMsg('bot','Ακυρώθηκε.');};
-  btns.appendChild(yes); btns.appendChild(no);
-  var meta=document.createElement('div'); meta.className='ai-meta'; meta.textContent=aiNow();
-  wrap.appendChild(bubble); wrap.appendChild(btns); wrap.appendChild(meta);
-  document.getElementById('aiMessages').appendChild(wrap); aiScroll();
-}
-
-// ── ΕΚΤΕΛΕΣΗ ─────────────────────────────────────────────
-async function aiExecute(actionType,data){
-  aiShowTyping();
-  try{
-    var sheets=[];
-    if(data.sheet){
-      if(!D[data.sheet]||!D[data.sheet].rows) await aiLoad(data.sheet);
-      if(D[data.sheet]) sheets.push(data.sheet);
-    } else {
-      var all=await aiAllNames();
-      for(var i=0;i<all.length;i++){
-        if(!D[all[i]]||!D[all[i]].rows) await aiLoad(all[i]);
-        if(D[all[i]]&&!D[all[i]].__multi__) sheets.push(all[i]);
-      }
-    }
-    var isBulk=actionType==='confirm_bulk';
-    await aiApply(sheets,nt(data.searchTerm||''),data.changeType,data.value,isBulk,data.priceLabel||null);
-  }catch(err){aiHideTyping();aiAddMsg('bot','Σφάλμα: '+err.message,'error');}
-}
-
-async function aiApply(sheets,termLow,type,val,isBulk,priceLabel){
-  var total=0,changed=[];
-  for(var si=0;si<sheets.length;si++){
-    var sname=sheets[si];
-    var d=D[sname]; if(!d||d.__multi__||!d.rows) continue;
-    var rows=d.rows||[];
-    var struct=AI_STRUCT[sname]; if(!struct) continue;
-
-    // Βρες στήλες τιμών για αλλαγή
-    var priceCols=struct.prices;
-    if(priceLabel){
-      var pfl=nt(priceLabel);
-      var filtered=struct.prices.filter(function(p){return nt(p.label).indexOf(pfl)>=0;});
-      if(filtered.length) priceCols=filtered;
-    }
-
-    var upd=0;
-    rows.forEach(function(row){
-      var match=isBulk||!termLow||row.some(function(c){return c&&nt(c.toString()).indexOf(termLow)>=0;});
-      if(match){
-        priceCols.forEach(function(p){
-          var old=parseFloat((row[p.col]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'));
-          if(old>0){
-            row[p.col]=(type==='percent'?Math.round(old*(1+val/100)):val).toString();
-            upd++;
-          }
-        });
-      }
-    });
-    if(upd>0){
-      await aiSave(sname,d.headers,rows);
-      if(cur===sname&&typeof showSheet==='function') showSheet(cur);
-      total+=upd; changed.push(sname.trim()+' ('+upd+')');
+// Βρες το όνομα μιας γραμμής (πρώτο non-αριθμός, non-κωδικός κείμενο)
+function getRowName(row, headers){
+  // Κοίτα πρώτα στήλες με "ΠΕΡΙΓΡΑΦΗ", "ΠΡΑΞΗ", "ΤΙΤΛΟΣ", "ΕΙΔΟΣ"
+  for(var i=0;i<(headers||[]).length&&i<row.length;i++){
+    var h=nt((headers[i]||'').toString());
+    if(/περιγραφ|πραξ|τιτλ|ειδο/.test(h)){
+      var v=(row[i]||'').toString().trim();
+      if(v&&v.length>3&&!/^\d+$/.test(v)) return v;
     }
   }
-  aiHideTyping();
-  if(total===0){
-    aiAddMsg('bot','Δεν βρέθηκαν εγγραφές'+(termLow?' για «'+termLow+'»':'')+'.','error');
-  } else {
-    aiAddMsg('bot','✅ Ολοκληρώθηκε!\n\n'+changed.map(function(x){return '• '+x;}).join('\n')+'\n\nΑποθηκεύτηκαν.','success');
+  // Fallback: πρώτο cell που δεν είναι αριθμός και έχει >3 χαρακτήρες
+  for(var j=0;j<Math.min(row.length,6);j++){
+    var v2=(row[j]||'').toString().trim();
+    if(v2&&v2.length>3&&!/^\d+[.,]?\d*$/.test(v2)&&!/^[A-Z]\d+/.test(v2)) return v2;
   }
+  return '';
 }
 
-// ── SUPABASE ─────────────────────────────────────────────
-async function aiAllNames(){
-  try{
-    var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?select=sheet_name',
-      {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
-    var d=await r.json(); return (d||[]).map(function(x){return x.sheet_name;});
-  }catch(e){return Object.keys(D||{});}
-}
-async function aiLoad(name){
-  try{
-    var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?sheet_name=eq.'+encodeURIComponent(name)+'&select=*',
-      {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
-    var d=await r.json(); if(!d||!d[0]) return null;
-    var row=d[0]; var h=row.headers; var rows=row.rows;
-    if(typeof h==='string'){
-      try{var p=JSON.parse(h);if(Array.isArray(p)&&p[0]&&p[0].headers){D[name]={__multi__:true,tables:p};return D[name];}}catch(e){}
+// Βρες παρατήρηση
+function getRowNotes(row, headers){
+  for(var i=0;i<(headers||[]).length&&i<row.length;i++){
+    var h=nt((headers[i]||'').toString());
+    if(/παρατ|σχολ/.test(h)){
+      var v=(row[i]||'').toString().trim();
+      if(v&&v!=='Υλικά'&&v!=='EXTRA'&&v.length>3) return v;
     }
-    D[name]={headers:h,rows:rows}; return D[name];
-  }catch(e){return null;}
-}
-async function aiSave(name,headers,rows){
-  var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?sheet_name=eq.'+encodeURIComponent(name)+'&select=sheet_name',
-    {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
-  var ex=await r.json();
-  var method=(ex&&ex.length>0)?'PATCH':'POST';
-  var url=SB_URL+'/rest/v1/mediprice_sheets'+(ex&&ex.length>0?'?sheet_name=eq.'+encodeURIComponent(name):'');
-  await fetch(url,{method:method,
-    headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
-    body:JSON.stringify({sheet_name:name,headers:headers,rows:rows,updated_at:new Date().toISOString()})
-  });
-}
-
-// ── UI ───────────────────────────────────────────────────
-function aiAddMsg(role,text,type){
-  var wrap=document.createElement('div'); wrap.className='ai-msg '+role;
-  var bubble=document.createElement('div'); bubble.className='ai-bubble'+(type?' '+type:''); bubble.textContent=text;
-  var meta=document.createElement('div'); meta.className='ai-meta'; meta.textContent=aiNow();
-  wrap.appendChild(bubble); wrap.appendChild(meta);
-  document.getElementById('aiMessages').appendChild(wrap); aiScroll();
-}
-function aiShowTyping(){
-  AI_TYPING_EL=document.createElement('div'); AI_TYPING_EL.className='ai-typing';
-  AI_TYPING_EL.innerHTML='<span></span><span></span><span></span>';
-  document.getElementById('aiMessages').appendChild(AI_TYPING_EL); aiScroll();
-}
-function aiHideTyping(){if(AI_TYPING_EL){AI_TYPING_EL.remove();AI_TYPING_EL=null;}}
-function aiScroll(){var m=document.getElementById('aiMessages');m.scrollTop=m.scrollHeight;}
-function aiNow(){return new Date().toLocaleTimeString('el-GR',{hour:'2-digit',minute:'2-digit'});}
-</script>
-</body>
-</html
-<script>
-// ── GROQ + SMART CHATBOT v5 ──────────────────────────────
-var AI_OPEN = false;
-var AI_TYPING_EL = null;
-var AI_HISTORY = [];
-var WORKER_URL = 'https://empty-bush-9e4b.giorgosdanalatos.workers.dev';
-
-// Ακριβής δομή κάθε sheet: nameCol + όλες οι στήλες τιμών με indices
-var AI_STRUCT = {
-  'ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ':          {nc:1, notes:11, prices:[{i:6,n:'ΙΔΙΩΤΗΣ ΒΑ3'},{i:7,n:'ΙΔΙΩΤΗΣ ΒΑ'},{i:8,n:'ΕΟΠΥΥ ΒΑ3'},{i:9,n:'ΕΟΠΥΥ ΒΑ'}]},
-  'ΓΑΣΤΡΕΝΤΕΡΟΛΟΓΙΚΑ ':         {nc:0, notes:7,  prices:[{i:6,n:'ΙΔΙΩΤΗΣ'}]},
-  'ΓΝΑΘΟΧΕΙΡΟΥΡΓΙΚΑ':           {nc:0, notes:-1, prices:[{i:1,n:'ΤΟΠΙΚΗ'},{i:2,n:'ΜΕΘΗ'},{i:3,n:'ΓΕΝΙΚΗ'}]},
-  'ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ':         {nc:1, notes:10, prices:[{i:8,n:'ΙΔΙΩΤΗΣ ΒΑ3'},{i:9,n:'ΙΔΙΩΤΗΣ ΒΑ'},{i:6,n:'ΕΟΠΥΥ ΒΑ3'},{i:7,n:'ΕΟΠΥΥ ΒΑ'}]},
-  'ΓΥΝΑΙΚΟΛΟΓΙΚΗ':              {nc:1, notes:14, prices:[{i:10,n:'ΙΔΙΩΤΗΣ ΒΑ'},{i:6,n:'ΙΔΙΩΤΗΣ ODC'},{i:8,n:'ΕΟΠΥΥ ΒΑ'},{i:12,n:'ΕΟΠΥΥ ΒΑ2'}]},
-  'ΕΠΕΜΒΑΤΙΚΗ ΑΚΤΙΝΟΛΟΓΙΑ':     {nc:1, notes:19, prices:[{i:7,n:'ΙΔΙΩΤΗΣ ODC'},{i:15,n:'ΙΔΙΩΤΗΣ LUX'},{i:17,n:'ΙΔΙΩΤΗΣ SUITE'}]},
-  'ΕΠΕΜΒΑΤΙΚΗ ΚΑΡΔΙΟΛΟΓΙΑ':     {nc:0, notes:6,  prices:[{i:5,n:'ΙΔΙΩΤΗΣ ΒΑ3'},{i:7,n:'ΕΟΠΥΥ ΒΑ3'}]},
-  'ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ':          {nc:0, notes:7,  prices:[{i:6,n:'ΕΟΠΥΥ ΜΕ ΦΠΑ'}]},
-  'ΘΕΡΑΠΕΙΕΣ ΠΟΝΟ ΜΕ ΣΥΣΚΕΥΕΣ':{nc:0, notes:5,  prices:[{i:2,n:'ΙΔΙΩΤΗΣ'}]},
-  'INTERSTIM':                  {nc:0, notes:-1, prices:[]},
-  'ΘΩΡΑΚΟΧΕΙΡΟΥΡΓΙΚΗ':          {nc:1, notes:10, prices:[{i:6,n:'ΙΔΙΩΤΗΣ ΒΑ3'},{i:7,n:'ΙΔΙΩΤΗΣ ΒΑ'},{i:8,n:'ΕΟΠΥΥ ΒΑ3'},{i:9,n:'ΕΟΠΥΥ ΒΑ'}]},
-  'ΚΑΡΔΙΟΧΕΙΡΟΥΡΓΙΚΗ ':         {nc:1, notes:12, prices:[{i:9,n:'ΙΔΙΩΤΗΣ ΒΑ3'},{i:6,n:'ΕΟΠΥΥ ΒΑ3'}]},
-  'ΜΟΝΑΔΑ ΜΑΣΤΟΥ ':             {nc:0, notes:-1, prices:[{i:4,n:'ΙΔΙΩΤΗΣ'},{i:3,n:'ΕΟΠΥΥ'}]},
-  'ΝΕΥΡΟΧΕΙΡΟΥΡΓΙΚΗ':           {nc:0, notes:5,  prices:[{i:4,n:'ΙΔΙΩΤΗΣ'}]},
-  'ΟΝΠ':                        {nc:0, notes:5,  prices:[{i:2,n:'ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ'},{i:3,n:'ΕΟΠΥΥ ΜΕ ΦΠΑ'}]},
-  'ΟΡΘΟΠΕΔΙΚΗ':                 {nc:1, notes:8,  prices:[{i:4,n:'ΙΔΙΩΤΗΣ ΒΑ3'},{i:5,n:'ΙΔΙΩΤΗΣ ΒΑ'},{i:6,n:'ΕΟΠΥΥ ΒΑ3'},{i:7,n:'ΕΟΠΥΥ ΒΑ'}]},
-  'ΟΥΡΟΛΟΓΙΚΗ':                 {nc:1, notes:9,  prices:[{i:5,n:'ΙΔΙΩΤΗΣ ΒΑ3'},{i:6,n:'ΙΔΙΩΤΗΣ ΒΑ'},{i:7,n:'ΕΟΠΥΥ ΒΑ3'},{i:8,n:'ΕΟΠΥΥ ΒΑ'}]},
-  'ΟΦΘΑΛΜΟΛΟΓΙΑ':               {nc:0, notes:7,  prices:[{i:5,n:'ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ'},{i:6,n:'ΕΟΠΥΥ ΜΕ ΦΠΑ'}]},
-  'ΠΛΑΣΤΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ':       {nc:0, notes:-1, prices:[{i:4,n:'ΒΑ'},{i:6,n:'Α'},{i:8,n:'LUX'},{i:10,n:'SUITE'}]},
-  'ΠΝΕΥΜΟΝΟΛΟΓΙΚΟ':             {nc:1, notes:8,  prices:[{i:6,n:'ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ'},{i:7,n:'ΕΟΠΥΥ ΜΕ ΦΠΑ'}]},
-  'ΠΟΝΟΣ':                      {nc:0, notes:8,  prices:[{i:5,n:'ΙΔΙΩΤΗΣ'},{i:4,n:'ΕΟΠΥΥ'}]},
-  'ΧΟΛΗΦΟΡΑ':                   {nc:0, notes:5,  prices:[{i:3,n:'ΙΔΙΩΤΗΣ 2026'},{i:4,n:'ΕΟΠΥΥ 2026'}]},
-  'ΣΠΟΝΔΥΛΙΚΗ ΣΤΗΛΗ ':          {nc:0, notes:6,  prices:[{i:5,n:'ΙΔΙΩΤΗΣ'}]},
-  'ΩΡΛ':                        {nc:1, notes:7,  prices:[{i:5,n:'ΙΔΙΩΤΗΣ ΒΑ'},{i:6,n:'ΕΟΠΥΥ ΒΑ'}]}
-};
-
-var AI_SHEET_NAMES = Object.keys(AI_STRUCT);
-
-// Αντιστοίχιση λέξεων-κλειδιών σε στήλες τιμών
-var AI_PRICE_KEYS = [
-  {k:['ιδιωτ','ιδιωτικ'],  e:['εοπυ'],  type:'ιδιωτης'},
-  {k:['εοπυ','ασφαλ'],     e:['ιδιωτ'], type:'εοπυυ'},
-  {k:['βα3'],              e:[],         level:'βα3'},
-  {k:['βα ','βα$',' βα'],  e:['βα3'],   level:'βα'},
-  {k:['odc','day care','ημερησ'],e:[],   level:'odc'},
-  {k:['lux'],              e:[],         level:'lux'},
-  {k:['suite'],            e:[],         level:'suite'},
-  {k:['τοπικ'],            e:[],         level:'τοπικη'},
-  {k:['μεθη','μεθ '],      e:[],         level:'μεθη'},
-  {k:['γενικ'],            e:[],         level:'γενικη'},
-];
-
-function nt(s){
-  return (s||'').toLowerCase()
-    .replace(/ά/g,'α').replace(/έ/g,'ε').replace(/ή/g,'η')
-    .replace(/ί/g,'ι').replace(/ϊ/g,'ι').replace(/ΐ/g,'ι')
-    .replace(/ό/g,'ο').replace(/ύ/g,'υ').replace(/ϋ/g,'υ').replace(/ΰ/g,'υ')
-    .replace(/ώ/g,'ω');
+  }
+  return '';
 }
 
 function toggleAI(){
@@ -1477,20 +1146,18 @@ function sendAI(){
 // ── GROQ ─────────────────────────────────────────────────
 async function aiCallGroq(userText){
   try{
+    var sheetNames=await aiAllNames();
     var sys=
-      'Είσαι βοηθός του MediPrice (Mediterraneo Hospital).\n\n'+
-      'ΕΙΔΙΚΟΤΗΤΕΣ:\n'+AI_SHEET_NAMES.join(', ')+'\n\n'+
-      'ΣΗΜΕΙΩΣΗ: χολοκυστεκτομή → ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ (ΟΧΙ ΧΟΛΗΦΟΡΑ)\n\n'+
+      'Είσαι βοηθός του MediPrice (Mediterraneo Hospital).\n'+
+      'ΕΙΔΙΚΟΤΗΤΕΣ: '+sheetNames.join(', ')+'\n'+
+      'ΣΗΜΕΙΩΣΗ: χολοκυστεκτομή → ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ\n\n'+
       'ΑΠΑΝΤΑ σε JSON χωρίς markdown:\n'+
-      '{"intent":"search"|"confirm_update"|"confirm_bulk"|"chat",'+
-      '"message":"...","data":{...}}\n\n'+
-      'search: data={searchTerm:"...",sheet:"..." ή null,priceFilter:"ιδιωτης"|"εοπυυ"|"βα3"|"βα"|null}\n'+
-      'confirm_update: data={searchTerm:"...",sheet:"..." ή null,changeType:"percent"|"fixed",value:30,priceFilter:"..." ή null}\n'+
-      'confirm_bulk: data={sheet:"...",changeType:"percent"|"fixed",value:5,priceFilter:"..." ή null}\n'+
+      '{"intent":"search"|"confirm_update"|"confirm_bulk"|"chat","message":"...","data":{...}}\n\n'+
+      'search: data={searchTerm:"...",sheet:"ακριβές όνομα ή null",priceFilter:"ιδιωτης"|"εοπυυ"|"βα3"|"βα"|"odc"|"lux"|"suite"|null}\n'+
+      'confirm_update: data={searchTerm:"...",sheet:"..." ή null,changeType:"percent"|"fixed",value:30,priceFilter:"..."ή null}\n'+
+      'confirm_bulk: data={sheet:"...",changeType:"percent"|"fixed",value:5,priceFilter:"..."ή null}\n'+
       'chat: data=null\n\n'+
-      'ΚΑΝΟΝΕΣ: Ελληνικά. Αλλαγές → πάντα confirm. '+
-      'priceFilter: αν ο χρήστης λέει "ιδιωτικά" βάλε "ιδιωτης", "εοπυυ" βάλε "εοπυυ", '+
-      '"βα3" βάλε "βα3", "βα" βάλε "βα", αλλιώς null (= όλες τις τιμές).';
+      'Ελληνικά. Αλλαγές→confirm πάντα. priceFilter μόνο αν ο χρήστης το ζητά ρητά.';
 
     var msgs=[{role:'system',content:sys}];
     AI_HISTORY.forEach(function(m){msgs.push(m);});
@@ -1505,12 +1172,9 @@ async function aiCallGroq(userText){
     if(data.error) throw new Error(data.error);
 
     var raw=(data.choices?.[0]?.message?.content||'').replace(/```json|```/g,'').trim();
-    // Πάρε πρώτο valid JSON
     var parsed;
-    try{
-      var m=raw.match(/\{[\s\S]*\}/);
-      parsed=JSON.parse(m?m[0]:raw);
-    }catch(e){parsed={intent:'chat',message:raw,data:null};}
+    try{ var m=raw.match(/\{[\s\S]*\}/); parsed=JSON.parse(m?m[0]:raw); }
+    catch(e){ parsed={intent:'chat',message:raw,data:null}; }
 
     AI_HISTORY.push({role:'user',content:userText});
     AI_HISTORY.push({role:'assistant',content:JSON.stringify(parsed)});
@@ -1518,10 +1182,9 @@ async function aiCallGroq(userText){
 
     aiHideTyping();
     aiHandle(parsed);
-
   }catch(err){
     aiHideTyping();
-    aiAddMsg('bot','⚠️ Σφάλμα σύνδεσης: '+err.message,'error');
+    aiAddMsg('bot','❌ Σφάλμα: '+err.message,'error');
   }
 }
 
@@ -1531,14 +1194,14 @@ function aiHandle(p){
     aiAddMsg('bot',p.message||'Αναζητώ...');
     aiSearch(d.searchTerm||'',d.sheet||null,d.priceFilter||null);
   } else if(p.intent==='confirm_update'||p.intent==='confirm_bulk'){
-    aiConfirm(p.message,p.intent,d);
+    aiShowConfirm(p.message,p.intent,d);
   } else {
     aiAddMsg('bot',p.message||'...');
   }
 }
 
-// ── ΑΝΑΖΗΤΗΣΗ ────────────────────────────────────────────
-async function aiSearch(term,sheetFilter,priceFilter){
+// ── ΑΝΑΖΗΤΗΣΗ — 100% δυναμική ────────────────────────────
+async function aiSearch(term, sheetFilter, priceFilter){
   aiShowTyping();
   try{
     var sheets=[];
@@ -1554,102 +1217,51 @@ async function aiSearch(term,sheetFilter,priceFilter){
     }
 
     var results=[];
-    var tl=nt(term||'');
+    var words=term?nt(term).split(/\s+/).filter(function(w){return w.length>=3;}):[];
 
     sheets.forEach(function(sname){
       var d=D[sname]; if(!d||d.__multi__||!d.rows) return;
-      var h=d.headers||[]; var rows=d.rows||[];
-      var st=AI_STRUCT[sname]; if(!st) return;
-      var nc=st.nc;
+      var h=d.headers||[];
+      var rows=d.rows||[];
+
+      // Βρες τις στήλες τιμών δυναμικά από headers
+      var priceCols=[];
+      h.forEach(function(hdr,i){
+        if(isPriceCol(hdr)) priceCols.push({i:i,n:(hdr||'').toString().replace(/\n/g,' ').trim()});
+      });
 
       rows.forEach(function(row){
         if(!row||!row.length) return;
 
-        // Αναζήτηση σε ΟΛΑ τα cells — έξυπνο split κατά λέξεις
-        var words = tl ? tl.split(/\s+/).filter(function(w){return w.length>=3;}) : [];
-        var match = !tl;
-        if(!match && words.length>0){
-          // Βρες αν ΟΛΑ τα words υπάρχουν κάπου στη γραμμή (σε οποιοδήποτε cell)
-          var rowText = row.map(function(c){return c?nt(c.toString()):'';}).join(' ');
-          match = words.every(function(w){ return rowText.indexOf(w)>=0; });
-        }
+        // Αναζήτηση σε ΟΛΑ τα cells
+        var rowText=row.map(function(c){return c?nt(c.toString()):'';}).join(' ');
+        var match=words.length===0||words.every(function(w){return rowText.indexOf(w)>=0;});
         if(!match) return;
 
-        // Βρες το όνομα — πρώτο non-numeric, non-empty cell
-        var name = '';
-        // Δοκίμασε nameCol πρώτα
-        if(row[nc]) name = row[nc].toString().trim();
-        // Αν είναι αριθμός, ψάξε αλλού
-        if(!name||/^\d+$/.test(name)){
-          for(var ci=0;ci<Math.min(row.length,5);ci++){
-            var cv=(row[ci]||'').toString().trim();
-            if(cv && !/^\d+$/.test(cv) && cv.length>3 && ci!==nc){
-              name=cv; break;
-            }
-          }
-        }
-        if(!name||/^\d+$/.test(name)||name.length<3) return;
+        var name=getRowName(row,h);
+        if(!name||name.length<3) return;
 
-        // Τιμές — δυναμική εύρεση από headers
+        // Τιμές με φιλτράρισμα
         var prices=[];
-        // Πρώτα δοκίμασε με fixed indices
-        st.prices.forEach(function(pc){
-          if(priceFilter && !aiPriceMatch(pc.n,priceFilter)) return;
+        priceCols.forEach(function(pc){
+          if(!matchPrice(pc.n,priceFilter)) return;
           var v=row[pc.i];
           if(!v) return;
           var pn=parseFloat(v.toString().replace(/[^0-9.,]/g,'').replace(',','.'));
-          if(pn>0) prices.push({n:pc.n,v:pn});
-        });
-        // Αν δεν βρήκε τίποτα, ψάξε δυναμικά στα headers
-        if(prices.length===0){
-          h.forEach(function(hdr,hi){
-            if(!hdr) return;
-            var hn=nt(hdr.toString().replace(/
-/g,' '));
-            var isPrice=(/ιδιωτ|εοπυ|odc|lux|suite|μεθη|τοπικ/.test(hn));
-            if(!isPrice) return;
-            if(priceFilter && !aiPriceMatch(hdr,priceFilter)) return;
-            var v=row[hi];
-            if(!v) return;
-            var pn=parseFloat(v.toString().replace(/[^0-9.,]/g,'').replace(',','.'));
-            if(pn>0) prices.push({n:hdr.toString().replace(/
-/g,' ').trim().substring(0,20),v:pn});
-          });
-        }
-
-        // Παρατηρήσεις
-        var notes='';
-        if(st.notes>=0 && row[st.notes]){
-          notes=row[st.notes].toString().trim();
-          if(notes==='Υλικά'||notes==='EXTRA') notes='';
-        }
-
-        // Φέρε ακόμα και χωρίς τιμή αν έχει notes ή τουλάχιστον ένα cell με τιμή
-        var hasAnyPrice = st.prices.some(function(pc){
-          var v=row[pc.i];
-          if(!v) return false;
-          return parseFloat(v.toString().replace(/[^0-9.,]/g,'').replace(',','.'))||0 > 0;
+          if(pn>0) prices.push({n:pc.n.substring(0,25),v:pn});
         });
 
-        if(prices.length>0 || (hasAnyPrice && notes)){
-          // Αν δεν έχουμε φιλτραρισμένες τιμές αλλά υπάρχουν τιμές, δείξε όλες
-          if(prices.length===0 && hasAnyPrice){
-            st.prices.forEach(function(pc){
-              var v=row[pc.i];
-              if(!v) return;
-              var pn=parseFloat(v.toString().replace(/[^0-9.,]/g,'').replace(',','.'));
-              if(pn>0) prices.push({n:pc.n,v:pn});
-            });
-          }
-          results.push({sheet:sname,name:name,prices:prices,notes:notes});
-        }
+        if(prices.length===0) return;
+
+        var notes=getRowNotes(row,h);
+        results.push({sheet:sname,name:name,prices:prices,notes:notes});
       });
     });
 
     aiHideTyping();
 
     if(!results.length){
-      aiAddMsg('bot','Δεν βρέθηκαν αποτελέσματα'+(term?' για «'+term+'»':'')+'.\n\nΔοκίμασε διαφορετική λέξη.','error');
+      aiAddMsg('bot','Δεν βρέθηκαν αποτελέσματα'+(term?' για «'+term+'»':'')+'.\nΔοκίμασε άλλη λέξη.','error');
       return;
     }
 
@@ -1658,9 +1270,9 @@ async function aiSearch(term,sheetFilter,priceFilter){
     shown.forEach(function(r){
       msg+='• '+r.name+'\n';
       r.prices.forEach(function(p){
-        var ps=p.v.toLocaleString('el-GR',{minimumFractionDigits:0})+'€';
-        msg+='  '+p.n+': '+ps+'\n';
+        msg+='  '+p.n+': '+p.v.toLocaleString('el-GR',{minimumFractionDigits:0})+'€\n';
       });
+      if(r.notes) msg+='  📝 '+r.notes+'\n';
       msg+='  — '+r.sheet.trim()+'\n\n';
     });
     aiAddMsg('bot',msg.trim());
@@ -1671,22 +1283,8 @@ async function aiSearch(term,sheetFilter,priceFilter){
   }
 }
 
-// Έλεγχος αν στήλη τιμής ταιριάζει με priceFilter
-function aiPriceMatch(colName,filter){
-  var cn=nt(colName);
-  var f=nt(filter||'');
-  if(f==='ιδιωτης'||f==='ιδιωτ') return cn.indexOf('ιδιωτ')>=0;
-  if(f==='εοπυυ'||f==='εοπυ') return cn.indexOf('εοπυ')>=0||cn.indexOf('ασφ')>=0;
-  if(f==='βα3') return cn.indexOf('βα3')>=0||cn.indexOf('ba3')>=0;
-  if(f==='βα') return (cn.indexOf('βα')>=0||cn.indexOf('ba')>=0) && cn.indexOf('βα3')<0 && cn.indexOf('ba3')<0;
-  if(f==='odc') return cn.indexOf('odc')>=0;
-  if(f==='lux') return cn.indexOf('lux')>=0;
-  if(f==='suite') return cn.indexOf('suite')>=0;
-  return true;
-}
-
-// ── CONFIRM + ΕΚΤΕΛΕΣΗ ───────────────────────────────────
-function aiConfirm(msg,actionType,data){
+// ── CONFIRM ──────────────────────────────────────────────
+function aiShowConfirm(msg,actionType,data){
   var wrap=document.createElement('div'); wrap.className='ai-msg bot';
   var bubble=document.createElement('div'); bubble.className='ai-bubble confirm'; bubble.textContent=msg;
   var btns=document.createElement('div'); btns.className='ai-confirm-btns';
@@ -1700,6 +1298,7 @@ function aiConfirm(msg,actionType,data){
   document.getElementById('aiMessages').appendChild(wrap); aiScroll();
 }
 
+// ── ΕΚΤΕΛΕΣΗ ΑΛΛΑΓΗΣ ─────────────────────────────────────
 async function aiExecute(actionType,data){
   aiShowTyping();
   try{
@@ -1717,39 +1316,46 @@ async function aiExecute(actionType,data){
     }
 
     var total=0,changed=[];
-    var tl=nt(data.searchTerm||'');
-    var pf=data.priceFilter||null;
+    var words=data.searchTerm?nt(data.searchTerm).split(/\s+/).filter(function(w){return w.length>=2;}):[];
 
     for(var si=0;si<sheets.length;si++){
       var sname=sheets[si];
       var d=D[sname]; if(!d||d.__multi__||!d.rows) continue;
-      var st=AI_STRUCT[sname]; if(!st||!st.prices.length) continue;
-      var rows=d.rows||[];
-      var upd=0;
+      var h=d.headers||[]; var rows=d.rows||[];
 
+      // Βρες τιμές δυναμικά
+      var priceCols=[];
+      h.forEach(function(hdr,i){
+        if(isPriceCol(hdr)&&matchPrice(hdr,data.priceFilter||null))
+          priceCols.push(i);
+      });
+      if(!priceCols.length) continue;
+
+      var upd=0;
       rows.forEach(function(row){
-        var match=isBulk||!tl||row.some(function(c){return c&&nt(c.toString()).indexOf(tl)>=0;});
+        if(!row||!row.length) return;
+        var rowText=row.map(function(c){return c?nt(c.toString()):'';}).join(' ');
+        var match=isBulk||words.length===0||words.every(function(w){return rowText.indexOf(w)>=0;});
         if(!match) return;
-        st.prices.forEach(function(pc){
-          if(pf && !aiPriceMatch(pc.n,pf)) return;
-          var old=parseFloat((row[pc.i]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'));
+        priceCols.forEach(function(pi){
+          var old=parseFloat((row[pi]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'));
           if(old>0){
-            row[pc.i]=(data.changeType==='percent'?Math.round(old*(1+data.value/100)):data.value).toString();
+            row[pi]=(data.changeType==='percent'?Math.round(old*(1+data.value/100)):data.value).toString();
             upd++;
           }
         });
       });
 
       if(upd>0){
-        await aiSave(sname,d.headers,rows);
+        await aiSave(sname,h,rows);
         if(cur===sname&&typeof showSheet==='function') showSheet(cur);
-        total+=upd; changed.push(sname.trim()+' ('+upd+' τιμές)');
+        total+=upd; changed.push(sname.trim()+' ('+upd+')');
       }
     }
 
     aiHideTyping();
     if(total===0){
-      aiAddMsg('bot','Δεν βρέθηκαν εγγραφές'+(tl?' για «'+tl+'»':'')+'.','error');
+      aiAddMsg('bot','Δεν βρέθηκαν εγγραφές'+(data.searchTerm?' για «'+data.searchTerm+'»':'')+'.','error');
     } else {
       aiAddMsg('bot','✅ Ολοκληρώθηκε!\n\n'+changed.map(function(x){return '• '+x;}).join('\n')+'\n\nΑποθηκεύτηκαν.','success');
     }
