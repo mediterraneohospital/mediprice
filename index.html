@@ -773,7 +773,7 @@ async function init(){
   try{
     var r=await fetch('data.json'); D=await r.json();
     // Load overrides from Supabase for non-multi sheets
-    var loadPromises=Object.keys(D).filter(function(k){return !D[k].__multi__;}).map(function(k){return loadSheetFromSB(k);});
+    var loadPromises=Object.keys(D).map(function(k){return loadSheetFromSB(k);});
     await Promise.all(loadPromises);
     var ks=Object.keys(D),total=ks.reduce(function(s,k){return s+rowCount(D[k]);},0);
     document.getElementById('badge').textContent=ks.length+' ειδικότητες · '+total+' εγγραφές';
