@@ -1063,13 +1063,28 @@ function matchPrice(h,filter){
   if(!filter) return true;
   var hn=nt((h||'').toString().split('\n').join(' '));
   var f=nt(filter);
-  if(f==='ιδιωτης'||f==='ιδιωτ') return hn.indexOf('ιδιωτ')>=0;
-  if(f==='εοπυυ'||f==='εοπυ') return hn.indexOf('εοπυ')>=0||hn.indexOf('ασφ')>=0;
-  if(f==='βα3'||f==='ba3') return hn.indexOf('βα3')>=0||hn.indexOf('ba3')>=0;
-  if(f==='βα') return (hn.indexOf('βα')>=0||hn.indexOf('ba')>=0)&&hn.indexOf('βα3')<0&&hn.indexOf('ba3')<0;
-  if(f==='odc') return hn.indexOf('odc')>=0;
-  if(f==='lux') return hn.indexOf('lux')>=0;
-  if(f==='suite') return hn.indexOf('suite')>=0;
+  // Combined filters e.g. "εοπυυ βα3"
+  var wantEopuu=f.indexOf('εοπυ')>=0||f.indexOf('ασφ')>=0;
+  var wantIdiwths=f.indexOf('ιδιωτ')>=0;
+  var wantBa3=f.indexOf('βα3')>=0||f.indexOf('ba3')>=0;
+  var wantBa=(f.indexOf('βα')>=0||f.indexOf('ba')>=0)&&!wantBa3;
+  var wantOdc=f.indexOf('odc')>=0;
+  var wantLux=f.indexOf('lux')>=0;
+  var wantSuite=f.indexOf('suite')>=0;
+  // Check col has required type
+  if(wantEopuu&&!wantIdiwths&&(hn.indexOf('ιδιωτ')>=0)) return false;
+  if(wantIdiwths&&!wantEopuu&&(hn.indexOf('εοπυ')>=0||hn.indexOf('ασφ')>=0)) return false;
+  if(wantBa3&&hn.indexOf('βα3')<0&&hn.indexOf('ba3')<0) return false;
+  if(wantBa&&!wantBa3){
+    var hasBa=hn.indexOf('βα')>=0||hn.indexOf('ba')>=0;
+    var hasBa3=hn.indexOf('βα3')>=0||hn.indexOf('ba3')>=0;
+    if(!hasBa||hasBa3) return false;
+  }
+  if(wantOdc&&hn.indexOf('odc')<0) return false;
+  if(wantLux&&hn.indexOf('lux')<0) return false;
+  if(wantSuite&&hn.indexOf('suite')<0) return false;
+  if(wantEopuu&&hn.indexOf('εοπυ')<0&&hn.indexOf('ασφ')<0) return false;
+  if(wantIdiwths&&hn.indexOf('ιδιωτ')<0) return false;
   return true;
 }
 
@@ -1225,7 +1240,17 @@ async function aiSearch(term,sheetFilter,priceFilter,sortBy){
           var pc=priceCols[pci];
           if(!matchPrice(pc.n,priceFilter)) continue;
           var v=row[pc.i];if(!v) continue;
-          var pn=parseFloat(v.toString().replace(/[^0-9.,]/g,'').replace(',','.'));
+          var vs=v.toString().replace(/[^0-9.,]/g,'');
+          // If has both . and , -> . is thousands, , is decimal
+          // If only . and >3 digits after -> . is thousands separator
+          var pn;
+          if(vs.indexOf(',')>=0&&vs.indexOf('.')>=0){
+            pn=parseFloat(vs.replace(/\./g,'').replace(',','.'));
+          } else if(vs.indexOf('.')>=0&&vs.split('.')[1]&&vs.split('.')[1].length===3){
+            pn=parseFloat(vs.replace(/\./g,''));
+          } else {
+            pn=parseFloat(vs.replace(',','.'));
+          }
           if(pn>0) prices.push({n:pc.n.substring(0,25),v:pn});
         }
         if(!prices.length) continue;
