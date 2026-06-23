@@ -1040,45 +1040,14 @@ init();
 </div>
 
 <script>
-// ── SMART CHATBOT (χωρίς API) ────────────────────────────
+// ── GEMINI CHATBOT ───────────────────────────────────────
 var AI_OPEN = false;
 var AI_TYPING_EL = null;
+var AI_HISTORY = [];
+var GEMINI_KEY = 'AIzaSyAb8RN6I1fzRNACWysX-kmiD_fSs6mMES5fw5xvN31YvuWIFGSQ';
+var GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=';
 
 var AI_PRICE_COLS = ['ΙΔΙΩΤΗΣ ΒΑ','ΙΔΙΩΤΗΣ','ΒΑ','ΙΔΙΩΤΗΣ ΒΑ3','ΙΔΙΩΤΗΣ 2026','ΙΔΙΩΤΗΣ ΒΑ 2026','ΙΔΙΩΤΗΣ ΒΑ ΜΕ ΦΠΑ'];
-
-// Χάρτης: λέξη-κλειδί → sheet name (χωρίς τόνους για αντιστοίχιση)
-var AI_SHEET_KEYS = [
-  ['χολοκυστ','ΧΟΛΗΦΟΡΑ'],['χολ','ΧΟΛΗΦΟΡΑ'],['χοληφορ','ΧΟΛΗΦΟΡΑ'],
-  ['ορθοπεδ','ΟΡΘΟΠΕΔΙΚΗ'],['ορθοπαιδ','ΟΡΘΟΠΕΔΙΚΗ'],
-  ['ουρολογ','ΟΥΡΟΛΟΓΙΚΗ'],
-  ['καρδιοχειρ','ΚΑΡΔΙΟΧΕΙΡΟΥΡΓΙΚΗ'],
-  ['επεμβατικη καρδ','ΕΠΕΜΒΑΤΙΚΗ ΚΑΡΔΙΟΛΟΓΙΑ'],['καρδιολογ','ΕΠΕΜΒΑΤΙΚΗ ΚΑΡΔΙΟΛΟΓΙΑ'],
-  ['νευροχειρ','ΝΕΥΡΟΧΕΙΡΟΥΡΓΙΚΗ'],['νευρο','ΝΕΥΡΟΧΕΙΡΟΥΡΓΙΚΗ'],
-  ['γυναικολογ','ΓΥΝΑΙΚΟΛΟΓΙΚΗ'],['γυναικ','ΓΥΝΑΙΚΟΛΟΓΙΚΗ'],
-  ['γενικη χειρ','ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ'],
-  ['αγγειοχειρ','ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ'],['αγγειο','ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ'],
-  ['θωρακ','ΘΩΡΑΚΟΧΕΙΡΟΥΡΓΙΚΗ'],
-  ['πλαστικ','ΠΛΑΣΤΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ'],
-  ['οφθαλμ','ΟΦΘΑΛΜΟΛΟΓΙΑ'],
-  ['ωρλ','ΩΡΛ'],
-  ['γαστρ','ΓΑΣΤΡΕΝΤΕΡΟΛΟΓΙΚΑ'],
-  ['ηλεκτροφυσ','ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ'],
-  ['επεμβατικη ακτιν','ΕΠΕΜΒΑΤΙΚΗ ΑΚΤΙΝΟΛΟΓΙΑ'],['ακτινολογ','ΕΠΕΜΒΑΤΙΚΗ ΑΚΤΙΝΟΛΟΓΙΑ'],
-  ['σπονδυλ','ΣΠΟΝΔΥΛΙΚΗ ΣΤΗΛΗ'],
-  ['πνευμον','ΠΝΕΥΜΟΝΟΛΟΓΙΚΟ'],
-  ['μαστ','ΜΟΝΑΔΑ ΜΑΣΤΟΥ'],
-  ['ονπ','ΟΝΠ'],
-  ['πονο','ΠΟΝΟΣ'],
-  ['θεραπει','ΘΕΡΑΠΕΙΕΣ ΠΟΝΟ ΜΕ ΣΥΣΚΕΥΕΣ']
-];
-
-// Αφαίρεση τόνων
-function aiNoAccent(s){
-  return (s||'').toLowerCase()
-    .replace(/ά/g,'α').replace(/έ/g,'ε').replace(/ή/g,'η').replace(/ί/g,'ι')
-    .replace(/ό/g,'ο').replace(/ύ/g,'υ').replace(/ώ/g,'ω')
-    .replace(/ϊ/g,'ι').replace(/ΐ/g,'ι').replace(/ϋ/g,'υ').replace(/ΰ/g,'υ');
-}
 
 function toggleAI(){
   AI_OPEN = !AI_OPEN;
@@ -1096,104 +1065,98 @@ function sendAI(){
   input.value=''; input.style.height='auto';
   aiAddMsg('user',text);
   aiShowTyping();
-  setTimeout(function(){ aiHideTyping(); aiProcess(text); },400);
+  aiCallGemini(text);
 }
 
-// ── PARSING ──────────────────────────────────────────────
-function aiProcess(text){
-  var t = aiNoAccent(text);
+// ── GEMINI API CALL ──────────────────────────────────────
+async function aiCallGemini(userText){
+  try{
+    // Φέρε λίστα sheets από Supabase
+    var sheetNames = await aiGetAllSheetNames();
 
-  // Βοήθεια
-  if(/βοηθ|help|τι μπορ|εντολ/.test(t)){
-    aiAddMsg('bot','Τι μπορώ να κάνω:\n\nΑΝΑΖΗΤΗΣΗ:\n• «τιμή χολοκυστεκτομής»\n• «βρες αμυγδαλεκτομή»\n• «δείξε ορθοπεδική»\n\nΑΛΛΑΓΗ ΤΙΜΗΣ:\n• «χολοκυστεκτομή +30%»\n• «αμυγδαλεκτομή -10%»\n\nΜΑΖΙΚΗ ΑΛΛΑΓΗ:\n• «ουρολογική +5%»\n• «ορθοπεδική -10%»');
-    return;
-  }
+    var systemPrompt = 'Είσαι ο βοηθός του MediPrice, τιμοκατάλογος του Mediterraneo Hospital.\n\n' +
+      'ΔΙΑΘΕΣΙΜΕΣ ΕΙΔΙΚΟΤΗΤΕΣ:\n' + sheetNames.join(', ') + '\n\n' +
+      'ΜΠΟΡΕΙΣ ΝΑ ΚΑΝΕΙΣ:\n' +
+      '1. Αναζήτηση τιμής επέμβασης\n' +
+      '2. Αλλαγή τιμής συγκεκριμένης επέμβασης (με επιβεβαίωση)\n' +
+      '3. Μαζική αλλαγή τιμών ανά ειδικότητα (με επιβεβαίωση)\n\n' +
+      'ΑΠΑΝΤΑ ΠΑΝΤΑ σε JSON (χωρίς markdown backticks):\n' +
+      '{"intent":"search"|"confirm_update"|"confirm_bulk"|"chat","message":"κείμενο","data":{...}}\n\n' +
+      'Για search: data={searchTerm:"...", sheet:"..." ή null}\n' +
+      'Για confirm_update: data={searchTerm:"...", sheet:"...", changeType:"percent"|"fixed", value:30}\n' +
+      'Για confirm_bulk: data={sheet:"...", changeType:"percent"|"fixed", value:5}\n' +
+      'Για chat (ερώτηση/βοήθεια): data=null\n\n' +
+      'ΚΑΝΟΝΕΣ: Απάντα στα ελληνικά. Για αλλαγές ΠΑΝΤΑ intent=confirm_* πρώτα.';
 
-  // Ανίχνευση ποσοστού
-  var pctMatch = t.match(/([+\-]?\s*\d+[.,]?\d*)\s*%/);
-  var fixMatch = !pctMatch && t.match(/[=:]\s*(\d+[.,]?\d*)/);
-  var hasChange = pctMatch || fixMatch;
+    // Φτιάξε history για Gemini
+    var contents = [];
 
-  var detectedSheet = aiDetectSheet(t);
-  var searchTerm = aiExtractTerm(t, detectedSheet);
+    // System ως πρώτο user turn (Gemini δεν έχει system role)
+    contents.push({ role:'user', parts:[{text: systemPrompt}] });
+    contents.push({ role:'model', parts:[{text: '{"intent":"chat","message":"Κατάλαβα! Είμαι έτοιμος να βοηθήσω με τον τιμοκατάλογο.","data":null}'}] });
 
-  if(hasChange){
-    var pct=null, fixVal=null;
-    if(pctMatch) pct=parseFloat(pctMatch[1].replace(/\s/g,'').replace(',','.'));
-    else fixVal=parseFloat(fixMatch[1].replace(',','.'));
-    var desc=pct!==null?(pct>=0?'+':'')+pct+'%':'= '+fixVal+'€';
+    // Ιστορικό
+    AI_HISTORY.forEach(function(m){
+      contents.push({ role: m.role==='user'?'user':'model', parts:[{text:m.content}] });
+    });
 
-    if(detectedSheet && !searchTerm){
-      aiShowConfirm(
-        'Μαζική αλλαγή:\n\nΕιδικότητα: '+detectedSheet+'\nΑλλαγή: '+desc+'\n\nΘέλεις να συνεχίσω;',
-        'bulk',{sheet:detectedSheet,changeType:pct!==null?'percent':'fixed',value:pct!==null?pct:fixVal}
-      );
-    } else if(searchTerm){
-      aiShowConfirm(
-        'Αλλαγή τιμής:\n\nΕπέμβαση: «'+searchTerm+'»'+(detectedSheet?'\nΕιδικότητα: '+detectedSheet:'\n(σε όλες τις ειδικότητες)')+'\nΑλλαγή: '+desc+'\n\nΘέλεις να συνεχίσω;',
-        'update',{sheet:detectedSheet||null,searchTerm:searchTerm,changeType:pct!==null?'percent':'fixed',value:pct!==null?pct:fixVal}
-      );
-    } else {
-      aiAddMsg('bot','Δεν κατάλαβα τι να αλλάξω.\nΔοκίμασε: «χολοκυστεκτομή +30%» ή «ουρολογική +5%»');
+    // Νέο μήνυμα
+    contents.push({ role:'user', parts:[{text:userText}] });
+
+    var resp = await fetch(GEMINI_URL + GEMINI_KEY, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ contents: contents, generationConfig:{ temperature:0.1, maxOutputTokens:500 } })
+    });
+
+    if(!resp.ok){
+      var err = await resp.json();
+      throw new Error(err.error?.message || 'HTTP '+resp.status);
     }
+
+    var data = await resp.json();
+    var raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    var clean = raw.replace(/```json|```/g,'').trim();
+
+    var parsed;
+    try{ parsed = JSON.parse(clean); }
+    catch(e){ parsed = {intent:'chat', message:raw, data:null}; }
+
+    AI_HISTORY.push({role:'user', content:userText});
+    AI_HISTORY.push({role:'model', content:JSON.stringify(parsed)});
+    // Κράτα ιστορικό μικρό
+    if(AI_HISTORY.length > 10) AI_HISTORY = AI_HISTORY.slice(-10);
+
+    aiHideTyping();
+    aiHandleResponse(parsed);
+
+  } catch(err){
+    aiHideTyping();
+    aiAddMsg('bot','❌ Σφάλμα: '+err.message,'error');
+  }
+}
+
+// ── HANDLE RESPONSE ──────────────────────────────────────
+function aiHandleResponse(parsed){
+  var intent = parsed.intent;
+  var msg = parsed.message || '';
+  var data = parsed.data || {};
+
+  if(intent==='search'){
+    aiAddMsg('bot', msg.length>10 ? msg : 'Αναζητώ...');
+    aiSearch(data.searchTerm||'', data.sheet||null, msg);
+  } else if(intent==='confirm_update' || intent==='confirm_bulk'){
+    aiShowConfirm(msg, intent, data);
   } else {
-    if(detectedSheet && !searchTerm){
-      aiSearch('',detectedSheet);
-    } else if(searchTerm){
-      aiSearch(searchTerm,detectedSheet);
-    } else {
-      aiAddMsg('bot','Δεν κατάλαβα.\nΔοκίμασε:\n• «τιμή χολοκυστεκτομής»\n• «χολοκυστεκτομή +30%»\n• «ουρολογική +5%»\n\nΓράψε «βοήθεια» για όλες τις εντολές.');
-    }
+    aiAddMsg('bot', msg);
   }
-}
-
-// ── ΑΝΙΧΝΕΥΣΗ ΕΙΔΙΚΟΤΗΤΑΣ ───────────────────────────────
-function aiDetectSheet(t){
-  // t είναι ήδη χωρίς τόνους
-  for(var i=0;i<AI_SHEET_KEYS.length;i++){
-    if(t.indexOf(AI_SHEET_KEYS[i][0])>=0) return AI_SHEET_KEYS[i][1];
-  }
-  // Έλεγξε φορτωμένα sheets
-  var loaded=Object.keys(D||{});
-  for(var j=0;j<loaded.length;j++){
-    if(t.indexOf(aiNoAccent(loaded[j]))>=0) return loaded[j];
-  }
-  return null;
-}
-
-// ── ΕΞΑΓΩΓΗ ΟΡΟΥ ────────────────────────────────────────
-function aiExtractTerm(t, detectedSheet){
-  // Αφαίρεσε ρήματα/άρθρα
-  var clean = t
-    .replace(/τιμη\s*(της\s*)?/g,'').replace(/τιμες\s*/g,'')
-    .replace(/δειξε\s*(μου\s*)?(τις\s*|τη\s*)?/g,'')
-    .replace(/βρες\s*/g,'').replace(/φερε\s*/g,'')
-    .replace(/αλλαξε\s*/g,'').replace(/αυξησε\s*/g,'').replace(/μειωσε\s*/g,'')
-    .replace(/ολες\s*(τις\s*)?/g,'')
-    .replace(/ποια\s*/g,'').replace(/ποιες\s*/g,'').replace(/ποσο\s*/g,'')
-    .replace(/[+\-]?\d+[.,]?\d*\s*%/g,'').replace(/[=:]\s*\d+[.,]?\d*/g,'')
-    .replace(/\b(η|ο|τη|τον|της|του|τους|τις|το|τα)\b\s*/g,'')
-    .replace(/;/g,'').trim();
-
-  // Αφαίρεσε sheet keyword αν εντοπίστηκε
-  if(detectedSheet){
-    for(var i=0;i<AI_SHEET_KEYS.length;i++){
-      if(AI_SHEET_KEYS[i][1]===detectedSheet){
-        clean=clean.replace(new RegExp(AI_SHEET_KEYS[i][0]+'\\w*\\s*','g'),'').trim();
-      }
-    }
-  }
-
-  clean=clean.trim();
-  return clean.length>=3 ? clean : null;
 }
 
 // ── ΑΝΑΖΗΤΗΣΗ ───────────────────────────────────────────
-async function aiSearch(term, sheetFilter){
-  aiShowTyping();
+async function aiSearch(term, sheetFilter, prefixMsg){
+  if(!prefixMsg) aiShowTyping();
   try{
     var sheetsToSearch=[];
-
     if(sheetFilter){
       if(!D[sheetFilter]||!D[sheetFilter].rows) await aiLoadSheet(sheetFilter);
       if(D[sheetFilter]) sheetsToSearch.push({name:sheetFilter,data:D[sheetFilter]});
@@ -1203,25 +1166,19 @@ async function aiSearch(term, sheetFilter){
         if(!D[names[i]]||!D[names[i]].rows) await aiLoadSheet(names[i]);
         if(D[names[i]]) sheetsToSearch.push({name:names[i],data:D[names[i]]});
       }
-    } else {
-      aiHideTyping();
-      aiAddMsg('bot','Τι να αναζητήσω; Π.χ.:\n• «τιμή χολοκυστεκτομής»\n• «δείξε ορθοπεδική»');
-      return;
     }
 
     var results=[];
-    var termLow=aiNoAccent(term||'');
-
+    var termLow=(term||'').toLowerCase();
     sheetsToSearch.forEach(function(s){
       var data=s.data;
       if(!data||data.__multi__||!data.rows) return;
       var headers=data.headers||[];
       var rows=data.rows||[];
       var priceCol=aiFindPriceCol(headers);
-
       rows.forEach(function(row){
         var match=!term||row.some(function(cell){
-          return cell&&aiNoAccent(cell.toString()).indexOf(termLow)>=0;
+          return cell&&cell.toString().toLowerCase().includes(termLow);
         });
         if(match&&row[0]&&priceCol>=0&&row[priceCol]){
           results.push({sheet:s.name,name:row[0],price:row[priceCol],colName:headers[priceCol]});
@@ -1229,15 +1186,15 @@ async function aiSearch(term, sheetFilter){
       });
     });
 
-    aiHideTyping();
+    if(!prefixMsg) aiHideTyping();
 
     if(!results.length){
-      aiAddMsg('bot','Δεν βρέθηκαν αποτελέσματα'+(term?' για «'+term+'»':'')+'\nΔοκίμασε άλλες λέξεις.','error');
+      aiAddMsg('bot','Δεν βρέθηκαν αποτελέσματα'+(term?' για «'+term+'»':'')+'.','error');
       return;
     }
 
     var shown=results.slice(0,8);
-    var msg='Βρέθηκαν '+results.length+(results.length>8?' (εμφανίζω τα πρώτα 8)':'')+' αποτελέσματα:\n\n';
+    var msg='Βρέθηκαν '+results.length+(results.length>8?' (πρώτα 8)':'')+' αποτελέσματα:\n\n';
     shown.forEach(function(r){
       var pn=parseFloat((r.price||'').toString().replace(/[^0-9.,]/g,'').replace(',','.'));
       var ps=pn?pn.toLocaleString('el-GR',{minimumFractionDigits:0,maximumFractionDigits:0})+'€':r.price;
@@ -1245,8 +1202,8 @@ async function aiSearch(term, sheetFilter){
     });
     aiAddMsg('bot',msg.trim());
 
-  } catch(err){
-    aiHideTyping();
+  }catch(err){
+    if(!prefixMsg) aiHideTyping();
     aiAddMsg('bot','Σφάλμα αναζήτησης: '+err.message,'error');
   }
 }
@@ -1257,8 +1214,8 @@ function aiShowConfirm(message,actionType,data){
   var bubble=document.createElement('div'); bubble.className='ai-bubble confirm'; bubble.textContent=message;
   var btns=document.createElement('div'); btns.className='ai-confirm-btns';
   var yes=document.createElement('button'); yes.className='ai-btn-yes'; yes.textContent='✓ Ναι, εφάρμοσε';
-  yes.onclick=function(){ yes.disabled=true; no.disabled=true; aiExecute(actionType,data); };
   var no=document.createElement('button'); no.className='ai-btn-no'; no.textContent='✕ Ακύρωση';
+  yes.onclick=function(){ yes.disabled=true; no.disabled=true; aiExecute(actionType,data); };
   no.onclick=function(){ btns.remove(); aiAddMsg('bot','Ακυρώθηκε.'); };
   btns.appendChild(yes); btns.appendChild(no);
   var meta=document.createElement('div'); meta.className='ai-meta'; meta.textContent=aiNow();
@@ -1283,7 +1240,7 @@ async function aiExecute(actionType,data){
     }
 
     var totalUpdated=0, sheetsChanged=[];
-    var termLow2=aiNoAccent(data.searchTerm||'');
+    var termLow=(data.searchTerm||'').toLowerCase();
 
     for(var si=0;si<sheetsToUpdate.length;si++){
       var s=sheetsToUpdate[si];
@@ -1295,8 +1252,8 @@ async function aiExecute(actionType,data){
 
       var updated=0;
       rows.forEach(function(row){
-        var match=(actionType==='bulk')||!data.searchTerm||
-          row.some(function(cell){ return cell&&aiNoAccent(cell.toString()).indexOf(termLow2)>=0; });
+        var match=(actionType==='confirm_bulk')||!data.searchTerm||
+          row.some(function(cell){ return cell&&cell.toString().toLowerCase().includes(termLow); });
         if(match){
           var oldVal=parseFloat((row[priceCol]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'));
           if(oldVal>0){
@@ -1323,7 +1280,7 @@ async function aiExecute(actionType,data){
         sheetsChanged.map(function(x){return '• '+x;}).join('\n')+
         '\n\nΑποθηκεύτηκαν στη βάση.','success');
     }
-  } catch(err){
+  }catch(err){
     aiHideTyping();
     aiAddMsg('bot','Σφάλμα: '+err.message,'error');
   }
@@ -1336,22 +1293,18 @@ async function aiGetAllSheetNames(){
     var d=await r.json(); return (d||[]).map(function(x){return x.sheet_name;});
   }catch(e){return Object.keys(D||{});}
 }
-
 async function aiLoadSheet(name){
   try{
     var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?sheet_name=eq.'+encodeURIComponent(name)+'&select=*',
       {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
     var d=await r.json(); if(!d||!d[0]) return null;
-    var row=d[0];
-    var headers=row.headers, rows=row.rows;
+    var row=d[0]; var headers=row.headers; var rows=row.rows;
     if(typeof headers==='string'){
       try{var p=JSON.parse(headers);if(Array.isArray(p)&&p[0]&&p[0].headers){D[name]={__multi__:true,tables:p};return D[name];}}catch(e){}
     }
-    D[name]={headers:headers,rows:rows};
-    return D[name];
+    D[name]={headers:headers,rows:rows}; return D[name];
   }catch(e){return null;}
 }
-
 async function aiSaveSheet(name,headers,rows){
   var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?sheet_name=eq.'+encodeURIComponent(name)+'&select=sheet_name',
     {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
@@ -1363,7 +1316,6 @@ async function aiSaveSheet(name,headers,rows){
     body:JSON.stringify({sheet_name:name,headers:headers,rows:rows,updated_at:new Date().toISOString()})
   });
 }
-
 function aiFindPriceCol(headers){
   for(var i=0;i<AI_PRICE_COLS.length;i++){
     var idx=headers.indexOf(AI_PRICE_COLS[i]); if(idx>=0) return idx;
