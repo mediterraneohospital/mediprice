@@ -1347,10 +1347,12 @@ async function aiExecute(actionType,data){
   try{
     var isBulk=(actionType==='confirm_bulk');
     var sheets=[];
-    if(data.sheet){
+    if(isBulk&&data.sheet){
+      // Bulk: only the specified sheet
       if(!D[data.sheet]||!D[data.sheet].rows) await aiLoad(data.sheet);
       if(D[data.sheet]) sheets.push(data.sheet);
     }else{
+      // Update: always search ALL sheets (Claude often picks wrong sheet)
       var all=await aiAllNames();
       for(var i=0;i<all.length;i++){
         if(!D[all[i]]||!D[all[i]].rows) await aiLoad(all[i]);
