@@ -1371,6 +1371,9 @@ async function aiExecute(actionType,data){
         if(isPriceCol(h[pi])&&matchPrice(h[pi],data.priceFilter||null)) priceCols.push(pi);
       }
       if(!priceCols.length) continue;
+      // Save undo snapshot BEFORE modifying
+      if(!AI_UNDO) AI_UNDO={sheets:{}};
+      if(!AI_UNDO.sheets[sname]) AI_UNDO.sheets[sname]={headers:h,rows:JSON.parse(JSON.stringify(rows))};
       var upd=0;
       for(var ri=0;ri<rows.length;ri++){
         var row=rows[ri];if(!row||!row.length) continue;
@@ -1390,9 +1393,6 @@ async function aiExecute(actionType,data){
         }
       }
       if(upd>0){
-        // Save undo snapshot
-        if(!AI_UNDO) AI_UNDO={sheets:{}};
-        AI_UNDO.sheets[sname]={headers:h,rows:JSON.parse(JSON.stringify(D[sname].rows))};
         await aiSave(sname,h,rows);
         if(cur===sname&&typeof showSheet==='function') showSheet(cur);
         total+=upd;changed.push(sname.trim()+' ('+upd+')');
