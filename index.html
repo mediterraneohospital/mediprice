@@ -118,7 +118,9 @@ td.price-changed{background:#bbf7d0!important;outline:2px solid #22c55e!importan
 #pricePanel input::placeholder{color:rgba(255,255,255,.5);}
 
 #aiBtn{position:fixed;bottom:24px;right:24px;width:48px;height:48px;background:var(--acc);color:#fff;border:none;border-radius:50%;cursor:pointer;box-shadow:0 4px 16px rgba(26,86,219,.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:bottom .2s,transform .2s;}
-body.cell-editing #aiBtn{bottom:80px;}
+body.edit-active #aiBtn{bottom:72px;}
+body.edit-active.cell-editing #aiBtn{bottom:130px;}
+body.cell-editing #aiBtn{bottom:72px;}
 #aiBtn:hover{transform:scale(1.08);}
 #aiBtn.open{background:#374151;}
 #aiPanel{position:fixed;right:0;top:48px;bottom:0;width:380px;background:var(--sur);border-left:1px solid var(--brd);display:flex;flex-direction:column;z-index:800;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:-4px 0 24px rgba(0,0,0,.1);}
@@ -389,14 +391,14 @@ function toggleEdit(){
     var pass=prompt('Κωδικός επεξεργασίας:');
     if(pass!==EDIT_PASS){if(pass!==null)alert('Λάθος κωδικός!');return;}
     EDIT_MODE=true;
-    document.body.classList.add('edit-mode');
+    document.body.classList.add('edit-mode','edit-active');
     document.getElementById('editBtn').textContent='✅ Επεξεργασία';
     document.getElementById('editBtn').classList.add('active');
     document.getElementById('editBar').classList.add('show');
     document.getElementById('ta').style.paddingBottom='50px';
   } else {
     EDIT_MODE=false;
-    document.body.classList.remove('edit-mode');
+    document.body.classList.remove('edit-mode','edit-active');
     document.getElementById('editBtn').textContent='✏️ Επεξεργασία';
     document.getElementById('editBtn').classList.remove('active');
     document.getElementById('editBar').classList.remove('show');
