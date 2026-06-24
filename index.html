@@ -1149,6 +1149,9 @@ async function aiCallClaude(userText){
       +'undo (when user says αναίρεσε/undo/επαναφορά): {"intent":"undo","message":"Αναιρώ...","data":null} '
       +'chat: {"intent":"chat","message":"...","data":null}. '
       +'IMPORTANT: Words like ανέβασε/αύξησε/βάλε+/κάνε+ mean price INCREASE → confirm_update or confirm_bulk. '
+      +'If user says +50 ευρώ or αύξησε κατά 50, use changeType:add with value:50 (adds fixed amount). '
+      +'If user says +10% use changeType:percent with value:10. '
+      +'If user says βάλε 500 or κάνε 500 (set to specific value) use changeType:fixed with value:500. '
       +'Words like κατέβασε/μείωσε mean price DECREASE. ALWAYS use confirm intent for any price change.';
 
     var msgs=[];
@@ -1386,7 +1389,8 @@ async function aiExecute(actionType,data){
         for(var pci=0;pci<priceCols.length;pci++){
           var old=parseFloat((row[priceCols[pci]]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'));
           if(old>0){
-            row[priceCols[pci]]=(data.changeType==='percent'?Math.round(old*(1+data.value/100)):data.value).toString();
+            var nv=data.changeType==='percent'?Math.round(old*(1+data.value/100)):data.changeType==='add'?Math.round(old+data.value):data.value;
+            row[priceCols[pci]]=nv.toString();
             upd++;
           }
         }
@@ -1396,7 +1400,11 @@ async function aiExecute(actionType,data){
         if(!AI_UNDO) AI_UNDO={sheets:{}};
         AI_UNDO.sheets[sname]={headers:h,rows:origRows};
         await aiSave(sname,h,rows);
-        if(cur===sname&&typeof showSheet==='function') showSheet(cur);
+        if(cur===sname&&typeof showSheet==='function'){
+          var scrollY=window.scrollY;
+          showSheet(cur);
+          window.scrollTo(0,scrollY);
+        }
         total+=upd;changed.push(sname.trim()+' ('+upd+')');
       }
     }
