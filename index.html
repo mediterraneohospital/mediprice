@@ -105,6 +105,7 @@ td.editing input, th.editing input{width:100%;min-width:200px;border:2px solid v
 .notice{position:fixed;top:60px;right:20px;background:#1e40af;color:#fff;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,.2);}
 .price-mode td[data-ci]{cursor:crosshair!important;}
 td.price-highlight{background:#fef08a!important;outline:2px solid #eab308!important;outline-offset:-2px;}
+td.price-changed{background:#bbf7d0!important;outline:2px solid #22c55e!important;outline-offset:-2px;}
 #pricePanel{display:none;position:fixed;bottom:52px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;border-radius:10px;padding:12px 16px;z-index:700;box-shadow:0 8px 24px rgba(0,0,0,.3);align-items:center;gap:8px;font-size:12px;white-space:nowrap;}
 #pricePanel.show{display:flex;}
 #pricePanel .pcol-name{font-weight:700;color:#fde68a;margin-right:4px;}
@@ -116,7 +117,8 @@ td.price-highlight{background:#fef08a!important;outline:2px solid #eab308!import
 #pricePanel input{width:90px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:4px 8px;color:#fff;font-size:12px;font-family:inherit;text-align:center;}
 #pricePanel input::placeholder{color:rgba(255,255,255,.5);}
 
-#aiBtn{position:fixed;bottom:24px;right:24px;width:48px;height:48px;background:var(--acc);color:#fff;border:none;border-radius:50%;cursor:pointer;box-shadow:0 4px 16px rgba(26,86,219,.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform .2s;}
+#aiBtn{position:fixed;bottom:24px;right:24px;width:48px;height:48px;background:var(--acc);color:#fff;border:none;border-radius:50%;cursor:pointer;box-shadow:0 4px 16px rgba(26,86,219,.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:bottom .2s,transform .2s;}
+body.cell-editing #aiBtn{bottom:80px;}
 #aiBtn:hover{transform:scale(1.08);}
 #aiBtn.open{background:#374151;}
 #aiPanel{position:fixed;right:0;top:48px;bottom:0;width:380px;background:var(--sur);border-left:1px solid var(--brd);display:flex;flex-direction:column;z-index:800;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:-4px 0 24px rgba(0,0,0,.1);}
@@ -343,6 +345,7 @@ async function saveAll(){
     await sbSave(cur, d.headers, d.rows);
   }
   PENDING=false;
+  clearChangedHighlights();
   document.getElementById('saveBtn').style.background='#059669';
   document.getElementById('saveBtn').textContent='✓ Αποθηκεύτηκε';
   setTimeout(function(){
@@ -436,6 +439,7 @@ function makeEditable(el, onSave){
   }
   el.innerHTML=''; el.appendChild(inp);
   inp.focus(); inp.select();
+  document.body.classList.add('cell-editing');
   if(!isTh){
     inp.style.height='auto';
     inp.style.height=Math.max(inp.scrollHeight,28)+'px';
@@ -447,11 +451,12 @@ function makeEditable(el, onSave){
     var nv=inp.value;
     el.classList.remove('editing');
     el.textContent=nv;
+    document.body.classList.remove('cell-editing');
     if(nv!==orig){onSave(nv); markPending();}
   }
   inp.addEventListener('blur',done);
   inp.addEventListener('keydown',function(e){
-    if(e.key==='Escape'){saved=true;el.classList.remove('editing');el.textContent=orig;}
+    if(e.key==='Escape'){saved=true;el.classList.remove('editing');el.textContent=orig;document.body.classList.remove('cell-editing');}
     if(isTh&&e.key==='Enter'){e.preventDefault();inp.blur();}
     if(!isTh&&e.key==='Enter'&&e.ctrlKey){inp.blur();}
     e.stopPropagation();
@@ -485,8 +490,23 @@ function toggleDark(){
 
 // ── PRICE MODE (CELL SELECTION) ───────────────────────────
 var PRICE_MODE=false;
-// Set of selected cells: each entry = {ri, ci, tableIdx (for multi)}
 var PRICE_SELECTED_CELLS=[];
+var PRICE_CHANGED_KEYS=[]; // παραμένουν πράσινα μέχρι αποθήκευση
+
+function highlightChangedCells(){
+  PRICE_CHANGED_KEYS.forEach(function(k){
+    var parts=k.split('_');
+    var ri=parts[0],ci=parts[1];
+    document.querySelectorAll('tbody tr[data-ri="'+ri+'"] td[data-ci="'+ci+'"]').forEach(function(td){
+      td.classList.add('price-changed');
+    });
+  });
+}
+
+function clearChangedHighlights(){
+  document.querySelectorAll('td.price-changed').forEach(function(td){td.classList.remove('price-changed');});
+  PRICE_CHANGED_KEYS=[];
+}
 
 function togglePriceMode(){
   if(PRICE_MODE){ cancelPriceMode(); return; }
@@ -560,17 +580,20 @@ function applyPct(pct){
   if(!PRICE_SELECTED_CELLS.length) return;
   pushUndo();
   var d=D[cur]; if(!d) return;
+  var changed=[];
   PRICE_SELECTED_CELLS.forEach(function(c){
     var rows=d.__multi__&&c.ti!==null?d.tables[c.ti].rows:d.rows;
     var row=rows[c.ri]; if(!row) return;
     var v=parseFloat(String(row[c.ci]||'').trim());
-    if(!isNaN(v)&&v!==0) row[c.ci]=String(Math.round(v*(1+pct/100)));
+    if(!isNaN(v)&&v!==0){ row[c.ci]=String(Math.round(v*(1+pct/100))); changed.push(c.ri+'_'+c.ci); }
   });
+  PRICE_CHANGED_KEYS=PRICE_CHANGED_KEYS.concat(changed);
   var n=PRICE_SELECTED_CELLS.length;
   showNotice((pct>0?'+':'')+pct+'% \u03c3\u03b5 '+n+' \u03ba\u03b5\u03bb\u03af'+(n===1?'':'\u03ac'));
   markPending();
   cancelPriceMode();
   showSheet(cur);
+  highlightChangedCells();
 }
 
 function applyCustomExpr(){
@@ -600,13 +623,15 @@ function applyCustomExpr(){
     } else if(setMatch){
       nv=Math.round(parseFloat(setMatch[1]));
     }
-    if(nv!==undefined&&!isNaN(nv)) row[c.ci]=String(nv);
+    if(nv!==undefined&&!isNaN(nv)){ row[c.ci]=String(nv); changed.push(c.ri+'_'+c.ci); }
   });
+  PRICE_CHANGED_KEYS=PRICE_CHANGED_KEYS.concat(changed);
   var n=PRICE_SELECTED_CELLS.length;
   showNotice(expr+' \u03b5\u03c6\u03b1\u03c1\u03bc\u03cc\u03c3\u03c4\u03b7\u03ba\u03b5 \u03c3\u03b5 '+n+' \u03ba\u03b5\u03bb\u03af'+(n===1?'':'\u03ac'));
   markPending();
   cancelPriceMode();
   showSheet(cur);
+  highlightChangedCells();
 }
 
 function clearCellSelection(){
