@@ -1031,7 +1031,7 @@ init();
 </div>
 
 <script>
-var AI_OPEN=false,AI_TYPING_EL=null,AI_HISTORY=[];
+var AI_OPEN=false,AI_TYPING_EL=null,AI_HISTORY=[],AI_UNDO=null;
 var CLAUDE_KEY='';
 async function aiLoadKey(){
   try{
@@ -1187,10 +1187,11 @@ function aiHandle(p){
   var d=p.data||{};
   if(p.intent==='search'){
     aiAddMsg('bot',p.message||'Αναζητώ...');
-    // Always search all sheets - Claude often picks wrong sheet
     aiSearch(d.searchTerm||'',null,d.priceFilter||null,d.sortBy||null);
   }else if(p.intent==='confirm_update'||p.intent==='confirm_bulk'){
     aiShowConfirm(p.message,p.intent,d);
+  }else if(p.intent==='undo'){
+    aiDoUndo();
   }else{
     aiAddMsg('bot',p.message||'...');
   }
@@ -1386,6 +1387,9 @@ async function aiExecute(actionType,data){
         }
       }
       if(upd>0){
+        // Save undo snapshot
+        if(!AI_UNDO) AI_UNDO={sheets:{}};
+        AI_UNDO.sheets[sname]={headers:h,rows:JSON.parse(JSON.stringify(D[sname].rows))};
         await aiSave(sname,h,rows);
         if(cur===sname&&typeof showSheet==='function') showSheet(cur);
         total+=upd;changed.push(sname.trim()+' ('+upd+')');
@@ -1400,6 +1404,30 @@ async function aiExecute(actionType,data){
   }catch(err){
     aiHideTyping();
     aiAddMsg('bot','Σφάλμα: '+err.message,'error');
+  }
+}
+
+async function aiDoUndo(){
+  if(!AI_UNDO||!AI_UNDO.sheets||!Object.keys(AI_UNDO.sheets).length){
+    aiAddMsg('bot','Δεν υπάρχει αλλαγή για αναίρεση.','error');
+    return;
+  }
+  aiShowTyping();
+  try{
+    var changed=[];
+    for(var sname in AI_UNDO.sheets){
+      var snap=AI_UNDO.sheets[sname];
+      D[sname].rows=snap.rows;
+      await aiSave(sname,snap.headers,snap.rows);
+      if(cur===sname&&typeof showSheet==='function') showSheet(cur);
+      changed.push(sname.trim());
+    }
+    AI_UNDO=null;
+    aiHideTyping();
+    aiAddMsg('bot','↩️ Αναίρεση ολοκληρώθηκε!\n'+changed.map(function(x){return '• '+x;}).join('\n')+'\n\nΟι τιμές επαναφέρθηκαν.','success');
+  }catch(err){
+    aiHideTyping();
+    aiAddMsg('bot','Σφάλμα αναίρεσης: '+err.message,'error');
   }
 }
 
