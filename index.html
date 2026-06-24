@@ -1421,11 +1421,17 @@ async function aiLoad(name){
   }catch(e){return null;}
 }
 async function aiSave(name,headers,rows){
-  var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?sheet_name=eq.'+encodeURIComponent(name)+'&select=sheet_name',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
-  var ex=await r.json();
+  // Try exact name first, then with trailing space (Supabase may have space)
+  var names=[name, name+' ', name.trim()];
+  var ex=[], foundName=name;
+  for(var ni=0;ni<names.length;ni++){
+    var r=await fetch(SB_URL+'/rest/v1/mediprice_sheets?sheet_name=eq.'+encodeURIComponent(names[ni])+'&select=sheet_name',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+    ex=await r.json();
+    if(ex&&ex.length>0){foundName=names[ni];break;}
+  }
   var method=(ex&&ex.length>0)?'PATCH':'POST';
-  var url=SB_URL+'/rest/v1/mediprice_sheets'+(ex&&ex.length>0?'?sheet_name=eq.'+encodeURIComponent(name):'');
-  await fetch(url,{method:method,headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({sheet_name:name,headers:headers,rows:rows,updated_at:new Date().toISOString()})});
+  var url=SB_URL+'/rest/v1/mediprice_sheets'+(ex&&ex.length>0?'?sheet_name=eq.'+encodeURIComponent(foundName):'');
+  await fetch(url,{method:method,headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({sheet_name:foundName,headers:headers,rows:rows,updated_at:new Date().toISOString()})});
 }
 
 function aiAddMsg(role,text,type){
