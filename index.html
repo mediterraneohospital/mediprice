@@ -1140,13 +1140,16 @@ async function aiCallClaude(userText){
     var sheetNames=await aiAllNames();
     var sys='You are MediPrice assistant for Mediterraneo Hospital. '
       +'Available specialties: '+sheetNames.join(', ')+'. '
-      +'Note: cholecystectomy is in ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ. Pacemakers/βηματοδότες are in ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ. Varicose veins/κιρσοί/laser are in ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ. Hip/knee replacement/αρθροπλαστική are in ΟΡΘΟΠΕΔΙΚΗ. If unsure which sheet, use sheet:null to search everywhere. '
-      +'Always respond in Greek. Always respond in JSON only, no markdown. '
-      +'Format: {"intent":"search","message":"...","data":{"searchTerm":"...","sheet":"exact name or null","priceFilter":"για ΕΟΠΥΥ ΒΑ3 γραψε εοπυυ βα3. Για ΙΔΙΩΤΗ ΒΑ3 γραψε ιδιωτης βα3. Για μονο ΕΟΠΥΥ γραψε εοπυυ. Για μονο ΙΔΙΩΤΗ γραψε ιδιωτης. Για ολες null","sortBy":"max or min or null"}} '
-      +'or {"intent":"confirm_update","message":"...","data":{"searchTerm":"...","sheet":"...","changeType":"percent","value":10,"priceFilter":null}} '
-      +'or {"intent":"confirm_bulk","message":"...","data":{"sheet":"...","changeType":"percent","value":5,"priceFilter":null}} '
-      +'or {"intent":"chat","message":"...","data":null}. '
-      +'For price changes always use confirm intent first. sortBy max=most expensive, min=cheapest.';
+      +'Notes: cholecystectomy=ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ. Pacemakers/βηματοδότες=ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ. Varicose/κιρσοί/laser=ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ. Arthroplasty/αρθροπλαστική=ΟΡΘΟΠΕΔΙΚΗ. When unsure use sheet:null. '
+      +'Always respond in Greek. Always respond in VALID JSON only, no markdown, no extra text. '
+      +'Intents: '
+      +'search: {"intent":"search","message":"...","data":{"searchTerm":"...","sheet":"exact or null","priceFilter":"εοπυυ βα3|ιδιωτης βα3|εοπυυ|ιδιωτης|null","sortBy":"max|min|null"}} '
+      +'confirm_update (for changing specific procedure price): {"intent":"confirm_update","message":"Θέλεις να αλλάξω...;","data":{"searchTerm":"...","sheet":"exact or null","changeType":"percent|fixed","value":10,"priceFilter":null}} '
+      +'confirm_bulk (for changing all prices in a specialty): {"intent":"confirm_bulk","message":"Θέλεις να αλλάξω...;","data":{"sheet":"exact","changeType":"percent|fixed","value":5,"priceFilter":null}} '
+      +'undo (when user says αναίρεσε/undo/επαναφορά): {"intent":"undo","message":"Αναιρώ...","data":null} '
+      +'chat: {"intent":"chat","message":"...","data":null}. '
+      +'IMPORTANT: Words like ανέβασε/αύξησε/βάλε+/κάνε+ mean price INCREASE → confirm_update or confirm_bulk. '
+      +'Words like κατέβασε/μείωσε mean price DECREASE. ALWAYS use confirm intent for any price change.';
 
     var msgs=[];
     for(var i=0;i<AI_HISTORY.length;i++) msgs.push(AI_HISTORY[i]);
