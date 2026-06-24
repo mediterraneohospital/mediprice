@@ -1371,10 +1371,9 @@ async function aiExecute(actionType,data){
         if(isPriceCol(h[pi])&&matchPrice(h[pi],data.priceFilter||null)) priceCols.push(pi);
       }
       if(!priceCols.length) continue;
-      // Save undo snapshot BEFORE modifying
-      if(!AI_UNDO) AI_UNDO={sheets:{}};
-      if(!AI_UNDO.sheets[sname]) AI_UNDO.sheets[sname]={headers:h,rows:JSON.parse(JSON.stringify(rows))};
       var upd=0;
+      // Take snapshot of original rows before modification
+      var origRows=JSON.parse(JSON.stringify(rows));
       for(var ri=0;ri<rows.length;ri++){
         var row=rows[ri];if(!row||!row.length) continue;
         var rt='';for(var ci=0;ci<row.length;ci++) rt+=(row[ci]?nt(row[ci].toString()):'')+' ';
@@ -1393,6 +1392,9 @@ async function aiExecute(actionType,data){
         }
       }
       if(upd>0){
+        // Save undo snapshot only for sheets that actually changed
+        if(!AI_UNDO) AI_UNDO={sheets:{}};
+        AI_UNDO.sheets[sname]={headers:h,rows:origRows};
         await aiSave(sname,h,rows);
         if(cur===sname&&typeof showSheet==='function') showSheet(cur);
         total+=upd;changed.push(sname.trim()+' ('+upd+')');
