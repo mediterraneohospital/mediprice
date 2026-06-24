@@ -1017,10 +1017,12 @@ init();
     </div>
   </div>
   <div class="ai-quickbar">
-    <button class="ai-quick" onclick="aiQuick('χολοκυστεκτομή')">Χολοκυστεκτομή</button>
-    <button class="ai-quick" onclick="aiQuick('ακριβότερη επέμβαση γενική χειρουργική')">Ακριβότερη Γεν.Χειρ.</button>
-    <button class="ai-quick" onclick="aiQuick('laser κιρσοί')">Laser κιρσοί</button>
-    <button class="ai-quick" onclick="aiQuick('ουρολογική +5%')">Ουρολογική +5%</button>
+    <button class="ai-quick" onclick="aiAppend('+10%')">+10%</button>
+    <button class="ai-quick" onclick="aiAppend('+50€')">+50€</button>
+    <button class="ai-quick" onclick="aiAppend('-10%')">-10%</button>
+    <button class="ai-quick" onclick="aiAppend('-50€')">-50€</button>
+    <button class="ai-quick" onclick="aiAppend('ακριβότερη ')">↑ Ακριβότερη</button>
+    <button class="ai-quick" onclick="aiAppend('φθηνότερη ')">↓ Φθηνότερη</button>
   </div>
   <div class="ai-inputbar">
     <textarea id="aiInput" placeholder="Ρώτησε κάτι..." rows="1" onkeydown="aiKeyDown(event)" oninput="aiResize(this)"></textarea>
@@ -1122,6 +1124,12 @@ function toggleAI(){
   if(AI_OPEN) setTimeout(function(){document.getElementById('aiInput').focus();},300);
 }
 function aiQuick(t){document.getElementById('aiInput').value=t;sendAI();}
+function aiAppend(t){
+  var inp=document.getElementById('aiInput');
+  inp.value=(inp.value+' '+t).trim();
+  inp.focus();
+  aiResize(inp);
+}
 function aiResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
 function aiKeyDown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAI();}}
 
@@ -1412,7 +1420,16 @@ async function aiExecute(actionType,data){
     if(total===0){
       aiAddMsg('bot','Δεν βρέθηκαν εγγραφές.','error');
     }else{
-      aiAddMsg('bot','✅ Ολοκληρώθηκε!\n'+changed.join('\n')+'\nΑποθηκεύτηκαν.','success');
+      var wrap=document.createElement('div');wrap.className='ai-msg bot';
+      var bubble=document.createElement('div');bubble.className='ai-bubble success';
+      bubble.textContent='✅ Ολοκληρώθηκε!\n'+changed.map(function(x){return '• '+x;}).join('\n')+'\nΑποθηκεύτηκαν.';
+      var undoBtn=document.createElement('button');
+      undoBtn.style.cssText='margin-top:8px;width:100%;padding:7px;border-radius:8px;border:1px solid #6b7280;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:#9ca3af;';
+      undoBtn.textContent='↩️ Αναίρεση';
+      undoBtn.onclick=function(){undoBtn.disabled=true;aiDoUndo();};
+      var meta=document.createElement('div');meta.className='ai-meta';meta.textContent=aiNow();
+      wrap.appendChild(bubble);wrap.appendChild(undoBtn);wrap.appendChild(meta);
+      document.getElementById('aiMessages').appendChild(wrap);aiScroll();
     }
   }catch(err){
     aiHideTyping();
