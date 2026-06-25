@@ -103,9 +103,10 @@ td.editing input, th.editing input{width:100%;min-width:200px;border:2px solid v
 .add-col-btn{display:none;background:var(--th-pc);border:1px dashed var(--acc);color:var(--acc);padding:6px 10px;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;}
 .edit-mode .add-col-btn{display:inline-block;}
 .notice{position:fixed;top:60px;right:20px;background:#1e40af;color:#fff;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,.2);}
-.price-mode td[data-ci]{cursor:crosshair!important;}
-td.price-highlight{background:#fef08a!important;outline:2px solid #eab308!important;outline-offset:-2px;}
-td.price-changed{background:#bbf7d0!important;outline:2px solid #22c55e!important;outline-offset:-2px;}
+.price-mode th[data-hi]{cursor:crosshair!important;}
+.price-mode th[data-hi]:hover{background:#fef9c3!important;color:#713f12!important;}
+th.price-selected{background:var(--price-sel)!important;color:#d4a017!important;outline:2px solid #eab308!important;}
+td.price-highlight{background:#fef9c3!important;}
 #pricePanel{display:none;position:fixed;bottom:52px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;border-radius:10px;padding:12px 16px;z-index:700;box-shadow:0 8px 24px rgba(0,0,0,.3);align-items:center;gap:8px;font-size:12px;white-space:nowrap;}
 #pricePanel.show{display:flex;}
 #pricePanel .pcol-name{font-weight:700;color:#fde68a;margin-right:4px;}
@@ -114,11 +115,10 @@ td.price-changed{background:#bbf7d0!important;outline:2px solid #22c55e!importan
 #pricePanel .apply-btn{background:#eab308;color:#1f2937;border-color:#eab308;font-weight:700;}
 #pricePanel .apply-btn:hover{background:#ca9a06;}
 #pricePanel .cancel-btn{background:#e53e3e;border-color:#e53e3e;}
-#pricePanel input{width:90px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:4px 8px;color:#fff;font-size:12px;font-family:inherit;text-align:center;}
-#pricePanel input::placeholder{color:rgba(255,255,255,.5);}
+#pricePanel input[type=number]{width:64px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:4px 8px;color:#fff;font-size:12px;font-family:inherit;text-align:center;}
+#pricePanel input[type=number]::-webkit-inner-spin-button{opacity:1;}
 
-#aiBtn{position:fixed;bottom:24px;right:24px;width:48px;height:48px;background:var(--acc);color:#fff;border:none;border-radius:50%;cursor:pointer;box-shadow:0 4px 16px rgba(26,86,219,.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:bottom .2s,right .2s,transform .2s;}
-body.edit-active #aiBtn{bottom:148px;right:24px;}
+#aiBtn{position:fixed;bottom:24px;right:24px;width:48px;height:48px;background:var(--acc);color:#fff;border:none;border-radius:50%;cursor:pointer;box-shadow:0 4px 16px rgba(26,86,219,.35);z-index:1000;display:flex;align-items:center;justify-content:center;transition:transform .2s;}
 #aiBtn:hover{transform:scale(1.08);}
 #aiBtn.open{background:#374151;}
 #aiPanel{position:fixed;right:0;top:48px;bottom:0;width:380px;background:var(--sur);border-left:1px solid var(--brd);display:flex;flex-direction:column;z-index:800;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:-4px 0 24px rgba(0,0,0,.1);}
@@ -185,18 +185,17 @@ body.edit-active #aiBtn{bottom:148px;right:24px;}
 </div>
 <div id="pricePanel">
   <span>💰 Αλλαγές Τιμών —</span>
-  <span id="pricePanelHint">Κλικ σε κελιά τιμής για επιλογή</span>
-  <span id="pricePanelCount" class="pcol-name" style="display:none"></span>
-  <div id="priceBtns" style="display:none;align-items:center;gap:6px;">
+  <span>Κλικ σε header στήλης για επιλογή</span>
+  <span id="pricePanelCol" class="pcol-name" style="display:none"></span>
+  <div id="priceBtns" style="display:none;align-items:center;gap:6px;display:none">
     <button onclick="applyPct(-20)">−20%</button>
     <button onclick="applyPct(-10)">−10%</button>
     <button onclick="applyPct(10)">+10%</button>
     <button onclick="applyPct(20)">+20%</button>
     <button onclick="applyPct(40)">+40%</button>
     <span style="opacity:.6">|</span>
-    <input type="text" id="customExpr" placeholder="+10% ή +50€" style="width:90px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:4px 8px;color:#fff;font-size:12px;font-family:inherit;text-align:center;">
-    <button onclick="applyCustomExpr()" class="apply-btn">✓ Εφαρμογή</button>
-    <button onclick="clearCellSelection()" style="background:rgba(255,255,255,.1);font-size:11px;">✕ Καθαρισμός</button>
+    <input type="number" id="customPct" placeholder="%" step="1">
+    <button onclick="applyCustomPct()" class="apply-btn">✓ Εφαρμογή</button>
   </div>
   <button onclick="cancelPriceMode()" class="cancel-btn">✕ Άκυρο</button>
 </div>
@@ -345,7 +344,6 @@ async function saveAll(){
     await sbSave(cur, d.headers, d.rows);
   }
   PENDING=false;
-  clearChangedHighlights();
   document.getElementById('saveBtn').style.background='#059669';
   document.getElementById('saveBtn').textContent='✓ Αποθηκεύτηκε';
   setTimeout(function(){
@@ -389,14 +387,14 @@ function toggleEdit(){
     var pass=prompt('Κωδικός επεξεργασίας:');
     if(pass!==EDIT_PASS){if(pass!==null)alert('Λάθος κωδικός!');return;}
     EDIT_MODE=true;
-    document.body.classList.add('edit-mode','edit-active');
+    document.body.classList.add('edit-mode');
     document.getElementById('editBtn').textContent='✅ Επεξεργασία';
     document.getElementById('editBtn').classList.add('active');
     document.getElementById('editBar').classList.add('show');
     document.getElementById('ta').style.paddingBottom='50px';
   } else {
     EDIT_MODE=false;
-    document.body.classList.remove('edit-mode','edit-active');
+    document.body.classList.remove('edit-mode');
     document.getElementById('editBtn').textContent='✏️ Επεξεργασία';
     document.getElementById('editBtn').classList.remove('active');
     document.getElementById('editBar').classList.remove('show');
@@ -439,7 +437,6 @@ function makeEditable(el, onSave){
   }
   el.innerHTML=''; el.appendChild(inp);
   inp.focus(); inp.select();
-  document.body.classList.add('cell-editing');
   if(!isTh){
     inp.style.height='auto';
     inp.style.height=Math.max(inp.scrollHeight,28)+'px';
@@ -451,12 +448,11 @@ function makeEditable(el, onSave){
     var nv=inp.value;
     el.classList.remove('editing');
     el.textContent=nv;
-    document.body.classList.remove('cell-editing');
     if(nv!==orig){onSave(nv); markPending();}
   }
   inp.addEventListener('blur',done);
   inp.addEventListener('keydown',function(e){
-    if(e.key==='Escape'){saved=true;el.classList.remove('editing');el.textContent=orig;document.body.classList.remove('cell-editing');}
+    if(e.key==='Escape'){saved=true;el.classList.remove('editing');el.textContent=orig;}
     if(isTh&&e.key==='Enter'){e.preventDefault();inp.blur();}
     if(!isTh&&e.key==='Enter'&&e.ctrlKey){inp.blur();}
     e.stopPropagation();
@@ -488,168 +484,78 @@ function toggleDark(){
   }
 })();
 
-// ── PRICE MODE (CELL SELECTION) ───────────────────────────
-var PRICE_MODE=false;
-var PRICE_SELECTED_CELLS=[];
-var PRICE_CHANGED_KEYS=[]; // παραμένουν πράσινα μέχρι αποθήκευση
-
-function highlightChangedCells(){
-  PRICE_CHANGED_KEYS.forEach(function(k){
-    var parts=k.split('_');
-    var ri=parts[0],ci=parts[1];
-    document.querySelectorAll('tbody tr[data-ri="'+ri+'"] td[data-ci="'+ci+'"]').forEach(function(td){
-      td.classList.add('price-changed');
-    });
-  });
-}
-
-function clearChangedHighlights(){
-  document.querySelectorAll('td.price-changed').forEach(function(td){td.classList.remove('price-changed');});
-  PRICE_CHANGED_KEYS=[];
-}
+// ── PRICE MODE ────────────────────────────────────────────
+var PRICE_MODE=false, PRICE_COL=null, PRICE_COL_NAME='';
 
 function togglePriceMode(){
   if(PRICE_MODE){ cancelPriceMode(); return; }
   PRICE_MODE=true;
   document.getElementById('pricePanel').classList.add('show');
-  document.getElementById('pricePanelHint').style.display='';
-  document.getElementById('pricePanelCount').style.display='none';
+  document.getElementById('pricePanelCol').style.display='none';
   document.getElementById('priceBtns').style.display='none';
+  document.querySelector('#pricePanel span:nth-child(2)').style.display='';
   document.getElementById('priceBtn').style.background='#ca9a06';
   document.getElementById('ta').classList.add('price-mode');
-  document.getElementById('customExpr').value='';
-  PRICE_SELECTED_CELLS=[];
-  attachPriceCellListeners();
-}
-
-function attachPriceCellListeners(){
-  document.querySelectorAll('tbody td[data-ci]').forEach(function(td){
-    var ci=parseInt(td.dataset.ci);
-    var v=parseFloat(td.textContent.trim());
-    if(!isNaN(v) && v!==0){
-      td.style.cursor='crosshair';
-      td.addEventListener('click', onPriceCellClick);
-    }
+  // Προσθήκη click listeners στα headers
+  document.querySelectorAll('thead th[data-hi]').forEach(function(th){
+    th.addEventListener('click', onPriceHeaderClick);
   });
 }
 
-function detachPriceCellListeners(){
-  document.querySelectorAll('tbody td[data-ci]').forEach(function(td){
-    td.style.cursor='';
-    td.removeEventListener('click', onPriceCellClick);
-  });
-}
-
-function onPriceCellClick(e){
+function onPriceHeaderClick(e){
   if(!PRICE_MODE) return;
   e.stopPropagation();
-  var td=e.currentTarget;
-  var v=parseFloat(td.textContent.trim());
-  if(isNaN(v)||v===0) return;
-  var ci=parseInt(td.dataset.ci);
-  var ri=parseInt(td.closest('tr').dataset.ri);
-  var ti=td.closest('tr').dataset.ti!==undefined ? parseInt(td.closest('tr').dataset.ti) : null;
-
-  // Toggle επιλογής
-  var key=ri+'_'+ci+(ti!==null?'_'+ti:'');
-  var idx=PRICE_SELECTED_CELLS.findIndex(function(c){return c.key===key;});
-  if(idx>=0){
-    // Αποεπιλογή
-    PRICE_SELECTED_CELLS.splice(idx,1);
-    td.classList.remove('price-highlight');
-  } else {
-    // Επιλογή
-    PRICE_SELECTED_CELLS.push({key:key,ri:ri,ci:ci,ti:ti,el:td});
-    td.classList.add('price-highlight');
-  }
-
-  var n=PRICE_SELECTED_CELLS.length;
-  if(n===0){
-    document.getElementById('pricePanelHint').style.display='';
-    document.getElementById('pricePanelCount').style.display='none';
-    document.getElementById('priceBtns').style.display='none';
-  } else {
-    document.getElementById('pricePanelHint').style.display='none';
-    document.getElementById('pricePanelCount').textContent=n+' κελί'+(n===1?'':'ά')+' επιλεγμέν'+(n===1?'ο':'α');
-    document.getElementById('pricePanelCount').style.display='';
-    document.getElementById('priceBtns').style.display='flex';
-  }
+  // Αφαίρεση προηγούμενης επιλογής
+  document.querySelectorAll('thead th.price-selected').forEach(function(t){t.classList.remove('price-selected');});
+  document.querySelectorAll('td.price-highlight').forEach(function(t){t.classList.remove('price-highlight');});
+  var th=e.currentTarget;
+  th.classList.add('price-selected');
+  PRICE_COL=parseInt(th.dataset.hi);
+  PRICE_COL_NAME=th.textContent.replace(/\s+/g,' ').trim();
+  // Highlight στήλης
+  document.querySelectorAll('tbody td[data-ci="'+PRICE_COL+'"]').forEach(function(td){
+    var v=parseFloat(td.textContent.trim());
+    if(!isNaN(v) && v!==0) td.classList.add('price-highlight');
+  });
+  // Εμφάνιση panel με κουμπιά
+  document.getElementById('pricePanelCol').textContent=PRICE_COL_NAME;
+  document.getElementById('pricePanelCol').style.display='';
+  document.getElementById('priceBtns').style.display='flex';
+  document.querySelector('#pricePanel span:nth-child(2)').style.display='none';
 }
 
 function applyPct(pct){
-  if(!PRICE_SELECTED_CELLS.length) return;
+  if(PRICE_COL===null) return;
+  var d=getCurrentData(); if(!d) return;
   pushUndo();
-  var d=D[cur]; if(!d) return;
-  var changed=[];
-  PRICE_SELECTED_CELLS.forEach(function(c){
-    var rows=d.__multi__&&c.ti!==null?d.tables[c.ti].rows:d.rows;
-    var row=rows[c.ri]; if(!row) return;
-    var v=parseFloat(String(row[c.ci]||'').trim());
-    if(!isNaN(v)&&v!==0){ row[c.ci]=String(Math.round(v*(1+pct/100))); changed.push(c.ri+'_'+c.ci); }
-  });
-  PRICE_CHANGED_KEYS=PRICE_CHANGED_KEYS.concat(changed);
-  var n=PRICE_SELECTED_CELLS.length;
-  showNotice((pct>0?'+':'')+pct+'% \u03c3\u03b5 '+n+' \u03ba\u03b5\u03bb\u03af'+(n===1?'':'\u03ac'));
-  markPending();
-  cancelPriceMode();
-  showSheet(cur);
-  highlightChangedCells();
-}
-
-function applyCustomExpr(){
-  var expr=document.getElementById('customExpr').value.trim();
-  if(!expr){ alert('\u0395\u03b9\u03c3\u03ac\u03b3\u03b5\u03c4\u03b5 \u03c4\u03b9\u03bc\u03ae \u03c0.\u03c7. +10% \u03ae +50 \u03ae -20%'); return; }
-  if(!PRICE_SELECTED_CELLS.length){ alert('\u0395\u03c0\u03b9\u03bb\u03ad\u03be\u03c4\u03b5 \u03ba\u03b5\u03bb\u03b9\u03ac \u03c0\u03c1\u03ce\u03c4\u03b1'); return; }
-  var pctMatch=expr.match(/^([+\-]?\d+(\.\d+)?)%$/);
-  var absMatch=expr.match(/^([+\-]\d+(\.\d+)?)$/);
-  var setMatch=expr.match(/^=(\d+(\.\d+)?)$/);
-  if(!pctMatch && !absMatch && !setMatch){
-    alert('\u039c\u03bf\u03c1\u03c6\u03ae: +10% \u03ae -5% (\u03c0\u03bf\u03c3\u03bf\u03c3\u03c4\u03cc), +50 \u03ae -20 (\u03b1\u03c0\u03cc\u03bb\u03c5\u03c4\u03bf), =150 (\u03ba\u03b1\u03b8\u03bf\u03c1\u03b9\u03c3\u03bc\u03cc\u03c2)');
-    return;
-  }
-  pushUndo();
-  var d=D[cur]; if(!d) return;
-  PRICE_SELECTED_CELLS.forEach(function(c){
-    var rows=d.__multi__&&c.ti!==null?d.tables[c.ti].rows:d.rows;
-    var row=rows[c.ri]; if(!row) return;
-    var v=parseFloat(String(row[c.ci]||'').trim());
-    var nv;
-    if(pctMatch){
-      if(isNaN(v)||v===0) return;
-      nv=Math.round(v*(1+parseFloat(pctMatch[1])/100));
-    } else if(absMatch){
-      if(isNaN(v)||v===0) return;
-      nv=Math.max(0,Math.round(v+parseFloat(absMatch[1])));
-    } else if(setMatch){
-      nv=Math.round(parseFloat(setMatch[1]));
+  d.rows.forEach(function(row){
+    var v=parseFloat(String(row[PRICE_COL]).trim());
+    if(!isNaN(v) && v!==0){
+      row[PRICE_COL]=String(Math.round(v*(1+pct/100)));
     }
-    if(nv!==undefined&&!isNaN(nv)){ row[c.ci]=String(nv); changed.push(c.ri+'_'+c.ci); }
   });
-  PRICE_CHANGED_KEYS=PRICE_CHANGED_KEYS.concat(changed);
-  var n=PRICE_SELECTED_CELLS.length;
-  showNotice(expr+' \u03b5\u03c6\u03b1\u03c1\u03bc\u03cc\u03c3\u03c4\u03b7\u03ba\u03b5 \u03c3\u03b5 '+n+' \u03ba\u03b5\u03bb\u03af'+(n===1?'':'\u03ac'));
+  showNotice((pct>0?'+':'')+pct+'% εφαρμόστηκε στη στήλη "'+PRICE_COL_NAME+'"');
   markPending();
   cancelPriceMode();
   showSheet(cur);
-  highlightChangedCells();
 }
 
-function clearCellSelection(){
-  PRICE_SELECTED_CELLS.forEach(function(c){ if(c.el) c.el.classList.remove('price-highlight'); });
-  PRICE_SELECTED_CELLS=[];
-  document.getElementById('pricePanelHint').style.display='';
-  document.getElementById('pricePanelCount').style.display='none';
-  document.getElementById('priceBtns').style.display='none';
+function applyCustomPct(){
+  var pct=parseFloat(document.getElementById('customPct').value);
+  if(isNaN(pct)){ alert('Εισάγετε έγκυρο ποσοστό'); return; }
+  applyPct(pct);
 }
 
 function cancelPriceMode(){
-  PRICE_MODE=false;
-  PRICE_SELECTED_CELLS=[];
+  PRICE_MODE=false; PRICE_COL=null; PRICE_COL_NAME='';
   document.getElementById('pricePanel').classList.remove('show');
   document.getElementById('priceBtn').style.background='#eab308';
   document.getElementById('ta').classList.remove('price-mode');
+  document.querySelectorAll('thead th.price-selected').forEach(function(t){t.classList.remove('price-selected');});
   document.querySelectorAll('td.price-highlight').forEach(function(t){t.classList.remove('price-highlight');});
-  detachPriceCellListeners();
+  document.querySelectorAll('thead th[data-hi]').forEach(function(th){
+    th.removeEventListener('click', onPriceHeaderClick);
+  });
 }
 
 function addRow(){
@@ -915,8 +821,6 @@ function addRowMulti(ti){
 async function init(){
   try{
     var r=await fetch('data.json'); D=await r.json();
-    // ΟΦΘΑΛΜΟΛΟΓΙΑ: hardcoded multi-table (4 υπο-πίνακες)
-    D['ΟΦΘΑΛΜΟΛΟΓΙΑ']={__multi__:true,tables:[{"title": "ΠΡΑΞΕΙΣ", "headers": ["ΠΕΡΙΓΡΑΦΗ ΠΡΑΞΗΣ", "ΚΕΝ", "ΗΜΕΡΕΣ ΝΟΣΗΛΕΙΑΣ", "ΔΩΜΑΤΙΟ", "ΧΕΙΡΟΥΡΓΙΚΟΣ ΧΡΟΝΟΣ (ΛΕΠΤΑ)", "ΙΔΙΩΤΗΣ ΜΕ ΦΠΑ", "ΕΟΠΥΥ ΜΕ ΦΠΑ", "EXTRA"], "rows": [["ΚΑΤΑΡΡΑΚΤΗΣ", "Ο16Α", "ODC", "ODC", "ΕΩΣ 30", "350", "150", "ΕΝΔΟΦΑΚΟΣ"], ["ΚΑΤΑΡΡΑΚΤΗΣ ΑΜΦΩ", "Ο16Α", "ODC", "ODC", "ΕΩΣ 60", "600", "350", "ΕΝΔΟΦΑΚΟΣ"], ["ΥΑΛΟΕΙΔΕΚΤΟΜΗ", "Ο03Α", "ODC", "ODC", "ΕΩΣ 90", "550", "250", "ΕΙΔΙΚΑ ΥΛΙΚΑ"], ["ΓΛΑΥΚΩΜΑ", "Ο15Β", "ODC", "ODC", "ΕΩΣ 90", "630", "400", "ΕΙΔΙΚΑ ΥΛΙΚΑ"], ["ΒΛΕΦΑΡΟΠΛΑΣΤΙΚΗ", "ΙΔΙΩΤΙΚΑ", "ODC", "ODC", "ΕΩΣ 60", "370", "", "ΕΙΔΙΚΑ ΥΛΙΚΑ"], ["ΜΕΤΑΜΟΣΧΕΥΣΗ ΚΕΡΑΤΟΕΙΔΟΥΣ", "Ο17Α", "1", "ΒΑ", "ΕΩΣ 90", "1000", "400", "ΜΟΣΧΕΥΜΑ"], ["ΑΣΚΟΡΙΝΟΣΤΟΜΙΑ", "Ο05Α", "1", "ΒΑ", "", "1095", "650 για νοσηλεία σε τρίκλινο(800 για νοσηλεία σε δίκλινο)", "ΕΙΔΙΚΑ ΥΛΙΚΑ"], ["ΧΑΛΑΖΙΟ", "ΙΔΙΩΤΙΚΑ", "ΕΠΙΣΚΕΨΗ Ε.Ι.", "ΕΠΙΣΚΕΨΗ Ε.Ι.", "ΕΩΣ 30", "200", "", "ΕΙΔΙΚΑ ΥΛΙΚΑ"], ["ΠΤΕΡΥΓΙΟ", "ΙΔΙΩΤΙΚΑ", " ", "ΕΠΙΣΚΕΨΗ Ε.Ι.", "ΕΩΣ 30", "280", "", "ΕΙΔΙΚΑ ΥΛΙΚΑ"], ["", "", "", "", "ΕΩΣ 60", "330", "", ""], ["", "", "", "", "ΕΩΣ 90", "380", "", ""], ["ΕΝΔΟΫΑΛΟΕΙΔΙΚΗ", "ΙΔΙΩΤΙΚΑ", "ΕΠΙΣΚΕΨΗ Ε.Ι", "ΕΠΙΣΚΕΨΗ Ε.Ι", "", "70", "", "AVASTIN 40€"], ["ΕΝΕΣΗ (όταν γίνεται άμφω θα χρεώνεται μια πράξη και 2 φάρμακα)", "", "", "", "", "", "", "(LUCENTIS/EYLEA ΤΟ ΦΑΡΜΑΚΟ ΠΡΟΣΚΟΜΙΖΕΙ Ο ΑΣΘΕΝΗΣ)"], ["", " ΧΡΕΩΣΗ ΕΠΙΠΛΕΟΝ ΧΕΙΡΟΥΡΓΙΚΟΥ ΧΡΟΝΟΥ  50€ ΑΝΑ 30'", "", "", "", "", "", ""], ["ΗΜΕΡΟΜΗΝΙΑ ΕΦΑΡΜΟΓΗΣ 01/05/2024", "", "", "", "", "", "", ""]]}, {"title": "ΕΝΔΟΦΑΚΟΙ", "headers": ["Α/Α", "REF", "ΠΕΡΙΓΡΑΦΗ", "ΤΙΜΗ ΜΕ ΦΠΑ 24%", "ΠΡΟΜΗΘΕΥΤΗΣ"], "rows": [["1", "MX60Pxxxx", "ΥΔΡΟΦΟΒΟΣ ΕΝΔΟΦΑΚΟΣ ENVISTA MX60P +00.00 BAUSCH AND LOMB", "109.12", "ΑΝΑΣΤΑΣΙΟΣ ΜΑΥΡΟΓΕΝΗΣ ΙΑΤΡΟΤΕΧΝΟΛΟΓΙΚΑ ΕΙΔΗ Α.Ε."], ["2", "ADAPTAOPxxxx", "ΥΔΡΟΦΙΛΟΣ ΕΝΔΟΦΑΚΟΣ ADAPT- AOP BAUSCH AND LOMB", "88.66", "ΑΝΑΣΤΑΣΙΟΣ ΜΑΥΡΟΓΕΝΗΣ ΙΑΤΡΟΤΕΧΝΟΛΟΓΙΚΑ ΕΙΔΗ Α.Ε."], ["3", "MXExxxx", "ΥΔΡΟΦΟΒΟΣ ΑΚΡΥΛΙΚΟΣ ΕΝΔΟΦΑΚΟΣ MX60E BAUSCH AND LOMB", "109.12", "ΑΝΑΣΤΑΣΙΟΣ ΜΑΥΡΟΓΕΝΗΣ ΙΑΤΡΟΤΕΧΝΟΛΟΓΙΚΑ ΕΙΔΗ Α.Ε."], ["4", "MXET200xxx", "ENVISTA MXET200 ΥΔΡΟΦΟΒΟΣ ΑΚΡΥΛΙΚΟΣ ΤΟΡΙΚΟΣ BAUSCH AND LOMB", "313.72", "ΑΝΑΣΤΑΣΙΟΣ ΜΑΥΡΟΓΕΝΗΣ ΙΑΤΡΟΤΕΧΝΟΛΟΓΙΚΑ ΕΙΔΗ Α.Ε."], ["5", "SA60ATxxx", "ACRYSOF SP FOLDABLE ", "93", "ALCON HELLAS AEBE"], ["9", "SN60WF", "SN60WF.xxx ACRYSOF SP NATURAL IQ", "124", "ALCON HELLAS AEBE"], ["11", "SN6AT2-T9.XXX", "ACRYSOF TORIC IQ", "297.6", "ALCON HELLAS AEBE"], ["6", "CNA0T0.xxxx", "CNA0T0. AUTONOME W/SY60WF", "143.84", "ALCON HELLAS AEBE"], ["7", "MTA3U0.xxx", "MTA3U0. PMMA SP 5.5 OPTIC LENGTH ", "89.28", "ALCON HELLAS AEBE"], ["8", "MA60AC.xxx", "MA60AC. ACRYSOF MP FOLDABLE 6.0 OPTIC", "111.6", "ALCON HELLAS AEBE"], ["10", "MA60MA", "ACRYSOF MP FOLDABLE  OPTIC", "230.64", "ALCON HELLAS AEBE"], ["12", "DFT015.XXX", "AcrySof™ IQ Vivity™", "644.8", "ALCON HELLAS AEBE"], ["13", "DFT215-615.XXX", "AcrySof™ IQ Vivity™ Toric", "843.2", "ALCON HELLAS AEBE"], ["14", "TFNT00.XXX", "TFNT00.xxx AS IQ PANOPTIX NAT", "644.8", "ALCON HELLAS AEBE"], ["15", "TFNT20-60.XXX", "TFNT20.xxx PANOPTIX TORIC", "930", "ALCON HELLAS AEBE"], ["16", "CNW0T2-9", "Clareon® Toric", "310", "ALCON HELLAS AEBE"], ["17", "CNWET0", "CLAREON VIVITY", "644.8", "ALCON HELLAS AEBE"], ["18", "CNWET2-6.XXX", "CLAREON VIVITY TORIC T2", "843.2", "ALCON HELLAS AEBE"], ["19", "04-70-xxx", "LUCIDIS 108M ", "341", "Δ.ΤΣΙΜΠΙΔΑΡΟΣ & ΣΙΑ ΕΕ"], ["20", "04-70-xxx", "LUCIDIS 124M ", "341", "Δ.ΤΣΙΜΠΙΔΑΡΟΣ & ΣΙΑ ΕΕ"], ["21", "04-71-xxx", "LUCIDIS 108MΤ", "531.96", "Δ.ΤΣΙΜΠΙΔΑΡΟΣ & ΣΙΑ ΕΕ"], ["22", "04-71-xxx", "LUCIDIS 124MΤ", "531.96", "Δ.ΤΣΙΜΠΙΔΑΡΟΣ & ΣΙΑ ΕΕ"], ["23", "601040", "TECNIS 1-PIECE  PCB00", "150", "AMVIS ΕΛΛΑΣ Α.Ε."], ["24", "601050P ", "TECNIS EYHANCE  ICB00 (PRELOADED DIB00)", "177.32", "AMVIS ΕΛΛΑΣ Α.Ε."], ["25", "601050Τ ", "TECNIS EYHANCE  DIU100-DIU525 TORIC", "477.4", "AMVIS ΕΛΛΑΣ Α.Ε."], ["26", "601014", "ΕΝΔΟΦ.TECNIS SYMFONY", "682", "AMVIS ΕΛΛΑΣ Α.Ε."], ["27", "57233", "ΕΝΔΟΦ.3 ΤΕΜΑΧΙΩΝ CT LUCIA 202", "245.52", "AMVIS ΕΛΛΑΣ Α.Ε."], ["28", "13/VIVINEX XC1", " HOYA ISERT VIVINEX, XC1, POWER  ", "136.4", "ΟΜΜΑΛΑΙΤ"], ["29", "13/VIVINEX TORIC XY1A-SP", "HOYA  VIVINEX TORIC, XY1A-SP, CYL T2-T9 POWER ", "260.4", "ΟΜΜΑΛΑΙΤ"], ["30", "", "Ενδοφθαλμιος φακός ασφαιρικος , υδρόφοβος με σχήμα ‘’C-Loop’’", "113.9", "MARZAVAS"]]}, {"title": "EXTRA ΥΛΙΚΑ ΠΕΡΑΝ ΠΑΚΕΤΟΥ", "headers": ["ΥΛΙΚΟ", "ΤΙΜΗ"], "rows": [["ΚΑΣΣΕΤΑ ΥΑΛΟΕΙΔΕΚΤΟΜΗΣ: BL5423WVX", "395.5"], ["6280950N ΑΕΡΙΟ SF6- ΣΥΡΙΓΓΑ", "75"], ["ΑΕΡΙΟ SF6 OPHTHAFUTUR 50ml", "68.2"], ["ΣΙΛΙΚΟΝΗ: VRL500", "95.48"], ["ΣΥΣΚΕΥΗ ΣΙΛΙΚΟΝΗΣ: BL7600", "122.76"], ["LASER: BL5293C", "163.68"], ["ΛΑΒΙΔΑ: 650235-12", "129.58"], ["SUI12-12", "102.3"], ["ΧΡΩΣΤΙΚΗ: BRILIANT 62810151", "95.48"], ["ΒΑΡΥ ΥΓΡΟ: 500504", "87.296"], ["ΦΑΚΟΣ CARLEVALE- ΕΤΑΙΡΕΙΑ ΜΑΡΖΑΒΑΣ", "266.6"], ["ΦΑΚΟΣ ARTISAN -ΕΤΑΙΡΕΙΑ SYSTEM VISION", "260.4"]]}, {"title": "ΥΛΙΚΑ ΕΝΤΟΣ ΠΑΚΕΤΟΥ", "headers": ["ΥΛΙΚΟ", "ΤΙΜΗ"], "rows": [["OCCUCOAT: CC100SL", "13.516"], ["ΜΑΧΑΙΡΙΔΙΟ ALCON 8065921501", "4.26"], ["ΜΑΧΑΙΡΙΔΙΟ ALCON 8065992745", "6.82"], ["ΜΑΧΑΙΡΙΔΙΟ ALCON 8065990002", "5.184"], ["ΡΑΜΜΑ 10-0 NYLON 8065193001", "11.594"], ["ΡΑΜΜΑ 9-0 NYLON 8065193101", "15.62"], ["MERSILK 7-0 W817- JONHSON", "19.716"], ["VICRYL W9565 JONHSON", "16.74"], ["ΚΑΣΣΕΤΑ ΚΑΤΑΡΡΑΚΤΗ BL5111", "30"]]}]};
     // Load overrides from Supabase for non-multi sheets
     var loadPromises=Object.keys(D).map(function(k){return loadSheetFromSB(k);});
     await Promise.all(loadPromises);
@@ -1060,7 +964,6 @@ function addResizers(){
 
 // Row selection
 document.getElementById('ta').addEventListener('click',function(e){
-  if(PRICE_MODE) return; // Στο price mode το click χειρίζεται από onPriceCellClick
   if(e.target.closest('button')) return;
   var tr=e.target.closest('tbody tr'); if(!tr) return;
   var was=tr.classList.contains('sel');
@@ -1218,7 +1121,6 @@ function toggleAI(){
   AI_OPEN=!AI_OPEN;
   document.getElementById('aiPanel').classList.toggle('open',AI_OPEN);
   document.getElementById('aiBtn').classList.toggle('open',AI_OPEN);
-  document.getElementById('aiBtn').style.display=AI_OPEN?'none':'flex';
   if(AI_OPEN) setTimeout(function(){document.getElementById('aiInput').focus();},300);
 }
 function aiQuick(t){document.getElementById('aiInput').value=t;sendAI();}
@@ -1246,7 +1148,7 @@ async function aiCallClaude(userText){
     var sheetNames=await aiAllNames();
     var sys='You are MediPrice assistant for Mediterraneo Hospital. '
       +'Available specialties: '+sheetNames.join(', ')+'. '
-      +'Notes: cholecystectomy=ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ. Pacemakers/βηματοδότες=ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ. Varicose/κιρσοί/laser=ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ. Arthroplasty/αρθροπλαστική=ΟΡΘΟΠΕΔΙΚΗ. When unsure use sheet:null. '
+      +'Notes: cholecystectomy=ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ. Pacemakers/βηματοδότες=ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ. Varicose/κιρσοί/laser=ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ. Arthroplasty/αρθροπλαστική=ΟΡΘΟΠΕΔΙΚΗ. Στοματογναθοπροσωπική/γναθο/maxillofacial=ΓΝΑΘΟΧΕΙΡΟΥΡΓΙΚΑ. ESD/γαστροσκόπηση/κολονοσκόπηση/γαστρεντερολογ/gastro=ΓΑΣΤΡΕΝΤΕΡΟΛΟΓΙΚΑ. When unsure use sheet:null to search everywhere. '
       +'Always respond in Greek. Always respond in VALID JSON only, no markdown, no extra text. '
       +'Intents: '
       +'search: {"intent":"search","message":"...","data":{"searchTerm":"...","sheet":"exact or null","priceFilter":"εοπυυ βα3|ιδιωτης βα3|εοπυυ|ιδιωτης|null","sortBy":"max|min|null"}} '
@@ -1353,8 +1255,18 @@ async function aiSearch(term,sheetFilter,priceFilter,sortBy){
 
     for(var si=0;si<sheets.length;si++){
       var sname=sheets[si];
-      var sd=D[sname];if(!sd||sd.__multi__||!sd.rows) continue;
-      var h=sd.headers||[];var rows=sd.rows||[];
+      var sd=D[sname];if(!sd) continue;
+      // Handle multi-table sheets
+      var tablesToSearch=[];
+      if(sd.__multi__&&sd.tables){
+        for(var ti=0;ti<sd.tables.length;ti++){
+          if(sd.tables[ti].rows) tablesToSearch.push({h:sd.tables[ti].headers||[],rows:sd.tables[ti].rows});
+        }
+      } else if(sd.rows){
+        tablesToSearch.push({h:sd.headers||[],rows:sd.rows});
+      }
+      for(var tsi=0;tsi<tablesToSearch.length;tsi++){
+      var h=tablesToSearch[tsi].h;var rows=tablesToSearch[tsi].rows;
       var priceCols=[];
       for(var pi=0;pi<h.length;pi++){
         if(isPriceCol(h[pi])) priceCols.push({i:pi,n:(h[pi]||'').toString().split('\n').join(' ').trim()});
@@ -1393,6 +1305,7 @@ async function aiSearch(term,sheetFilter,priceFilter,sortBy){
         var maxP=0;for(var pri=0;pri<prices.length;pri++) if(prices[pri].v>maxP) maxP=prices[pri].v;
         results.push({sheet:sname,name:name,prices:prices,notes:notes,maxPrice:maxP});
       }
+      } // end tablesToSearch loop
     }
 
     if(sortBy==='max') results.sort(function(a,b){return b.maxPrice-a.maxPrice;});
@@ -1475,8 +1388,18 @@ async function aiExecute(actionType,data){
     }
     for(var si=0;si<sheets.length;si++){
       var sname=sheets[si];
-      var sd=D[sname];if(!sd||sd.__multi__||!sd.rows) continue;
-      var h=sd.headers||[];var rows=sd.rows||[];
+      var sd=D[sname];if(!sd) continue;
+      // Handle multi-table sheets
+      var tablesToSearch=[];
+      if(sd.__multi__&&sd.tables){
+        for(var ti=0;ti<sd.tables.length;ti++){
+          if(sd.tables[ti].rows) tablesToSearch.push({h:sd.tables[ti].headers||[],rows:sd.tables[ti].rows});
+        }
+      } else if(sd.rows){
+        tablesToSearch.push({h:sd.headers||[],rows:sd.rows});
+      }
+      for(var tsi=0;tsi<tablesToSearch.length;tsi++){
+      var h=tablesToSearch[tsi].h;var rows=tablesToSearch[tsi].rows;
       var priceCols=[];
       for(var pi=0;pi<h.length;pi++){
         if(isPriceCol(h[pi])&&matchPrice(h[pi],data.priceFilter||null)) priceCols.push(pi);
