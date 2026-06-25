@@ -1600,7 +1600,7 @@ var KAT_BL={1:'kat-b1',2:'kat-b2',3:'kat-b3',4:'kat-b4'};
 
 function openKat(){document.getElementById('katModal').classList.add('open');katPopulateSpec();katDoSearch();}
 function closeKat(){document.getElementById('katModal').classList.remove('open');}
-function katNorm(s){return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
+function katNorm(s){return s.normalize('NFD').replace(/\p{Mn}/gu,'').toLocaleLowerCase('el');}
 
 function katSwitchIns(key,btn){
   KAT_CUR=key;
@@ -1622,16 +1622,26 @@ function katToggleCat(n,btn){
   katDoSearch();
 }
 function katDoSearch(){
-  var q=katNorm(document.getElementById('katSearch').value.trim());
+  var raw=document.getElementById('katSearch').value.trim();
+  var q=katNorm(raw);
   var sp=document.getElementById('katSpecSel').value;
   var data=KAT_INS[KAT_CUR]||[];
+  // Show/hide clear button
+  var clr=document.getElementById('katClrBtn');
+  if(clr) clr.style.display=raw?'flex':'none';
   var res=data.filter(d=>{
     if(!KAT_ACATS.has(d.category_num))return false;
     if(sp&&d.specialty!==sp)return false;
-    if(q){var h=katNorm(d.description+' '+d.code+' '+d.specialty);return q.split(' ').every(w=>h.includes(w));}
+    if(q){var h=katNorm(d.description+' '+d.code+' '+d.specialty);var words=q.split(/\s+/).filter(Boolean);return words.every(w=>h.includes(w));}
     return true;
   });
   katRender(res);
+}
+function katClear(){
+  document.getElementById('katSearch').value='';
+  document.getElementById('katClrBtn').style.display='none';
+  katDoSearch();
+  document.getElementById('katSearch').focus();
 }
 function katRender(rows){
   var tb=document.getElementById('katTbody');
@@ -1721,7 +1731,10 @@ function katParseExcel(wb){
       <div id="katUploadInfo" style="display:none;width:100%;font-size:11px;color:#7c3aed;margin-top:2px"></div>
     </div>
     <div class="kat-search-row">
-      <input type="text" class="kat-si" id="katSearch" placeholder="🔍 Αναζήτηση επέμβασης..." oninput="katDoSearch()">
+      <div style="position:relative;flex:1;min-width:180px;display:flex;align-items:center;">
+        <input type="text" class="kat-si" id="katSearch" placeholder="🔍 Αναζήτηση επέμβασης..." oninput="katDoSearch()" style="width:100%;padding-right:28px;">
+        <button id="katClrBtn" onclick="katClear()" style="display:none;position:absolute;right:7px;background:var(--mut);color:#fff;border:none;border-radius:50%;width:17px;height:17px;font-size:9px;cursor:pointer;align-items:center;justify-content:center;padding:0;line-height:1;">✕</button>
+      </div>
       <select class="kat-sel" id="katSpecSel" onchange="katDoSearch()">
         <option value="">Όλες οι ειδικότητες</option>
       </select>
