@@ -1438,7 +1438,8 @@ async function aiExecute(actionType,data){
         }
         total+=upd;changed.push(sname.trim()+' ('+upd+')');
       }
-    }
+      } // end tablesToSearch loop
+    } // end sheets loop
     aiHideTyping();
     if(total===0){
       aiAddMsg('bot','Δεν βρέθηκαν εγγραφές.','error');
