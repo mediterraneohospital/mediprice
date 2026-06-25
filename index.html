@@ -170,7 +170,7 @@ td.price-highlight{background:#fef9c3!important;}
 /* ── ΚΑΤΗΓΟΡΙΟΠΟΙΗΣΗ MODAL ── */
 #katModal{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;}
 #katModal.open{display:flex;}
-#katBox{background:var(--sur);border-radius:12px;width:min(920px,96vw);height:min(82vh,700px);display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;}
+#katBox{background:var(--sur);border-radius:12px;width:min(1100px,98vw);height:min(90vh,820px);display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;}
 .kat-head{background:#1a56db;color:#fff;padding:12px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
 .kat-head h2{font-size:14px;font-weight:700;flex:1;}
 .kat-close{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px;}
@@ -1727,15 +1727,15 @@ function katParseExcel(wb){
 </script>
 
 <!-- ── ΚΑΤΗΓΟΡΙΟΠΟΙΗΣΗ MODAL ── -->
-<div id="katModal" onclick="if(event.target===this)closeKat()">
+<div id="katModal">
   <div id="katBox">
     <div class="kat-head">
       <span style="font-size:16px">📋</span>
-      <h2>Κατηγοριοποίηση Επεμβάσεων — Ασφαλιστικά Ταμεία</h2>
+      <h2>Κατηγοριοποίηση Επεμβάσεων — Συμβεβλημένες Ασφάλειες</h2>
       <button class="kat-close" onclick="closeKat()">✕ Κλείσιμο</button>
     </div>
     <div class="kat-ins-row">
-      <span style="font-size:11px;color:var(--mut);margin-right:2px">Ασφαλιστικό:</span>
+      <span style="font-size:11px;color:var(--mut);margin-right:2px">Ασφάλεια:</span>
       <div id="katInsTabs">
         <button class="kat-ins-tab active" data-key="MEDNET" onclick="katSwitchIns('MEDNET',this)">MEDNET</button>
         <button class="kat-ins-tab" data-key="ΕΘΝΙΚΗ" onclick="katSwitchIns('ΕΘΝΙΚΗ',this)">ΕΘΝΙΚΗ</button>
