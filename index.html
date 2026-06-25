@@ -1599,7 +1599,8 @@ var KAT_CL={1:'ΠΟΛΥ ΜΙΚΡΕΣ',2:'ΜΙΚΡΕΣ',3:'ΜΕΣΑΙΕΣ',4:'Μ�
 var KAT_BL={1:'kat-b1',2:'kat-b2',3:'kat-b3',4:'kat-b4'};
 
 function openKat(){document.getElementById('katModal').classList.add('open');katPopulateSpec();katDoSearch();}
-function closeKat(){document.getElementById('katModal').classList.remove('open');}
+function closeKat(){document.getElementById('katModal').classList.remove('open');document.getElementById('katSearch').value='';document.getElementById('katClrBtn').style.display='none';katRender([]);}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeKat();});
 function katNorm(s){return s.normalize('NFD').replace(/\p{Mn}/gu,'').toLocaleLowerCase('el').replace(/ς/g,'σ');}
 
 function katSwitchIns(key,btn){
