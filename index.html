@@ -104,6 +104,9 @@ td.editing input, th.editing input{width:100%;min-width:200px;border:2px solid v
 .edit-mode .add-col-btn{display:inline-block;}
 .notice{position:fixed;top:60px;right:20px;background:#1e40af;color:#fff;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,.2);}
 .price-mode td[data-ci]{cursor:crosshair!important;}
+.price-mode tbody tr:hover td{background:inherit!important;}
+.price-mode tbody td[data-ci]:hover{filter:brightness(0.95);}
+td.price-highlight:hover{background:#fef08a!important;opacity:1!important;}
 
 th.price-selected{background:var(--price-sel)!important;color:#d4a017!important;outline:2px solid #eab308!important;}
 td.price-highlight{background:#fef08a!important;outline:2px solid #eab308!important;outline-offset:-2px;}
@@ -841,7 +844,7 @@ function renderTbl(headers,rows,showSp,q){
   document.getElementById('ta').innerHTML=html;
   addResizers();
   if(EDIT_MODE) addEditListeners(headers);
-  if(PRICE_MODE) attachPriceListeners();
+  if(PRICE_MODE) attachPriceCellListeners();
 }
 
 function addEditListeners(headers){
@@ -891,6 +894,7 @@ function renderMulti(tables,q){
   document.getElementById('ta').innerHTML=html;
   addResizers();
   if(EDIT_MODE) addEditListenersMulti(tables);
+  if(PRICE_MODE) attachPriceCellListeners();
 }
 
 function buildRowsMulti(headers,rows,q,ti){
