@@ -103,10 +103,10 @@ td.editing input, th.editing input{width:100%;min-width:200px;border:2px solid v
 .add-col-btn{display:none;background:var(--th-pc);border:1px dashed var(--acc);color:var(--acc);padding:6px 10px;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;}
 .edit-mode .add-col-btn{display:inline-block;}
 .notice{position:fixed;top:60px;right:20px;background:#1e40af;color:#fff;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,.2);}
-.price-mode th[data-hi]{cursor:crosshair!important;}
-.price-mode th[data-hi]:hover{background:#fef9c3!important;color:#713f12!important;}
+.price-mode td[data-ci]{cursor:crosshair!important;}
+
 th.price-selected{background:var(--price-sel)!important;color:#d4a017!important;outline:2px solid #eab308!important;}
-td.price-highlight{background:#fef9c3!important;}
+td.price-highlight{background:#fef08a!important;outline:2px solid #eab308!important;outline-offset:-2px;}
 #pricePanel{display:none;position:fixed;bottom:52px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;border-radius:10px;padding:12px 16px;z-index:700;box-shadow:0 8px 24px rgba(0,0,0,.3);align-items:center;gap:8px;font-size:12px;white-space:nowrap;}
 #pricePanel.show{display:flex;}
 #pricePanel .pcol-name{font-weight:700;color:#fde68a;margin-right:4px;}
@@ -251,19 +251,20 @@ td.price-highlight{background:#fef9c3!important;}
   <button onclick="toggleEdit()" style="background:#374151;border-color:#374151;">✕ Έξοδος</button>
 </div>
 <div id="pricePanel">
-  <span>💰 Αλλαγές Τιμών —</span>
-  <span>Κλικ σε header στήλης για επιλογή</span>
-  <span id="pricePanelCol" class="pcol-name" style="display:none"></span>
-  <div id="priceBtns" style="display:none;align-items:center;gap:6px;display:none">
+  <span id="pricePanelHint">Κλικ σε κελιά τιμής για επιλογή</span>
+  <span id="pricePanelCount" class="pcol-name" style="display:none"></span>
+  <div id="priceBtns" style="display:none;align-items:center;gap:6px;">
     <button onclick="applyPct(-20)">−20%</button>
     <button onclick="applyPct(-10)">−10%</button>
     <button onclick="applyPct(10)">+10%</button>
     <button onclick="applyPct(20)">+20%</button>
     <button onclick="applyPct(40)">+40%</button>
-    <span style="opacity:.6">|</span>
-    <input type="number" id="customPct" placeholder="%" step="1">
-    <button onclick="applyCustomPct()" class="apply-btn">✓ Εφαρμογή</button>
+    <input type="text" id="customExpr" placeholder="+10% ή +50€" style="width:90px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:4px 8px;color:#fff;font-size:12px;font-family:inherit;text-align:center;">
+    <button class="apply-btn" onclick="applyCustomExpr()">✓ Εφαρμογή</button>
+    <button onclick="clearCellSelection()" style="background:rgba(255,255,255,.1);font-size:11px;">✕ Καθαρισμός</button>
   </div>
+  <button class="cancel-btn" onclick="cancelPriceMode()">✕ Άκυρο</button>
+</div>
   <button onclick="cancelPriceMode()" class="cancel-btn">✕ Άκυρο</button>
 </div>
 <header>
@@ -461,6 +462,7 @@ function toggleEdit(){
     document.getElementById('editBtn').classList.add('active');
     document.getElementById('editBar').classList.add('show');
     document.getElementById('ta').style.paddingBottom='50px';
+    document.getElementById('aiBtn').style.bottom='84px';
   } else {
     EDIT_MODE=false;
     document.body.classList.remove('edit-mode');
@@ -468,6 +470,7 @@ function toggleEdit(){
     document.getElementById('editBtn').classList.remove('active');
     document.getElementById('editBar').classList.remove('show');
     document.getElementById('ta').style.paddingBottom='';
+    document.getElementById('aiBtn').style.bottom='24px';
   }
   if(cur) showSheet(cur);
 }
@@ -553,81 +556,150 @@ function toggleDark(){
   }
 })();
 
-// ── PRICE MODE ────────────────────────────────────────────
-var PRICE_MODE=false, PRICE_COL=null, PRICE_COL_NAME='';
+// ── PRICE MODE (CELL SELECTION) ───────────────────────────
+var PRICE_MODE=false;
+// Set of selected cells: each entry = {ri, ci, tableIdx (for multi)}
+var PRICE_SELECTED_CELLS=[];
 
 function togglePriceMode(){
   if(PRICE_MODE){ cancelPriceMode(); return; }
   PRICE_MODE=true;
   document.getElementById('pricePanel').classList.add('show');
-  document.getElementById('pricePanelCol').style.display='none';
+  document.getElementById('pricePanelHint').style.display='';
+  document.getElementById('pricePanelCount').style.display='none';
   document.getElementById('priceBtns').style.display='none';
-  document.querySelector('#pricePanel span:nth-child(2)').style.display='';
   document.getElementById('priceBtn').style.background='#ca9a06';
   document.getElementById('ta').classList.add('price-mode');
-  // Προσθήκη click listeners στα headers
-  document.querySelectorAll('thead th[data-hi]').forEach(function(th){
-    th.addEventListener('click', onPriceHeaderClick);
+  document.getElementById('customExpr').value='';
+  PRICE_SELECTED_CELLS=[];
+  attachPriceCellListeners();
+}
+
+function attachPriceCellListeners(){
+  document.querySelectorAll('tbody td[data-ci]').forEach(function(td){
+    var ci=parseInt(td.dataset.ci);
+    var v=parseFloat(td.textContent.trim());
+    if(!isNaN(v) && v!==0){
+      td.style.cursor='crosshair';
+      td.addEventListener('click', onPriceCellClick);
+    }
   });
 }
 
-function onPriceHeaderClick(e){
+function detachPriceCellListeners(){
+  document.querySelectorAll('tbody td[data-ci]').forEach(function(td){
+    td.style.cursor='';
+    td.removeEventListener('click', onPriceCellClick);
+  });
+}
+
+function onPriceCellClick(e){
   if(!PRICE_MODE) return;
   e.stopPropagation();
-  // Αφαίρεση προηγούμενης επιλογής
-  document.querySelectorAll('thead th.price-selected').forEach(function(t){t.classList.remove('price-selected');});
-  document.querySelectorAll('td.price-highlight').forEach(function(t){t.classList.remove('price-highlight');});
-  var th=e.currentTarget;
-  th.classList.add('price-selected');
-  PRICE_COL=parseInt(th.dataset.hi);
-  PRICE_COL_NAME=th.textContent.replace(/\s+/g,' ').trim();
-  // Highlight στήλης
-  document.querySelectorAll('tbody td[data-ci="'+PRICE_COL+'"]').forEach(function(td){
-    var v=parseFloat(td.textContent.trim());
-    if(!isNaN(v) && v!==0) td.classList.add('price-highlight');
-  });
-  // Εμφάνιση panel με κουμπιά
-  document.getElementById('pricePanelCol').textContent=PRICE_COL_NAME;
-  document.getElementById('pricePanelCol').style.display='';
-  document.getElementById('priceBtns').style.display='flex';
-  document.querySelector('#pricePanel span:nth-child(2)').style.display='none';
+  var td=e.currentTarget;
+  var v=parseFloat(td.textContent.trim());
+  if(isNaN(v)||v===0) return;
+  var ci=parseInt(td.dataset.ci);
+  var ri=parseInt(td.closest('tr').dataset.ri);
+  var ti=td.closest('tr').dataset.ti!==undefined ? parseInt(td.closest('tr').dataset.ti) : null;
+
+  // Toggle επιλογής
+  var key=ri+'_'+ci+(ti!==null?'_'+ti:'');
+  var idx=PRICE_SELECTED_CELLS.findIndex(function(c){return c.key===key;});
+  if(idx>=0){
+    PRICE_SELECTED_CELLS.splice(idx,1);
+    td.classList.remove('price-highlight');
+  } else {
+    PRICE_SELECTED_CELLS.push({key:key,ri:ri,ci:ci,ti:ti,el:td});
+    td.classList.add('price-highlight');
+  }
+
+  var n=PRICE_SELECTED_CELLS.length;
+  if(n===0){
+    document.getElementById('pricePanelHint').style.display='';
+    document.getElementById('pricePanelCount').style.display='none';
+    document.getElementById('priceBtns').style.display='none';
+  } else {
+    document.getElementById('pricePanelHint').style.display='none';
+    document.getElementById('pricePanelCount').textContent=n+' κελί'+(n===1?'':'ά')+' επιλεγμέν'+(n===1?'ο':'α');
+    document.getElementById('pricePanelCount').style.display='';
+    document.getElementById('priceBtns').style.display='flex';
+  }
 }
 
 function applyPct(pct){
-  if(PRICE_COL===null) return;
-  var d=getCurrentData(); if(!d) return;
+  if(!PRICE_SELECTED_CELLS.length) return;
   pushUndo();
-  d.rows.forEach(function(row){
-    var v=parseFloat(String(row[PRICE_COL]).trim());
-    if(!isNaN(v) && v!==0){
-      row[PRICE_COL]=String(Math.round(v*(1+pct/100)));
-    }
+  var d=D[cur]; if(!d) return;
+  PRICE_SELECTED_CELLS.forEach(function(c){
+    var rows=d.__multi__&&c.ti!==null?d.tables[c.ti].rows:d.rows;
+    var row=rows[c.ri]; if(!row) return;
+    var v=parseFloat(String(row[c.ci]||'').trim());
+    if(!isNaN(v)&&v!==0) row[c.ci]=String(Math.round(v*(1+pct/100)));
   });
-  showNotice((pct>0?'+':'')+pct+'% εφαρμόστηκε στη στήλη "'+PRICE_COL_NAME+'"');
+  var n=PRICE_SELECTED_CELLS.length;
+  showNotice((pct>0?'+':'')+pct+'% σε '+n+' κελί'+(n===1?'':'ά'));
   markPending();
   cancelPriceMode();
   showSheet(cur);
 }
 
-function applyCustomPct(){
-  var pct=parseFloat(document.getElementById('customPct').value);
-  if(isNaN(pct)){ alert('Εισάγετε έγκυρο ποσοστό'); return; }
-  applyPct(pct);
+function applyCustomExpr(){
+  var expr=document.getElementById('customExpr').value.trim();
+  if(!expr){ alert('Εισάγετε τιμή π.χ. +10% ή +50 ή -20%'); return; }
+  if(!PRICE_SELECTED_CELLS.length){ alert('Επιλέξτε κελιά πρώτα'); return; }
+  var pctMatch=expr.match(/^([+\-]?\d+(\.\d+)?)%$/);
+  var absMatch=expr.match(/^([+\-]\d+(\.\d+)?)$/);
+  var setMatch=expr.match(/^=(\d+(\.\d+)?)$/);
+  if(!pctMatch && !absMatch && !setMatch){
+    alert('Μορφή: +10% ή -5% (ποσοστό), +50 ή -20 (απόλυτο), =150 (καθορισμός)');
+    return;
+  }
+  pushUndo();
+  var d=D[cur]; if(!d) return;
+  PRICE_SELECTED_CELLS.forEach(function(c){
+    var rows=d.__multi__&&c.ti!==null?d.tables[c.ti].rows:d.rows;
+    var row=rows[c.ri]; if(!row) return;
+    var v=parseFloat(String(row[c.ci]||'').trim());
+    var nv;
+    if(pctMatch){
+      if(isNaN(v)||v===0) return;
+      nv=Math.round(v*(1+parseFloat(pctMatch[1])/100));
+    } else if(absMatch){
+      if(isNaN(v)||v===0) return;
+      nv=Math.max(0,Math.round(v+parseFloat(absMatch[1])));
+    } else if(setMatch){
+      nv=Math.round(parseFloat(setMatch[1]));
+    }
+    if(nv!==undefined&&!isNaN(nv)) row[c.ci]=String(nv);
+  });
+  var n=PRICE_SELECTED_CELLS.length;
+  showNotice(expr+' εφαρμόστηκε σε '+n+' κελί'+(n===1?'':'ά'));
+  markPending();
+  cancelPriceMode();
+  showSheet(cur);
+}
+
+function clearCellSelection(){
+  PRICE_SELECTED_CELLS.forEach(function(c){ if(c.el) c.el.classList.remove('price-highlight'); });
+  PRICE_SELECTED_CELLS=[];
+  document.getElementById('pricePanelHint').style.display='';
+  document.getElementById('pricePanelCount').style.display='none';
+  document.getElementById('priceBtns').style.display='none';
 }
 
 function cancelPriceMode(){
-  PRICE_MODE=false; PRICE_COL=null; PRICE_COL_NAME='';
+  PRICE_MODE=false;
+  PRICE_SELECTED_CELLS=[];
   document.getElementById('pricePanel').classList.remove('show');
   document.getElementById('priceBtn').style.background='#eab308';
   document.getElementById('ta').classList.remove('price-mode');
-  document.querySelectorAll('thead th.price-selected').forEach(function(t){t.classList.remove('price-selected');});
   document.querySelectorAll('td.price-highlight').forEach(function(t){t.classList.remove('price-highlight');});
-  document.querySelectorAll('thead th[data-hi]').forEach(function(th){
-    th.removeEventListener('click', onPriceHeaderClick);
-  });
+  detachPriceCellListeners();
 }
 
 function addRow(){
+
   var d=getCurrentData(); if(!d) return;
   pushUndo();
   var empty=d.headers.map(function(){return '';});
@@ -769,6 +841,7 @@ function renderTbl(headers,rows,showSp,q){
   document.getElementById('ta').innerHTML=html;
   addResizers();
   if(EDIT_MODE) addEditListeners(headers);
+  if(PRICE_MODE) attachPriceListeners();
 }
 
 function addEditListeners(headers){
@@ -1033,6 +1106,7 @@ function addResizers(){
 
 // Row selection
 document.getElementById('ta').addEventListener('click',function(e){
+  if(PRICE_MODE) return;
   if(e.target.closest('button')) return;
   var tr=e.target.closest('tbody tr'); if(!tr) return;
   var was=tr.classList.contains('sel');
