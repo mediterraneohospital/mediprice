@@ -464,7 +464,7 @@ function toggleEdit(){
     document.getElementById('editBtn').classList.add('active');
     document.getElementById('editBar').classList.add('show');
     document.getElementById('ta').style.paddingBottom='50px';
-    document.getElementById('aiBtn').style.bottom='84px';
+    document.getElementById('aiBtn').style.bottom='120px';
   } else {
     EDIT_MODE=false;
     document.body.classList.remove('edit-mode');
@@ -1282,7 +1282,7 @@ function getRowNotes(row,headers){
 function toggleAI(){
   AI_OPEN=!AI_OPEN;
   document.getElementById('aiPanel').classList.toggle('open',AI_OPEN);
-  document.getElementById('aiBtn').classList.toggle('open',AI_OPEN);
+  document.getElementById('aiBtn').style.display=AI_OPEN?'none':'flex';
   if(AI_OPEN) setTimeout(function(){document.getElementById('aiInput').focus();},300);
 }
 function aiQuick(t){document.getElementById('aiInput').value=t;sendAI();}
