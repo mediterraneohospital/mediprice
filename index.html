@@ -695,6 +695,12 @@ function pfFilterSpecial(inp){
   });
 }
 
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    if(document.getElementById('pfModal').classList.contains('open')) closePlafond();
+  }
+});
+
 function closePlafond(){
   document.getElementById('pfModal').classList.remove('open');
   pfSelIns=null;
