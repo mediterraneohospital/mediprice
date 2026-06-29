@@ -234,8 +234,56 @@ td.price-changed{background:#dcfce7!important;outline:2px solid #16a34a!importan
 [data-dark] .kat-b6{background:#2e1065;color:#c4b5fd;}
 [data-dark] .kat-b7{background:#082f49;color:#7dd3fc;}
 .kat-empty{text-align:center;padding:60px;color:var(--mut);}
-#katOpenBtn{padding:4px 12px;border:1px solid var(--brd);border-radius:6px;background:none;color:var(--txt);cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;flex-shrink:0;}
-#katOpenBtn:hover{background:var(--s2);}
+#katOpenBtn,#pfOpenBtn{padding:4px 12px;border:1px solid var(--brd);border-radius:6px;background:none;color:var(--txt);cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;flex-shrink:0;}
+#katOpenBtn:hover,#pfOpenBtn:hover{background:var(--s2);}
+#pfModal{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;}
+#pfModal.open{display:flex;}
+.pf-modal-box{background:var(--sur);border-radius:12px;width:680px;max-width:96vw;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;}
+.pf-modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--brd);flex-shrink:0;}
+.pf-modal-hdr h2{font-size:15px;font-weight:700;color:var(--txt);margin:0;}
+.pf-modal-hdr button{background:none;border:none;font-size:18px;cursor:pointer;color:var(--mut);padding:2px 6px;border-radius:4px;}
+.pf-modal-hdr button:hover{background:var(--s2);}
+.pf-modal-body{display:flex;flex:1;overflow:hidden;}
+.pf-left{width:240px;border-right:1px solid var(--brd);display:flex;flex-direction:column;flex-shrink:0;}
+.pf-right{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.pf-search{padding:8px 10px;border-bottom:1px solid var(--brd);flex-shrink:0;}
+.pf-search input{width:100%;background:var(--s2);border:1px solid var(--brd);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--txt);font-family:inherit;outline:none;box-sizing:border-box;}
+.pf-search input:focus{border-color:var(--acc);}
+.pf-ins-list{flex:1;overflow-y:auto;}
+.pf-ins{padding:7px 10px;cursor:pointer;font-size:12px;color:var(--dim);display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--brd);gap:6px;}
+.pf-ins:hover{background:var(--s2);}
+.pf-ins.active{background:var(--th-pc);color:var(--acc);}
+.pf-badge{font-size:9px;padding:2px 5px;border-radius:8px;font-weight:700;white-space:nowrap;flex-shrink:0;}
+.pf-badge.mednet{background:#dbeafe;color:#1e40af;}
+.pf-badge.parat{background:#dcfce7;color:#166534;}
+.pf-badge.pct{background:#fef9c3;color:#854d0e;}
+.pf-badge.closed{background:#fee2e2;color:#991b1b;}
+.pf-badge.no{background:#f3f4f6;color:#6b7280;}
+[data-dark] .pf-badge.mednet{background:#1e3a6e;color:#93c5fd;}
+[data-dark] .pf-badge.parat{background:#14532d;color:#86efac;}
+[data-dark] .pf-badge.pct{background:#422006;color:#fde68a;}
+[data-dark] .pf-badge.closed{background:#450a0a;color:#fca5a5;}
+[data-dark] .pf-badge.no{background:#374151;color:#9ca3af;}
+.pf-praxis-wrap{display:flex;flex-direction:column;height:100%;}
+.pf-praxis-search{padding:8px 10px;border-bottom:1px solid var(--brd);flex-shrink:0;}
+.pf-praxis-search input{width:100%;background:var(--s2);border:1px solid var(--brd);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--txt);font-family:inherit;outline:none;box-sizing:border-box;}
+.pf-praxis-search input:focus{border-color:var(--acc);}
+.pf-praxis-list{flex:1;overflow-y:auto;border-bottom:1px solid var(--brd);}
+.pf-praxis-item{padding:6px 10px;font-size:11px;cursor:pointer;color:var(--dim);border-bottom:1px solid var(--brd);}
+.pf-praxis-item:hover{background:var(--s2);}
+.pf-praxis-item.active{background:var(--th-pc);color:var(--acc);font-weight:600;}
+.pf-praxis-item .pf-sheet{color:var(--mut);font-size:10px;}
+.pf-result-wrap{padding:12px;overflow-y:auto;}
+.pf-result-card{background:var(--s2);border-radius:8px;padding:12px;border:1px solid var(--brd);}
+.pf-result-title{font-size:12px;font-weight:700;color:var(--txt);margin-bottom:10px;line-height:1.4;}
+.pf-result-row{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--brd);font-size:12px;gap:8px;}
+.pf-result-row:last-child{border-bottom:none;}
+.pf-result-row .lbl{color:var(--mut);flex-shrink:0;}
+.pf-result-row .val{font-weight:600;color:var(--txt);text-align:right;}
+.pf-result-row .val.big{font-size:18px;color:var(--acc);}
+.pf-result-row .val.grn{color:var(--grn);}
+.pf-placeholder{display:flex;align-items:center;justify-content:center;height:100%;color:var(--mut);font-size:12px;text-align:center;padding:20px;}
+.pf-detail{overflow-y:auto;height:100%;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -275,6 +323,7 @@ td.price-changed{background:#dcfce7!important;outline:2px solid #16a34a!importan
   <div class="hosp">Τιμοκατάλογος Mediterraneo Hospital</div>
   
   <button id="katOpenBtn" onclick="openKat()" title="Κατηγοριοποίηση Επεμβάσεων">📋 Κατηγοριοποίηση</button>
+  <button id="pfOpenBtn" onclick="openPlafond()" title="Plafond Ειδικών Υλικών">📄 Plafond Ειδικών Υλικών</button>
   <button id="darkBtn" onclick="toggleDark()" title="Dark Mode" style="background:none;border:1px solid var(--brd);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:14px;color:var(--mut);line-height:1;flex-shrink:0;">🌙</button>
   <div class="sw">
     <svg class="sico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -532,6 +581,181 @@ function makeEditable(el, onSave){
     e.stopPropagation();
   });
 }
+
+
+// ── PLAFOND ───────────────────────────────────────────────
+var MEDNET_SPECIAL=[
+  {label:'Αγγειοπλαστική – απλό stent',amount:1500,note:'Περιλαμβάνει: οδηγό σύρμα, μπαλόνι, οδηγό καθετήρα'},
+  {label:'Αγγειοπλαστική – επικαλυμμένο stent',amount:2500,note:'Ανά βλάβη. Επιπλέον αν απαιτηθεί (με τεκμηρίωση): μπαλόνι 550€, οδηγό σύρμα 150€'},
+  {label:'Αγγειοπλαστική χωρίς stent',amount:900},
+  {label:'Ablation',amount:6000},
+  {label:'Αιμορροΐδες (Logo / THD)',amount:800},
+  {label:'Απλή αιμορροϊδεκτομή',amount:500},
+  {label:'Απλή τοποθέτηση πλέγματος κήλης',amount:550},
+  {label:'Αποκατάσταση κήλης με πλέγμα Dual Mesh',amount:1050,note:'Σε μετεγχ. κοιλιοκήλη, ομφαλοκήλη με μεγάλο έλλειμμα'},
+  {label:'Αρθροσκόπηση',amount:1000},
+  {label:'Αρθροσκόπηση με υλικά καθήλωσης',amount:2500,note:'Πλέον κόστους μοσχευμάτων'},
+  {label:'Διαφραγματοκήλη',amount:2200},
+  {label:'Κρύο-Ablation',amount:9000},
+  {label:'Λαπαρ. Εντερεκτομή',amount:5000},
+  {label:'Λαπαρ. επέμβαση παχυσαρκίας (με δακτύλιο)',amount:3000},
+  {label:'Λαπαρ. τοποθέτηση πλέγματος κήλης',amount:2200},
+  {label:'Λαπαροσκοπικές επεμβάσεις',amount:2000},
+  {label:'Νευροπλοήγηση (Navigator)',amount:600},
+  {label:'ROSA Αρθροπλαστική (σύμβαση MEDNET)',amount:1658,note:'1.657,69€ + ΦΠΑ. Χρήση ρομπότ + υλικά ρομπότ. ΔΕΝ περιλαμβάνει υλικά αρθροπλαστικής.'},
+  {label:'Sleeve Gastrectomy',amount:5000},
+  {label:'Θυρεοειδεκτομή',amount:900},
+];
+
+// Plafond NN (ατομικά + ομαδικά) - διαφέρει στο ROSA
+var NN_SPECIAL=MEDNET_SPECIAL.map(function(sp){
+  if(sp.label.indexOf('ROSA')>=0) return {label:'ROSA Αρθροπλαστική',amount:6400,note:'Κλειστό πακέτο: χειρουργείο + υλικά ρομπότ + υλικά αρθροπλαστικής.'};
+  return sp;
+});
+
+var INSURERS=[
+  {name:'ADAC',elegktiko:'-',type:'pct',rule:'+30% Παρατηρητήριο',general:'+30% πάνω από την τιμή παρατηρητηρίου ΕΠΥ. Χωρίς ελεγκτικό.',pct:30,special:[]},
+  {name:'AETNA',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET. Ισχύουν τα plafond MEDNET.',special:MEDNET_SPECIAL},
+  {name:'Allianz',elegktiko:'ACCURATE',type:'parat',rule:'Παρατηρητήριο',general:'Ελέγχει η ACCURATE.',special:[]},
+  {name:'Ατλαντική Ένωση',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET. Ισχύουν τα plafond MEDNET.',special:MEDNET_SPECIAL},
+  {name:'AXA Alpha Bank',elegktiko:'-',type:'parat',rule:'Παρατηρητήριο',general:'Χωρίς ελεγκτικό.',special:[]},
+  {name:'AXA Ασφαλιστική',elegktiko:'-',type:'parat',rule:'Παρατηρητήριο',general:'Χωρίς ελεγκτικό.',special:[
+    {label:'ROSA Αρθροπλαστική γόνατος',amount:1347.45,note:'Τελικό ποσό ΜΕ ΦΠΑ. Χρήση ρομπότ + υλικά ρομπότ. ΔΕΝ περιλαμβάνει υλικά αρθροπλαστικής.'},
+  ]},
+  {name:'AXA PPP',elegktiko:'ACCURATE',type:'parat',rule:'Παρατηρητήριο',general:'Ελέγχει η ACCURATE.',special:[]},
+  {name:'BUPA',elegktiko:'Ντεφούδη',type:'pct',rule:'+40% Παρατηρητήριο',general:'+40% πάνω από την τιμή παρατηρητηρίου ΕΠΥ.',pct:40,special:[]},
+  {name:'CIGNA',elegktiko:'-',type:'closed',rule:'Κλειστά πακέτα',general:'Καθαρό ποσό νοσοκομείου, χωρίς αμοιβές ιατρών. Για άλλες πράξεις: ρωτάμε ασφαλιστική.',special:[
+    {label:'Αιμορροϊδεκτομή',amount:2903,note:'One day'},
+    {label:'Ολική αρθροπλαστική γόνατος',amount:8306,note:'Three days'},
+    {label:'Πεταλεκτομή',amount:7983,note:'Two days'},
+    {label:'Σκωληκοειδεκτομή',amount:3467,note:'One day'},
+    {label:'Χολοκυστεκτομή',amount:3346,note:'One day'},
+  ]},
+  {name:'CNP Cypria Life',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET. Ισχύουν τα plafond MEDNET.',special:MEDNET_SPECIAL},
+  {name:'CNP Ζωής',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET. Ισχύουν τα plafond MEDNET.',special:MEDNET_SPECIAL},
+  {name:'CYPRIALIFE ΕΛΛΑΔΟΣ',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET.',special:[]},
+  {name:'EASY',elegktiko:'-',type:'closed',rule:'Κλειστά πακέτα (Ενδοσκοπικό)',general:'Ποσά ΜΕ ΦΠΑ. Αφορά μόνο πράξεις ενδοσκοπικού.',special:[
+    {label:'Barrett HALO 90',amount:1600},
+    {label:'Barrett HALO 360',amount:3500},
+    {label:'ERCP',amount:3800},
+    {label:'ERCP Σύνθετη',amount:4200},
+    {label:'Γαστροστομία',amount:400},
+    {label:'Hot Biopsy',amount:50},
+    {label:'Σφιγκτηροτομή / Αφαίρεση λίθων',amount:4000},
+  ]},
+  {name:'ERB CYPRIANLIFE Ltd',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET.',special:[]},
+  {name:'ERGO ατομικά',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET. Ισχύουν τα plafond MEDNET.',special:MEDNET_SPECIAL},
+  {name:'Εθνική ασφαλιστική',elegktiko:'ACCURATE',type:'parat',rule:'Παρατηρητήριο',general:'Ελέγχει η ACCURATE.',special:[
+    {label:'ROSA Μονοδιαμερισματική Αρθροπλαστική Γόνατος',amount:3000,note:'ΠΡΟ ΦΠΑ.'},
+    {label:'ROSA Ολική Αρθροπλαστική Γόνατος',amount:2700,note:'ΠΡΟ ΦΠΑ. Χρήση ρομπότ + υλικά ROSA.'},
+    {label:'Καταρράκτες',note:'Περιλαμβάνονται τα υλικά στο πακέτο.'},
+    {label:'Μεταμόσχευση κερατοειδούς',note:'Περιλαμβάνεται το μόσχευμα.'},
+  ]},
+  {name:'Eurolife ERB',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET. Ισχύουν τα plafond MEDNET.',special:MEDNET_SPECIAL},
+  {name:'Eurolife Eurobank',elegktiko:'-',type:'parat',rule:'Παρατηρητήριο',general:'Χωρίς ελεγκτικό.',special:[]},
+  {name:'Eurolife LTD',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET. Ισχύουν τα plafond MEDNET.',special:MEDNET_SPECIAL},
+  {name:'Ευρωπαϊκή Ένωσις',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET. Ισχύουν τα plafond MEDNET.',special:MEDNET_SPECIAL},
+  {name:'Ευρωπαϊκή Πίστη (ατομικά)',elegktiko:'ACCURATE',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η ACCURATE. Ισχύουν τα plafond MEDNET.',special:MEDNET_SPECIAL},
+  {name:'Ευρωπαϊκή Πίστη (ομαδικά)',elegktiko:'ACCURATE',type:'parat',rule:'Παρατηρητήριο',general:'Ελέγχει η ACCURATE.',special:[]},
+  {name:'Generali',elegktiko:'-',type:'no',rule:'ΟΧΙ PLAFOND',general:'Δεν υπάρχει plafond ειδικών υλικών.',special:[]},
+  {name:'Γενικές Ασφάλειες Κύπρου',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET. Ισχύουν τα plafond MEDNET.',special:MEDNET_SPECIAL},
+  {name:'GRAWE / Prime',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET.',special:[]},
+  {name:'Groupama',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET. Ισχύουν τα plafond MEDNET.',special:MEDNET_SPECIAL},
+  {name:'Inchape',elegktiko:'-',type:'pct',rule:'+60% Παρατηρητήριο',general:'+60% πάνω από την τιμή παρατηρητηρίου ΕΠΥ. Χωρίς ελεγκτικό.',pct:60,special:[]},
+  {name:'Interamerican',elegktiko:'MEDNET',type:'parat',rule:'Παρατηρητήριο',general:'Ελέγχει η MEDNET. Αναλώσιμο σε κάποιες περιπτώσεις = 0.',special:[]},
+  {name:'Interasco',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET. Ισχύουν τα plafond MEDNET.',special:MEDNET_SPECIAL},
+  {name:'Interlife',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET.',special:[]},
+  {name:'Μινέττα ασφαλιστική',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET. Τα plafond διαμορφώνονται βάσει σύμβασης.',special:[]},
+  {name:'NN ατομικά',elegktiko:'MEDNET',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η MEDNET. Ισχύουν τα plafond MEDNET.',special:NN_SPECIAL},
+  {name:'NN ομαδικά',elegktiko:'ACCURATE',type:'mednet',rule:'Βάσει MEDNET',general:'Ελέγχει η ACCURATE αλλά ισχύουν τα plafond MEDNET.',special:NN_SPECIAL},
+  {name:'Optimum Ναυτιλιακή',elegktiko:'-',type:'parat',rule:'Παρατηρητήριο',general:'',special:[]},
+  {name:'SOS International',elegktiko:'-',type:'pct',rule:'έως +60%',general:'Χωρίς ελεγκτικό.',pct:60,special:[]},
+  {name:'Τράπεζα Ελλάδος',elegktiko:'-',type:'no',rule:'Μόνο χειρουργεία',general:'Πληρώνει υλικά ΜΟΝΟ για χειρουργεία. Για παθολογικές νοσηλείες: υλικά = 0.',special:[]},
+  {name:'Υδρόγειος',elegktiko:'ACCURATE',type:'parat',rule:'Παρατηρητήριο',general:'Ελέγχει η ACCURATE.',special:[]},
+];
+
+var pfSelIns=null;
+
+function openPlafond(){
+  document.getElementById('pfModal').classList.add('open');
+  pfRenderIns(INSURERS);
+  document.getElementById('pfInsSearch').value='';
+  document.getElementById('pfPlaceholder').style.display='flex';
+  document.getElementById('pfDetail').style.display='none';
+  pfSelIns=null;
+}
+
+function closePlafond(){
+  document.getElementById('pfModal').classList.remove('open');
+  pfSelIns=null;
+}
+
+function pfNorm(s){
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+}
+
+function pfRenderIns(list){
+  document.getElementById('pfInsList').innerHTML=list.map(function(ins){
+    var globalIdx=INSURERS.indexOf(ins);
+    var active=pfSelIns&&pfSelIns.name===ins.name?' active':'';
+    return '<div class="pf-ins'+active+'" onclick="pfSelectIns('+globalIdx+')">'
+      +'<span style="font-size:11px">'+ins.name+'</span>'
+      +'<span class="pf-badge '+ins.type+'">'+ins.rule+'</span></div>';
+  }).join('');
+}
+
+function pfFilterIns(){
+  var q=pfNorm(document.getElementById('pfInsSearch').value);
+  pfRenderIns(q?INSURERS.filter(function(i){return pfNorm(i.name).indexOf(q)>=0;}):INSURERS);
+}
+
+function pfSelectIns(idx){
+  pfSelIns=INSURERS[idx];
+  pfRenderIns(INSURERS);
+  document.getElementById('pfPlaceholder').style.display='none';
+  var det=document.getElementById('pfDetail');
+  det.style.display='flex';
+  det.innerHTML=pfBuildDetail(pfSelIns);
+}
+
+function pfBuildDetail(ins){
+  var html='<div style="padding:16px;border-bottom:1px solid var(--brd);flex-shrink:0;">'
+    +'<div style="font-size:16px;font-weight:700;color:var(--txt);margin-bottom:10px;">'+ins.name+'</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">'
+    +'<span class="pf-badge '+ins.type+'" style="font-size:11px;padding:3px 10px;">'+ins.rule+'</span>'
+    +(ins.elegktiko&&ins.elegktiko!=='-'
+      ?'<span style="font-size:11px;padding:3px 10px;background:var(--s2);border-radius:8px;color:var(--mut);font-weight:600;">🏢 Ελεγκτικό: '+ins.elegktiko+'</span>'
+      :'<span style="font-size:11px;padding:3px 10px;background:var(--s2);border-radius:8px;color:var(--mut);">Χωρίς ελεγκτικό</span>')
+    +'</div>'
+    +(ins.general?'<div style="font-size:12px;color:var(--dim);line-height:1.5;">'+ins.general+'</div>':'')
+    +'</div>';
+
+  if(ins.special&&ins.special.length){
+    html+='<div style="padding:12px 16px;flex:1;overflow-y:auto;">'
+      +'<div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Ειδικά Plafond</div>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+      +'<thead><tr>'
+      +'<th style="text-align:left;padding:6px 8px;background:var(--th-bg);color:var(--mut);font-weight:600;border-bottom:2px solid var(--brd);">Πράξη / Υλικό</th>'
+      +'<th style="text-align:right;padding:6px 8px;background:var(--th-bg);color:var(--mut);font-weight:600;border-bottom:2px solid var(--brd);width:90px;">Plafond</th>'
+      +'<th style="text-align:left;padding:6px 8px;background:var(--th-bg);color:var(--mut);font-weight:600;border-bottom:2px solid var(--brd);">Σημείωση</th>'
+      +'</tr></thead><tbody>'
+      +ins.special.map(function(sp,i){
+        var bg=i%2===0?'':'background:var(--row-even);';
+        return '<tr style="'+bg+'">'
+          +'<td style="padding:6px 8px;border-bottom:1px solid var(--brd);color:var(--txt);">'+sp.label+'</td>'
+          +'<td style="padding:6px 8px;border-bottom:1px solid var(--brd);text-align:right;font-weight:700;color:'+(sp.amount?'var(--acc)':'var(--mut)')+';">'+(sp.amount?sp.amount.toLocaleString('el-GR')+'€':'—')+'</td>'
+          +'<td style="padding:6px 8px;border-bottom:1px solid var(--brd);color:var(--mut);font-size:11px;">'+(sp.note||'')+'</td>'
+          +'</tr>';
+      }).join('')
+      +'</tbody></table></div>';
+  } else {
+    html+='<div style="padding:20px;text-align:center;color:var(--mut);font-size:12px;">'
+      +(ins.type==='no'?'Δεν υπάρχει plafond ειδικών υλικών.':'Δεν υπάρχουν ειδικά plafond — ισχύει ο γενικός κανόνας.')
+      +'</div>';
+  }
+  return html;
+}
+
 
 // ── DARK MODE ─────────────────────────────────────────────
 function toggleDark(){
@@ -1820,6 +2044,24 @@ function katParseExcel(wb){
 </script>
 
 <!-- ── ΚΑΤΗΓΟΡΙΟΠΟΙΗΣΗ MODAL ── -->
+<div id="pfModal">
+  <div class="pf-modal-box">
+    <div class="pf-modal-hdr">
+      <h2>📄 Plafond Ειδικών Υλικών</h2>
+      <button onclick="closePlafond()">✕</button>
+    </div>
+    <div class="pf-modal-body">
+      <div class="pf-left">
+        <div class="pf-search"><input type="text" id="pfInsSearch" placeholder="🔍 Ασφαλιστική..." oninput="pfFilterIns()"></div>
+        <div class="pf-ins-list" id="pfInsList"></div>
+      </div>
+      <div class="pf-right">
+        <div class="pf-placeholder" id="pfPlaceholder">← Επιλέξτε ασφαλιστική</div>
+        <div class="pf-detail" id="pfDetail" style="display:none;flex-direction:column;height:100%;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="katModal">
   <div id="katBox">
     <div class="kat-head">
