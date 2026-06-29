@@ -727,7 +727,7 @@ function pfFilterIns(){
 
 function pfSelectIns(idx){
   pfSelIns=INSURERS[idx];
-  pfRenderIns(INSURERS);
+  pfFilterIns(); // Κρατά το τρέχον search query
   document.getElementById('pfPlaceholder').style.display='none';
   var det=document.getElementById('pfDetail');
   det.style.display='flex';
