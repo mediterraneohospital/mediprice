@@ -1990,7 +1990,13 @@ async function aiSave(name,headers,rows){
 
 function aiAddMsg(role,text,type){
   var wrap=document.createElement('div');wrap.className='ai-msg '+role;
-  var bubble=document.createElement('div');bubble.className='ai-bubble'+(type?' '+type:'');bubble.textContent=text;
+  var bubble=document.createElement('div');bubble.className='ai-bubble'+(type?' '+type:'');
+  // Αν περιέχει HTML tags (από plafond_query/kat_query), κάνε render· αλλιώς plain text
+  if(/<(strong|table|br|div)/i.test(text)){
+    bubble.innerHTML=text;
+  } else {
+    bubble.textContent=text;
+  }
   var meta=document.createElement('div');meta.className='ai-meta';meta.textContent=aiNow();
   wrap.appendChild(bubble);wrap.appendChild(meta);
   document.getElementById('aiMessages').appendChild(wrap);aiScroll();
