@@ -1428,8 +1428,8 @@ init();
     <button class="ai-quick" onclick="aiAppend('+50€')">+50€</button>
     <button class="ai-quick" onclick="aiAppend('-10%')">-10%</button>
     <button class="ai-quick" onclick="aiAppend('-50€')">-50€</button>
-    <button class="ai-quick" onclick="aiAppend('ακριβότερη ')">↑ Ακριβότερη</button>
-    <button class="ai-quick" onclick="aiAppend('φθηνότερη ')">↓ Φθηνότερη</button>
+    <button class="ai-quick" onclick="openKat()">📋 Κατηγοριοποίηση</button>
+    <button class="ai-quick" onclick="openPlafond()">📄 Plafond</button>
   </div>
   <div class="ai-inputbar">
     <textarea id="aiInput" placeholder="Ρώτησε κάτι..." rows="1" onkeydown="aiKeyDown(event)" oninput="aiResize(this)"></textarea>
@@ -1553,8 +1553,10 @@ async function aiCallClaude(userText){
   try{
     if(!CLAUDE_KEY) await aiLoadKey();
     var sheetNames=await aiAllNames();
+    var insurerNames=INSURERS.map(function(i){return i.name;}).join(', ');
     var sys='You are MediPrice assistant for Mediterraneo Hospital. '
       +'Available specialties: '+sheetNames.join(', ')+'. '
+      +'Available insurance companies (for plafond queries): '+insurerNames+'. '
       +'Notes: cholecystectomy=ΓΕΝΙΚΗ ΧΕΙΡΟΥΡΓΙΚΗ. Pacemakers/βηματοδότες=ΗΛΕΚΤΡΟΦΥΣΙΟΛΟΓΙΑ. Varicose/κιρσοί/laser=ΑΓΓΕΙΟΧΕΙΡΟΥΡΓΙΚΗ. Arthroplasty/αρθροπλαστική=ΟΡΘΟΠΕΔΙΚΗ. Στοματογναθοπροσωπική/γναθο/maxillofacial=ΓΝΑΘΟΧΕΙΡΟΥΡΓΙΚΑ. ESD/γαστροσκόπηση/κολονοσκόπηση/γαστρεντερολογ/gastro=ΓΑΣΤΡΕΝΤΕΡΟΛΟΓΙΚΑ. When unsure use sheet:null to search everywhere. '
       +'Always respond in Greek. Always respond in VALID JSON only, no markdown, no extra text. '
       +'Intents: '
@@ -1562,6 +1564,9 @@ async function aiCallClaude(userText){
       +'confirm_update (for changing specific procedure price): {"intent":"confirm_update","message":"Θέλεις να αλλάξω...;","data":{"searchTerm":"...","sheet":"exact or null","changeType":"percent|fixed","value":10,"priceFilter":null}} '
       +'confirm_bulk (for changing all prices in a specialty): {"intent":"confirm_bulk","message":"Θέλεις να αλλάξω...;","data":{"sheet":"exact","changeType":"percent|fixed","value":5,"priceFilter":null}} '
       +'undo (when user says αναίρεσε/undo/επαναφορά): {"intent":"undo","message":"Αναιρώ...","data":null} '
+      +'plafond_query (when user asks about insurance plafond, special materials coverage, e.g. "ποιο είναι το plafond της BUPA", "τι καλύπτει η CIGNA σε αρθροπλαστική", "ποια ασφαλιστική έχει plafond MEDNET"): {"intent":"plafond_query","message":"...","data":{"insurerName":"exact name from list or null"}} '
+      +'open_kat (when user asks to see/open Κατηγοριοποίηση/συμβεβλημένες ασφάλειες/categorization): {"intent":"open_kat","message":"Ανοίγω την Κατηγοριοποίηση...","data":null} '
+      +'open_plafond (when user asks to see/open the full Plafond list without a specific insurer): {"intent":"open_plafond","message":"Ανοίγω το Plafond...","data":null} '
       +'chat: {"intent":"chat","message":"...","data":null}. '
       +'IMPORTANT: Words like ανέβασε/αύξησε/βάλε+/κάνε+ mean price INCREASE → confirm_update or confirm_bulk. '
       +'If user says +50 ευρώ or αύξησε κατά 50, use changeType:add with value:50 (adds fixed amount). '
@@ -1613,6 +1618,25 @@ function aiHandle(p){
     aiShowConfirm(p.message,p.intent,d);
   }else if(p.intent==='undo'){
     aiDoUndo();
+  }else if(p.intent==='plafond_query'){
+    aiAddMsg('bot',p.message||'Άνοιγμα plafond...');
+    var idx=-1;
+    if(d.insurerName){
+      idx=INSURERS.findIndex(function(i){return i.name===d.insurerName;});
+      if(idx<0){
+        // fuzzy match χωρίς τόνους
+        var qn=pfNorm(d.insurerName);
+        idx=INSURERS.findIndex(function(i){return pfNorm(i.name).indexOf(qn)>=0||qn.indexOf(pfNorm(i.name))>=0;});
+      }
+    }
+    openPlafond();
+    if(idx>=0) pfSelectIns(idx);
+  }else if(p.intent==='open_kat'){
+    aiAddMsg('bot',p.message||'Ανοίγω την Κατηγοριοποίηση...');
+    openKat();
+  }else if(p.intent==='open_plafond'){
+    aiAddMsg('bot',p.message||'Ανοίγω το Plafond...');
+    openPlafond();
   }else{
     aiAddMsg('bot',p.message||'...');
   }
