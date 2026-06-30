@@ -1564,7 +1564,8 @@ async function aiCallClaude(userText){
       +'confirm_update (for changing specific procedure price): {"intent":"confirm_update","message":"Θέλεις να αλλάξω...;","data":{"searchTerm":"...","sheet":"exact or null","changeType":"percent|fixed","value":10,"priceFilter":null}} '
       +'confirm_bulk (for changing all prices in a specialty): {"intent":"confirm_bulk","message":"Θέλεις να αλλάξω...;","data":{"sheet":"exact","changeType":"percent|fixed","value":5,"priceFilter":null}} '
       +'undo (when user says αναίρεσε/undo/επαναφορά): {"intent":"undo","message":"Αναιρώ...","data":null} '
-      +'plafond_query (when user asks about insurance plafond, special materials coverage, e.g. "ποιο είναι το plafond της BUPA", "τι καλύπτει η CIGNA σε αρθροπλαστική", "ποια ασφαλιστική έχει plafond MEDNET"): {"intent":"plafond_query","message":"...","data":{"insurerName":"exact name from list or null"}} '
+      +'plafond_query (when user asks about insurance plafond, special materials coverage, e.g. "ποιο είναι το plafond της BUPA", "τι καλύπτει η CIGNA σε αρθροπλαστική", "ποιο plafond εχει η NN για αρθροσκόπηση"): {"intent":"plafond_query","message":"...","data":{"insurerName":"exact name from list or null","searchTerm":"procedure keyword mentioned by user, or null"}} '
+      +'kat_query (when user asks about Κατηγοριοποίηση / category / βαρύτητα of a procedure for a specific insurer in [MEDNET, ΕΘΝΙΚΗ, INTERAMERICAN], e.g. "ποια κατηγορία είναι η χολοκυστεκτομή στην εθνική", "τι κατηγοριοποίηση έχει η αρθροσκόπηση στη mednet"): {"intent":"kat_query","message":"...","data":{"insurer":"MEDNET|ΕΘΝΙΚΗ|INTERAMERICAN","searchTerm":"procedure keyword"}} '
       +'open_kat (when user asks to see/open Κατηγοριοποίηση/συμβεβλημένες ασφάλειες/categorization): {"intent":"open_kat","message":"Ανοίγω την Κατηγοριοποίηση...","data":null} '
       +'open_plafond (when user asks to see/open the full Plafond list without a specific insurer): {"intent":"open_plafond","message":"Ανοίγω το Plafond...","data":null} '
       +'chat: {"intent":"chat","message":"...","data":null}. '
@@ -1619,18 +1620,58 @@ function aiHandle(p){
   }else if(p.intent==='undo'){
     aiDoUndo();
   }else if(p.intent==='plafond_query'){
-    aiAddMsg('bot',p.message||'Άνοιγμα plafond...');
     var idx=-1;
     if(d.insurerName){
       idx=INSURERS.findIndex(function(i){return i.name===d.insurerName;});
       if(idx<0){
-        // fuzzy match χωρίς τόνους
         var qn=pfNorm(d.insurerName);
         idx=INSURERS.findIndex(function(i){return pfNorm(i.name).indexOf(qn)>=0||qn.indexOf(pfNorm(i.name))>=0;});
       }
     }
-    openPlafond();
-    if(idx>=0) pfSelectIns(idx);
+    if(idx>=0){
+      var ins=INSURERS[idx];
+      var reply='<strong>'+ins.name+'</strong> — '+ins.rule;
+      if(ins.elegktiko&&ins.elegktiko!=='-') reply+=' (Ελεγκτικό: '+ins.elegktiko+')';
+      reply+='<br>'+(ins.general||'');
+      if(ins.special&&ins.special.length){
+        // Ψάξε αν το ερώτημα/μήνυμα αναφέρεται σε συγκεκριμένη πράξη
+        var qSearch=pfNorm((p.message||'')+' '+(d.searchTerm||''));
+        var matched=ins.special.filter(function(sp){
+          return pfNorm(sp.label).split(' ').some(function(w){return w.length>3&&qSearch.indexOf(w)>=0;});
+        });
+        var toShow=matched.length?matched:ins.special.slice(0,8);
+        reply+='<br><br><table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;">';
+        toShow.forEach(function(sp){
+          reply+='<tr><td style="padding:3px 6px 3px 0;">'+sp.label+'</td><td style="padding:3px 0;text-align:right;font-weight:700;color:var(--acc);white-space:nowrap;">'+(sp.amount?sp.amount.toLocaleString('el-GR')+'€':'—')+'</td></tr>';
+        });
+        reply+='</table>';
+        if(!matched.length&&ins.special.length>8) reply+='<div style="font-size:11px;color:var(--mut);margin-top:4px;">...και άλλα '+(ins.special.length-8)+' plafond</div>';
+      }
+      aiAddMsg('bot',reply);
+    }else{
+      aiAddMsg('bot',p.message||'Δεν βρήκα την ασφαλιστική. Δοκίμασε ξανά με το ακριβές όνομα.');
+    }
+  }else if(p.intent==='kat_query'){
+    var insKey=d.insurer&&KAT_INS[d.insurer]?d.insurer:'MEDNET';
+    var list=KAT_INS[insKey]||[];
+    var qn=pfNorm(d.searchTerm||p.message||'');
+    var words=qn.split(' ').filter(function(w){return w.length>3;});
+    var matches=list.filter(function(item){
+      var dn=pfNorm(item.description);
+      return words.some(function(w){return dn.indexOf(w)>=0;});
+    }).slice(0,10);
+    if(matches.length){
+      var reply='<strong>Κατηγοριοποίηση — '+insKey+'</strong><br><br>'
+        +'<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+        +matches.map(function(m){
+          return '<tr><td style="padding:3px 6px 3px 0;">'+m.description+'</td>'
+            +'<td style="padding:3px 0;text-align:right;font-weight:700;color:var(--acc);white-space:nowrap;">'+m.category_label+'</td></tr>';
+        }).join('')
+        +'</table>';
+      aiAddMsg('bot',reply);
+    } else {
+      aiAddMsg('bot','Δεν βρήκα αντίστοιχη πράξη στην κατηγοριοποίηση '+insKey+'. Δοκίμασε διαφορετική περιγραφή ή άνοιξε την Κατηγοριοποίηση χειροκίνητα.');
+    }
   }else if(p.intent==='open_kat'){
     aiAddMsg('bot',p.message||'Ανοίγω την Κατηγοριοποίηση...');
     openKat();
