@@ -1564,7 +1564,10 @@ async function aiCallClaude(userText){
       +'confirm_update (for changing specific procedure price): {"intent":"confirm_update","message":"Θέλεις να αλλάξω...;","data":{"searchTerm":"...","sheet":"exact or null","changeType":"percent|fixed","value":10,"priceFilter":null}} '
       +'confirm_bulk (for changing all prices in a specialty): {"intent":"confirm_bulk","message":"Θέλεις να αλλάξω...;","data":{"sheet":"exact","changeType":"percent|fixed","value":5,"priceFilter":null}} '
       +'undo (when user says αναίρεσε/undo/επαναφορά): {"intent":"undo","message":"Αναιρώ...","data":null} '
-      +'plafond_query (when user asks about insurance plafond, special materials coverage, e.g. "ποιο είναι το plafond της BUPA", "τι καλύπτει η CIGNA σε αρθροπλαστική", "ποιο plafond εχει η NN για αρθροσκόπηση"): {"intent":"plafond_query","message":"...","data":{"insurerName":"exact name from list or null","searchTerm":"procedure keyword mentioned by user, or null"}} '
+      +'plafond_query (when user asks about insurance plafond, special materials coverage, e.g. "ποιο είναι το plafond της BUPA", "τι καλύπτει η CIGNA σε αρθροπλαστική", "ποιο plafond εχει η NN για λαπ χολή"): '
+      +'{"intent":"plafond_query","message":"...","data":{"insurerName":"exact name from list or null","matchedLabel":"the EXACT label string from MEDNET_SPECIAL_LABELS list below that best matches what the user described, or null if none fits"}} '
+      +'MEDNET_SPECIAL_LABELS (use for matchedLabel when insurer is MEDNET-based): ["Αγγειοπλαστική – απλό stent","Αγγειοπλαστική – επικαλυμμένο stent","Αγγειοπλαστική χωρίς stent","Ablation","Αιμορροΐδες (Logo / THD)","Απλή αιμορροϊδεκτομή","Απλή τοποθέτηση πλέγματος κήλης","Αποκατάσταση κήλης με πλέγμα Dual Mesh","Αρθροσκόπηση","Αρθροσκόπηση με υλικά καθήλωσης","Διαφραγματοκήλη","Κρύο-Ablation","Λαπαρ. Εντερεκτομή","Λαπαρ. επέμβαση παχυσαρκίας (με δακτύλιο)","Λαπαρ. τοποθέτηση πλέγματος κήλης","Λαπαροσκοπικές επεμβάσεις","Νευροπλοήγηση (Navigator)","ROSA Αρθροπλαστική","Sleeve Gastrectomy","Θυρεοειδεκτομή"]. '
+      +'IMPORTANT matching rules for matchedLabel: "λαπ χολή"/"λαπαροσκοπική χολοκυστεκτομή"/any generic laparoscopic procedure not in the specific list (hernia, obesity, bowel) → "Λαπαροσκοπικές επεμβάσεις". "λαπ σκωληκο*"/"λαπαροσκοπική σκωληκοειδεκτομή" → "Λαπαροσκοπικές επεμβάσεις". "λαπ εντερεκτομή"/"εντερεκτομή λαπαροσκοπικά" → "Λαπαρ. Εντερεκτομή". "λαπ κήλη"/"λαπαροσκοπική κήλη"/"πλέγμα κήλης λαπαροσκοπικά" → "Λαπαρ. τοποθέτηση πλέγματος κήλης". "λαπ παχυσαρκία"/"sleeve"/"by-pass" → "Λαπαρ. επέμβαση παχυσαρκίας (με δακτύλιο)" unless explicitly "sleeve gastrectomy" which maps to "Sleeve Gastrectomy". Always prefer the broad "Λαπαροσκοπικές επεμβάσεις" label for generic/unlisted laparoscopic procedures (cholecystectomy, appendectomy, etc.) rather than returning null. '
       +'kat_query (when user asks about Κατηγοριοποίηση / category / βαρύτητα of a procedure for a specific insurer in [MEDNET, ΕΘΝΙΚΗ, INTERAMERICAN], e.g. "ποια κατηγορία είναι η χολοκυστεκτομή στην εθνική", "τι κατηγοριοποίηση έχει η αρθροσκόπηση στη mednet"): {"intent":"kat_query","message":"...","data":{"insurer":"MEDNET|ΕΘΝΙΚΗ|INTERAMERICAN","searchTerm":"procedure keyword"}} '
       +'open_kat (when user asks to see/open Κατηγοριοποίηση/συμβεβλημένες ασφάλειες/categorization): {"intent":"open_kat","message":"Ανοίγω την Κατηγοριοποίηση...","data":null} '
       +'open_plafond (when user asks to see/open the full Plafond list without a specific insurer): {"intent":"open_plafond","message":"Ανοίγω το Plafond...","data":null} '
@@ -1634,11 +1637,19 @@ function aiHandle(p){
       if(ins.elegktiko&&ins.elegktiko!=='-') reply+=' (Ελεγκτικό: '+ins.elegktiko+')';
       reply+='<br>'+(ins.general||'');
       if(ins.special&&ins.special.length){
-        // Ψάξε αν το ερώτημα/μήνυμα αναφέρεται σε συγκεκριμένη πράξη
-        var qSearch=pfNorm((p.message||'')+' '+(d.searchTerm||''));
-        var matched=ins.special.filter(function(sp){
-          return pfNorm(sp.label).split(' ').some(function(w){return w.length>3&&qSearch.indexOf(w)>=0;});
-        });
+        var matched=[];
+        // Πρώτα προσπάθησε exact match με το matchedLabel που έδωσε το Claude
+        if(d.matchedLabel){
+          var exact=ins.special.find(function(sp){return sp.label===d.matchedLabel;});
+          if(exact) matched=[exact];
+        }
+        // Fallback: παλιό keyword search αν δεν βρέθηκε exact match
+        if(!matched.length){
+          var qSearch=pfNorm((p.message||'')+' '+(d.matchedLabel||''));
+          matched=ins.special.filter(function(sp){
+            return pfNorm(sp.label).split(' ').some(function(w){return w.length>3&&qSearch.indexOf(w)>=0;});
+          });
+        }
         var toShow=matched.length?matched:ins.special.slice(0,8);
         reply+='<br><br><table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;">';
         toShow.forEach(function(sp){
