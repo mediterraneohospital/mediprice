@@ -540,7 +540,10 @@ function toggleEdit(){
     document.getElementById('ta').style.paddingBottom='';
     document.getElementById('aiBtn').style.bottom='24px';
   }
-  if(cur) showSheet(cur);
+  if(sMode){
+    var q=document.getElementById('gS').value;
+    if(q) doSearch(q);
+  } else if(cur) showSheet(cur);
 }
 
 function getCurrentData(tableIdx){
@@ -979,8 +982,9 @@ function cancelPriceMode(){
 function addRow(){
   if(sMode){
     var selS=document.querySelector('#ta tbody tr[data-sp].sel')||document.querySelector('#ta tbody tr[data-sp]');
-    if(!selS){alert('Επιλέξτε γραμμή αποτελέσματος για να προσθέσετε νέα γραμμή στην ειδικότητά της.');return;}
-    var spS=selS.dataset.sp; var dS=D[spS]; if(!dS||dS.__multi__) return;
+    if(!selS){alert('Επιλέξτε πρώτα μια γραμμή από τα αποτελέσματα.');return;}
+    var spS=selS.dataset.sp; var dS=D[spS]; if(!dS) return;
+    if(dS.__multi__){alert('Δεν υποστηρίζεται προσθήκη γραμμής σε multi-table από search.');return;}
     pushUndo();
     var riS=parseInt(selS.dataset.ri);
     var emptyS=dS.headers.map(function(){return '';});
