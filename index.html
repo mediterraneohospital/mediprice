@@ -1371,7 +1371,9 @@ function addSearchEditListeners(){
         e.stopPropagation();
         var ci=parseInt(td.dataset.ci);
         var d=D[sp]; if(!d) return;
-        pushUndo();
+        // Κάνε τη γραμμή sel ώστε pushUndo/getSpFromSel να τη βρει
+        document.querySelectorAll('#ta tbody tr.sel').forEach(function(r){r.classList.remove('sel');});
+        tr.classList.add('sel');
         makeEditable(td,function(nv){
           if(ti!==null&&d.__multi__) d.tables[ti].rows[ri][ci]=nv;
           else d.rows[ri][ci]=nv;
