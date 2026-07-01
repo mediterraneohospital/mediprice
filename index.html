@@ -357,10 +357,9 @@ var SEL_COL=null;
 var COL_WIDTHS={}; // { sheetName: { headerName: px } }
 
 function getSpFromSel(){
-  // Επιστρέφει ειδικότητα: cur ή data-sp από επιλεγμένη γραμμή (search mode)
   if(cur) return cur;
-  var sel=document.querySelector('#ta tbody tr[data-sp].sel')||document.querySelector('#ta tbody tr[data-sp]');
-  return sel?sel.dataset.sp:null;
+  var sel=document.querySelector('#ta tbody tr.sel');
+  return sel&&sel.dataset.sp?sel.dataset.sp:null;
 }
 var PENDING_SHEETS=new Set();
 function markPendingSp(sp){
@@ -981,13 +980,17 @@ function cancelPriceMode(){
 
 function addRow(){
   if(sMode){
-    var selS=document.querySelector('#ta tbody tr[data-sp].sel')||document.querySelector('#ta tbody tr[data-sp]');
-    if(!selS){alert('Επιλέξτε πρώτα μια γραμμή από τα αποτελέσματα.');return;}
-    var spS=selS.dataset.sp; var dS=D[spS]; if(!dS) return;
+    var selS=document.querySelector('#ta tbody tr.sel');
+    console.log('addRow sMode: selS=',selS,'sp=',selS&&selS.dataset.sp,'ri=',selS&&selS.dataset.ri);
+    if(!selS||!selS.dataset.sp){alert('Επιλέξτε πρώτα μια γραμμή από τα αποτελέσματα.');return;}
+    var spS=selS.dataset.sp; var dS=D[spS];
+    console.log('addRow: spS=',spS,'dS=',dS,'multi=',dS&&dS.__multi__);
+    if(!dS) return;
     if(dS.__multi__){alert('Δεν υποστηρίζεται προσθήκη γραμμής σε multi-table από search.');return;}
     pushUndo();
     var riS=parseInt(selS.dataset.ri);
     var emptyS=dS.headers.map(function(){return '';});
+    console.log('addRow: riS=',riS,'headers=',dS.headers);
     if(!isNaN(riS)) dS.rows.splice(riS+1,0,emptyS); else dS.rows.push(emptyS);
     markPendingSp(spS);
     doSearch(document.getElementById('gS').value);
@@ -1027,7 +1030,8 @@ function delRow(){
   if(isNaN(ri)) return;
   if(!confirm('Διαγραφή γραμμής;')) return;
   if(sMode){
-    var spD=selTr.dataset.sp; if(!spD) return;
+    var spD=selTr.dataset.sp;
+    if(!spD){alert('Η επιλεγμένη γραμμή δεν έχει ειδικότητα.');return;}
     var dD=D[spD]; if(!dD||dD.__multi__) return;
     pushUndo(); dD.rows.splice(ri,1); markPendingSp(spD);
     doSearch(document.getElementById('gS').value); return;
