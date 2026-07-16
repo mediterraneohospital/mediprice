@@ -810,11 +810,25 @@ function pfBuildDetail(ins){
         section.chips.forEach(function(c){ html+='<span class="pf-praxis-chip">'+c+'</span>'; });
         html+='</div><br>';
       }
-      section.rules.forEach(function(rule){
-        html+='<div class="pf-paketo-rule">'
-          +'<span class="pf-paketo-tag '+rule.tag+'">'+({'zero':'✓ ΜΗΔΕΝ','extra':'+ EXTRA','full':'✗ ΚΑΝΟΝΙΚΑ','warn':'⚠ ΠΡΟΣΟΧΗ'}[rule.tag]||rule.tag)+'</span> '
-          +'<strong>'+rule.label+':</strong> '+rule.value+'</div>';
-      });
+      if(section.cases){
+        section.cases.forEach(function(cas){
+          html+='<div style="margin-bottom:10px;border:1px solid var(--brd);border-radius:6px;overflow:hidden;">'
+            +'<div style="background:var(--th-bg);padding:5px 10px;font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.3px;">'+cas.case+'</div>'
+            +'<div style="padding:6px 10px;">';
+          cas.rules.forEach(function(rule){
+            html+='<div class="pf-paketo-rule">'
+              +'<span class="pf-paketo-tag '+rule.tag+'">'+({'zero':'✓ ΜΗΔΕΝ','extra':'+ EXTRA','full':'✗ ΚΑΝΟΝΙΚΑ','warn':'⚠ ΠΡΟΣΟΧΗ'}[rule.tag]||rule.tag)+'</span> '
+              +'<strong>'+rule.label+':</strong> '+rule.value+'</div>';
+          });
+          html+='</div></div>';
+        });
+      } else if(section.rules){
+        section.rules.forEach(function(rule){
+          html+='<div class="pf-paketo-rule">'
+            +'<span class="pf-paketo-tag '+rule.tag+'">'+({'zero':'✓ ΜΗΔΕΝ','extra':'+ EXTRA','full':'✗ ΚΑΝΟΝΙΚΑ','warn':'⚠ ΠΡΟΣΟΧΗ'}[rule.tag]||rule.tag)+'</span> '
+            +'<strong>'+rule.label+':</strong> '+rule.value+'</div>';
+        });
+      }
       html+='</div>';
     });
     html+='</div></div>';
@@ -886,35 +900,51 @@ var PAKETA = {
     },
     {
       title: 'Γαστρεντερολογικές πράξεις',
-      rules: [
-        {label:'Αναλώσιμα (ODC)', value:'0 χρέωση', tag:'zero'},
-        {label:'Ειδικά υλικά', value:'Χρεώνονται επιπλέον του πακέτου', tag:'extra'},
-        {label:'Αν ΟΧΙ ODC', value:'Αναλώσιμα και ειδικά υλικά χρεώνονται κανονικά', tag:'full'},
-        {label:'ODC', value:'Μηδέν το αναλώσιμο', tag:'zero'},
-        {label:'Εξωτ. ιατρεία', value:'Χρέωση κανονικά', tag:'full'},
+      cases: [
+        {case:'ODC', rules:[
+          {label:'Αναλώσιμα', value:'0 χρέωση', tag:'zero'},
+          {label:'Ειδικά υλικά', value:'Χρεώνονται επιπλέον του πακέτου', tag:'extra'},
+        ]},
+        {case:'ΝΟΣΗΛΕΙΑ', rules:[
+          {label:'Αναλώσιμα', value:'Χρεώνονται κανονικά', tag:'full'},
+          {label:'Ειδικά υλικά', value:'Χρεώνονται κανονικά', tag:'full'},
+        ]},
+        {case:'ΕΞΩΤ. ΙΑΤΡΕΙΑ', rules:[
+          {label:'Αναλώσιμα', value:'Χρεώνονται κανονικά', tag:'full'},
+          {label:'Ειδικά υλικά', value:'Χρεώνονται κανονικά', tag:'full'},
+        ]},
       ]
     },
     {
       title: 'Βλεννογόνιος Ενδοσκοπική Εκτομή Στομάχου',
-      rules: [
-        {label:'Νοσηλεία 1ης ημέρας ή ODC — Αναλώσιμα', value:'0 χρέωση', tag:'zero'},
-        {label:'Νοσηλεία 1ης ημέρας ή ODC — Ειδικά υλικά', value:'Χρεώνονται επιπλέον', tag:'extra'},
-        {label:'Νοσηλεία πολλών ημερών', value:'Αναλώσιμα και ειδικά υλικά χρεώνονται κανονικά', tag:'full'},
+      cases: [
+        {case:'Νοσηλεία 1ης ημέρας ή ODC', rules:[
+          {label:'Αναλώσιμα', value:'0 χρέωση', tag:'zero'},
+          {label:'Ειδικά υλικά', value:'Χρεώνονται επιπλέον', tag:'extra'},
+        ]},
+        {case:'Νοσηλεία πολλών ημερών', rules:[
+          {label:'Αναλώσιμα', value:'Χρεώνονται κανονικά', tag:'full'},
+          {label:'Ειδικά υλικά', value:'Χρεώνονται κανονικά', tag:'full'},
+        ]},
       ]
     },
     {
       title: 'Φαρμακευτική Ανάταξη',
-      rules: [
-        {label:'Νοσηλεία ODC — Αναλώσιμα', value:'0 χρέωση', tag:'zero'},
-        {label:'Νοσηλεία ODC — Ειδικά υλικά', value:'Χρεώνονται επιπλέον (αν υπάρχουν)', tag:'extra'},
-        {label:'Νοσηλεία ΟΧΙ ODC', value:'Αναλώσιμα και ειδικά υλικά χρεώνονται κανονικά', tag:'full'},
+      cases: [
+        {case:'ODC', rules:[
+          {label:'Αναλώσιμα', value:'0 χρέωση', tag:'zero'},
+          {label:'Ειδικά υλικά', value:'Χρεώνονται επιπλέον (αν υπάρχουν)', tag:'extra'},
+        ]},
+        {case:'ΟΧΙ ODC', rules:[
+          {label:'Αναλώσιμα', value:'Χρεώνονται κανονικά', tag:'full'},
+          {label:'Ειδικά υλικά', value:'Χρεώνονται κανονικά', tag:'full'},
+        ]},
       ]
     },
   ],
   'INTERAMERICAN': [
     {
-      title: 'Επεμβάσεις με Αναλώσιμα = 0',
-      subtitle: 'Αναλώσιμα: 0 χρέωση — Ειδικά υλικά: χρεώνονται επιπλέον',
+      title: 'Κάτωθι επεμβάσεις — Αναλώσιμα = 0',
       chips: ['ΟΥΡΗΘΡΟΚΥΣΤΕΟΣΚΟΠΗΣΗ','ΑΜΥΓΔΑΛΕΚΤΟΜΗ','ΑΡΘΡΟΣΚΟΠΙΚΗ ΜΗΝΙΣΚΕΚΤΟΜΗ','ΒΟΥΒΩΝΟΚΗΛΗ ΜΕ ΠΛΕΓΜΑ','TRIGGER FINGER','ΚΑΥΤΗΡΙΑΣΜΟΣ ΡΙΝΙΚΩΝ ΚΟΓΧΩΝ','ΧΑΛΑΖΙΟ','ΑΙΜΟΡΡΟΕΙΔΕΚΤΟΜΗ','ΑΦΑΙΡΕΣΗ ΠΟΛΥΠΟΔΩΝ ΡΙΝΟΣ','ΔΙΑΓΝΩΣΤΙΚΗ ΛΑΠΑΡΟΣΚΟΠΗΣΗ','ΣΚΩΛΗΚΟΕΙΔΕΚΤΟΜΗ','HALLUX VALGUS','ΚΑΤΑΡΡΑΚΤΗΣ','ΠΛΑΣΤΙΚΗ ΡΙΝΙΚΟΥ ΔΙΑΦΡΑΓΜΑΤΟΣ','ΛΑΠΑΡΟΣΚΟΠΙΚΗ ΧΟΛΟΚΥΣΤΕΚΤΟΜΗ','ΑΦΑΙΡΕΣΗ ΚΥΣΤΗ ΚΟΚΚΥΓΟΣ','ΑΦΑΙΡΕΣΗ ΕΠΙΦΑΝΕΙΑΚΟΥ ΜΟΡΦΩΜΑΤΟΣ'],
       rules: [
         {label:'Αναλώσιμα', value:'0 χρέωση', tag:'zero'},
@@ -923,18 +953,27 @@ var PAKETA = {
     },
     {
       title: 'Πακέτο Διαγνωστικής Υστεροσκόπησης / Πολυπεκτομής / Λαρυγγοσκόπησης',
-      rules: [
-        {label:'Νοσηλεία ODC — Αναλώσιμα', value:'0 χρέωση', tag:'zero'},
-        {label:'Νοσηλεία ODC — Ειδικά υλικά', value:'0 χρέωση', tag:'zero'},
-        {label:'Νοσηλεία ΟΧΙ ODC', value:'Δεν υφίσταται πακέτο — χρεώνονται κανονικά', tag:'full'},
+      cases: [
+        {case:'ODC', rules:[
+          {label:'Αναλώσιμα', value:'0 χρέωση', tag:'zero'},
+          {label:'Ειδικά υλικά', value:'0 χρέωση', tag:'zero'},
+        ]},
+        {case:'ΟΧΙ ODC', rules:[
+          {label:'Κατάσταση', value:'Δεν υφίσταται πακέτο — χρεώνονται κανονικά', tag:'full'},
+        ]},
       ]
     },
     {
       title: 'Πακέτα Γαστρεντερολογικά',
-      rules: [
-        {label:'Νοσηλεία ODC — Αναλώσιμα', value:'0 χρέωση', tag:'zero'},
-        {label:'Νοσηλεία ODC — Ειδικά υλικά', value:'Χρεώνονται επιπλέον', tag:'extra'},
-        {label:'Νοσηλεία ΟΧΙ ODC', value:'Αναλώσιμα και ειδικά υλικά χρεώνονται κανονικά', tag:'full'},
+      cases: [
+        {case:'ODC', rules:[
+          {label:'Αναλώσιμα', value:'0 χρέωση', tag:'zero'},
+          {label:'Ειδικά υλικά', value:'Χρεώνονται επιπλέον', tag:'extra'},
+        ]},
+        {case:'ΟΧΙ ODC', rules:[
+          {label:'Αναλώσιμα', value:'Χρεώνονται κανονικά', tag:'full'},
+          {label:'Ειδικά υλικά', value:'Χρεώνονται κανονικά', tag:'full'},
+        ]},
       ]
     },
   ],
@@ -960,8 +999,9 @@ var PAKETA = {
 // Αντιστοίχιση ασφαλιστικής → key πακέτων
 function getPaketaKey(ins){
   if(!ins) return null;
-  if(ins.type==='mednet' && ins.name.indexOf('INTERAMERICAN')>=0) return 'INTERAMERICAN';
-  if(ins.name.indexOf('Εθνική')>=0 || ins.name.indexOf('ΕΘΝΙΚΗ')>=0) return 'ΕΘΝΙΚΗ';
+  var n=ins.name.toLowerCase();
+  if(n.indexOf('interamerican')>=0) return 'INTERAMERICAN';
+  if(n.indexOf('εθνικ')>=0) return 'ΕΘΝΙΚΗ';
   if(ins.type==='mednet') return 'MEDNET';
   return null;
 }
