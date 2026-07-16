@@ -284,6 +284,26 @@ td.price-changed{background:#dcfce7!important;outline:2px solid #16a34a!importan
 .pf-result-row .val.grn{color:var(--grn);}
 .pf-placeholder{display:flex;align-items:center;justify-content:center;height:100%;color:var(--mut);font-size:12px;text-align:center;padding:20px;}
 .pf-detail{overflow-y:auto;height:100%;}
+.pf-detail-tabs{display:flex;border-bottom:2px solid var(--brd);flex-shrink:0;padding:0 16px;background:var(--sur);}
+.pf-detail-tab{padding:10px 16px;font-size:12px;font-weight:600;cursor:pointer;color:var(--mut);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
+.pf-detail-tab.active{color:var(--acc);border-bottom-color:var(--acc);}
+.pf-detail-tab:hover:not(.active){color:var(--dim);}
+.pf-paketo-wrap{padding:14px 16px;overflow-y:auto;flex:1;}
+.pf-paketo-section{margin-bottom:18px;}
+.pf-paketo-title{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--brd);}
+.pf-paketo-rule{font-size:12px;color:var(--dim);line-height:1.7;padding:4px 0;}
+.pf-paketo-rule strong{color:var(--txt);}
+.pf-paketo-tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;margin:2px 2px 2px 0;}
+.pf-paketo-tag.zero{background:#dcfce7;color:#166534;}
+.pf-paketo-tag.extra{background:#dbeafe;color:#1e40af;}
+.pf-paketo-tag.full{background:#fee2e2;color:#991b1b;}
+.pf-paketo-tag.warn{background:#fef9c3;color:#854d0e;}
+[data-dark] .pf-paketo-tag.zero{background:#14532d;color:#86efac;}
+[data-dark] .pf-paketo-tag.extra{background:#1e3a6e;color:#93c5fd;}
+[data-dark] .pf-paketo-tag.full{background:#450a0a;color:#fca5a5;}
+[data-dark] .pf-paketo-tag.warn{background:#422006;color:#fde68a;}
+.pf-praxis-grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.pf-praxis-chip{font-size:11px;background:var(--s2);border:1px solid var(--brd);border-radius:6px;padding:3px 8px;color:var(--dim);}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -754,6 +774,10 @@ function pfSelectIns(idx){
 }
 
 function pfBuildDetail(ins){
+  var paketaKey=getPaketaKey(ins);
+  var hasPaketa=paketaKey&&PAKETA[paketaKey]&&PAKETA[paketaKey].length>0;
+  var hasSpecial=ins.special&&ins.special.length>0;
+  // Header section
   var html='<div style="padding:16px;border-bottom:1px solid var(--brd);flex-shrink:0;">'
     +'<div style="font-size:16px;font-weight:700;color:var(--txt);margin-bottom:10px;">'+ins.name+'</div>'
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">'
@@ -765,9 +789,42 @@ function pfBuildDetail(ins){
     +(ins.general?'<div style="font-size:12px;color:var(--dim);line-height:1.5;">'+ins.general+'</div>':'')
     +'</div>';
 
+  // Tabs αν υπάρχουν πακέτα
+  if(hasPaketa||hasSpecial){
+    html+='<div class="pf-detail-tabs">'
+      +(hasSpecial?'<div class="pf-detail-tab active" id="pfTabPlafond" onclick="pfSwitchTab(\'plafond\')">Ειδικά Plafond</div>':'')
+      +(hasPaketa?'<div class="pf-detail-tab'+(hasSpecial?'':' active')+'" id="pfTabPaketa" onclick="pfSwitchTab(\'paketa\')">📦 Πακέτα</div>':'')
+      +'</div>';
+  }
+
+  // Panel Πακέτων
+  if(hasPaketa){
+    html+='<div id="pfPaketaPanel" style="'+(hasSpecial?'display:none':'display:flex')+';flex-direction:column;flex:1;overflow-y:auto;">'
+      +'<div class="pf-paketo-wrap">';
+    PAKETA[paketaKey].forEach(function(section){
+      html+='<div class="pf-paketo-section">'
+        +'<div class="pf-paketo-title">'+section.title+'</div>';
+      if(section.subtitle) html+='<div style="font-size:11px;color:var(--mut);margin-bottom:6px;">'+section.subtitle+'</div>';
+      if(section.chips&&section.chips.length){
+        html+='<div class="pf-praxis-grid">';
+        section.chips.forEach(function(c){ html+='<span class="pf-praxis-chip">'+c+'</span>'; });
+        html+='</div><br>';
+      }
+      section.rules.forEach(function(rule){
+        html+='<div class="pf-paketo-rule">'
+          +'<span class="pf-paketo-tag '+rule.tag+'">'+({'zero':'✓ ΜΗΔΕΝ','extra':'+ EXTRA','full':'✗ ΚΑΝΟΝΙΚΑ','warn':'⚠ ΠΡΟΣΟΧΗ'}[rule.tag]||rule.tag)+'</span> '
+          +'<strong>'+rule.label+':</strong> '+rule.value+'</div>';
+      });
+      html+='</div>';
+    });
+    html+='</div></div>';
+  }
+
+  // Panel Ειδικών Plafond
   if(ins.special&&ins.special.length){
     var detId='pfSpecialTbl';
-    html+='<div style="padding:10px 16px;border-bottom:1px solid var(--brd);flex-shrink:0;">'
+    html+='<div id="pfPlafondPanel" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">'
+      +'<div style="padding:10px 16px;border-bottom:1px solid var(--brd);flex-shrink:0;">'
       +'<input type="text" id="pfSpecSearch" placeholder="🔍 Αναζήτηση επέμβασης..." oninput="pfFilterSpecial(this)" '
       +'style="width:100%;background:var(--s2);border:1px solid var(--brd);border-radius:6px;padding:6px 10px;font-size:13px;color:var(--txt);font-family:inherit;outline:none;box-sizing:border-box;">'
       +'</div>'
@@ -787,8 +844,9 @@ function pfBuildDetail(ins){
           +'<td style="padding:8px 10px;border-bottom:1px solid var(--brd);color:var(--mut);font-size:12px;">'+(sp.note||'')+'</td>'
           +'</tr>';
       }).join('')
-      +'</tbody></table></div>';
-  } else {
+      +'</tbody></table></div>'
+      +'</div>'; // κλείσιμο pfPlafondPanel
+  } else if(!hasPaketa){
     html+='<div style="padding:20px;text-align:center;color:var(--mut);font-size:12px;">'
       +(ins.type==='no'?'Δεν υπάρχει plafond ειδικών υλικών.':'Δεν υπάρχουν ειδικά plafond — ισχύει ο γενικός κανόνας.')
       +'</div>';
@@ -796,6 +854,117 @@ function pfBuildDetail(ins){
   return html;
 }
 
+function pfSwitchTab(tab){
+  var plafondPanel=document.getElementById('pfPlafondPanel');
+  var paketaPanel=document.getElementById('pfPaketaPanel');
+  var tabP=document.getElementById('pfTabPlafond');
+  var tabPk=document.getElementById('pfTabPaketa');
+  if(tab==='plafond'){
+    if(plafondPanel) plafondPanel.style.display='flex';
+    if(paketaPanel) paketaPanel.style.display='none';
+    if(tabP) tabP.classList.add('active');
+    if(tabPk) tabPk.classList.remove('active');
+  } else {
+    if(plafondPanel) plafondPanel.style.display='none';
+    if(paketaPanel) paketaPanel.style.display='flex';
+    if(tabP) tabP.classList.remove('active');
+    if(tabPk) tabPk.classList.add('active');
+  }
+}
+
+
+
+// ── PAKETA ────────────────────────────────────────────────
+var PAKETA = {
+  'MEDNET': [
+    {
+      title: 'Οφθαλμολογικά (ΟΦΘ) πακέτα',
+      rules: [
+        {label:'Αναλώσιμα', value:'0 χρέωση', tag:'zero'},
+        {label:'Ειδικά υλικά', value:'Χρεώνονται επιπλέον του πακέτου', tag:'extra'},
+      ]
+    },
+    {
+      title: 'Γαστρεντερολογικές πράξεις',
+      rules: [
+        {label:'Αναλώσιμα (ODC)', value:'0 χρέωση', tag:'zero'},
+        {label:'Ειδικά υλικά', value:'Χρεώνονται επιπλέον του πακέτου', tag:'extra'},
+        {label:'Αν ΟΧΙ ODC', value:'Αναλώσιμα και ειδικά υλικά χρεώνονται κανονικά', tag:'full'},
+        {label:'ODC', value:'Μηδέν το αναλώσιμο', tag:'zero'},
+        {label:'Εξωτ. ιατρεία', value:'Χρέωση κανονικά', tag:'full'},
+      ]
+    },
+    {
+      title: 'Βλεννογόνιος Ενδοσκοπική Εκτομή Στομάχου',
+      rules: [
+        {label:'Νοσηλεία 1ης ημέρας ή ODC — Αναλώσιμα', value:'0 χρέωση', tag:'zero'},
+        {label:'Νοσηλεία 1ης ημέρας ή ODC — Ειδικά υλικά', value:'Χρεώνονται επιπλέον', tag:'extra'},
+        {label:'Νοσηλεία πολλών ημερών', value:'Αναλώσιμα και ειδικά υλικά χρεώνονται κανονικά', tag:'full'},
+      ]
+    },
+    {
+      title: 'Φαρμακευτική Ανάταξη',
+      rules: [
+        {label:'Νοσηλεία ODC — Αναλώσιμα', value:'0 χρέωση', tag:'zero'},
+        {label:'Νοσηλεία ODC — Ειδικά υλικά', value:'Χρεώνονται επιπλέον (αν υπάρχουν)', tag:'extra'},
+        {label:'Νοσηλεία ΟΧΙ ODC', value:'Αναλώσιμα και ειδικά υλικά χρεώνονται κανονικά', tag:'full'},
+      ]
+    },
+  ],
+  'INTERAMERICAN': [
+    {
+      title: 'Επεμβάσεις με Αναλώσιμα = 0',
+      subtitle: 'Αναλώσιμα: 0 χρέωση — Ειδικά υλικά: χρεώνονται επιπλέον',
+      chips: ['ΟΥΡΗΘΡΟΚΥΣΤΕΟΣΚΟΠΗΣΗ','ΑΜΥΓΔΑΛΕΚΤΟΜΗ','ΑΡΘΡΟΣΚΟΠΙΚΗ ΜΗΝΙΣΚΕΚΤΟΜΗ','ΒΟΥΒΩΝΟΚΗΛΗ ΜΕ ΠΛΕΓΜΑ','TRIGGER FINGER','ΚΑΥΤΗΡΙΑΣΜΟΣ ΡΙΝΙΚΩΝ ΚΟΓΧΩΝ','ΧΑΛΑΖΙΟ','ΑΙΜΟΡΡΟΕΙΔΕΚΤΟΜΗ','ΑΦΑΙΡΕΣΗ ΠΟΛΥΠΟΔΩΝ ΡΙΝΟΣ','ΔΙΑΓΝΩΣΤΙΚΗ ΛΑΠΑΡΟΣΚΟΠΗΣΗ','ΣΚΩΛΗΚΟΕΙΔΕΚΤΟΜΗ','HALLUX VALGUS','ΚΑΤΑΡΡΑΚΤΗΣ','ΠΛΑΣΤΙΚΗ ΡΙΝΙΚΟΥ ΔΙΑΦΡΑΓΜΑΤΟΣ','ΛΑΠΑΡΟΣΚΟΠΙΚΗ ΧΟΛΟΚΥΣΤΕΚΤΟΜΗ','ΑΦΑΙΡΕΣΗ ΚΥΣΤΗ ΚΟΚΚΥΓΟΣ','ΑΦΑΙΡΕΣΗ ΕΠΙΦΑΝΕΙΑΚΟΥ ΜΟΡΦΩΜΑΤΟΣ'],
+      rules: [
+        {label:'Αναλώσιμα', value:'0 χρέωση', tag:'zero'},
+        {label:'Ειδικά υλικά', value:'Χρεώνονται επιπλέον του πακέτου', tag:'extra'},
+      ]
+    },
+    {
+      title: 'Πακέτο Διαγνωστικής Υστεροσκόπησης / Πολυπεκτομής / Λαρυγγοσκόπησης',
+      rules: [
+        {label:'Νοσηλεία ODC — Αναλώσιμα', value:'0 χρέωση', tag:'zero'},
+        {label:'Νοσηλεία ODC — Ειδικά υλικά', value:'0 χρέωση', tag:'zero'},
+        {label:'Νοσηλεία ΟΧΙ ODC', value:'Δεν υφίσταται πακέτο — χρεώνονται κανονικά', tag:'full'},
+      ]
+    },
+    {
+      title: 'Πακέτα Γαστρεντερολογικά',
+      rules: [
+        {label:'Νοσηλεία ODC — Αναλώσιμα', value:'0 χρέωση', tag:'zero'},
+        {label:'Νοσηλεία ODC — Ειδικά υλικά', value:'Χρεώνονται επιπλέον', tag:'extra'},
+        {label:'Νοσηλεία ΟΧΙ ODC', value:'Αναλώσιμα και ειδικά υλικά χρεώνονται κανονικά', tag:'full'},
+      ]
+    },
+  ],
+  'ΕΘΝΙΚΗ': [
+    {
+      title: 'Οφθαλμολογικά (ΟΦΘ) πακέτα',
+      rules: [
+        {label:'Αναλώσιμα', value:'Συμπεριλαμβάνονται εντός πακέτου (0 χρέωση)', tag:'zero'},
+        {label:'Ειδικά υλικά', value:'Συμπεριλαμβάνονται εντός πακέτου (0 χρέωση)', tag:'zero'},
+        {label:'Ακριβός φακός', value:'Ειδοποίηση γραφείου ασφαλειών πριν την επέμβαση', tag:'warn'},
+      ]
+    },
+    {
+      title: 'Πράξεις Βρογχολογικού & Ενδοσκοπικού-Ενδογαστρικού Υπερήχου',
+      rules: [
+        {label:'Κατηγορία', value:'ΔΕΝ αφορούν πακέτα', tag:'full'},
+        {label:'Αναλώσιμα & Ειδικά υλικά', value:'Χρεώνονται κανονικά με τιμή', tag:'full'},
+      ]
+    },
+  ],
+};
+
+// Αντιστοίχιση ασφαλιστικής → key πακέτων
+function getPaketaKey(ins){
+  if(!ins) return null;
+  if(ins.type==='mednet' && ins.name.indexOf('INTERAMERICAN')>=0) return 'INTERAMERICAN';
+  if(ins.name.indexOf('Εθνική')>=0 || ins.name.indexOf('ΕΘΝΙΚΗ')>=0) return 'ΕΘΝΙΚΗ';
+  if(ins.type==='mednet') return 'MEDNET';
+  return null;
+}
 
 // ── DARK MODE ─────────────────────────────────────────────
 function toggleDark(){
