@@ -1,0 +1,36 @@
+{
+  "name": "MediPrice — Τιμοκατάλογος Mediterraneo",
+  "short_name": "MediPrice",
+  "description": "Τιμοκατάλογος χειρουργικών πράξεων Mediterraneo Hospital",
+  "start_url": "/mediprice/",
+  "scope": "/mediprice/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#f5f7fa",
+  "theme_color": "#1a56db",
+  "lang": "el",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Αναζήτηση πράξης",
+      "short_name": "Αναζήτηση",
+      "description": "Άνοιγμα με focus στην αναζήτηση",
+      "url": "/mediprice/?search=1"
+    }
+  ],
+  "categories": ["medical", "productivity"],
+  "prefer_related_applications": false
+}
