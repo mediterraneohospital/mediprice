@@ -246,6 +246,18 @@ td.price-changed{background:#dcfce7!important;outline:2px solid #16a34a!importan
 #pfModal{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;overflow:auto;padding:10px;}
 #pfModal.open{display:flex;}
 .pf-modal-box{background:var(--sur);border-radius:12px;width:min(1400px,98vw);flex-shrink:0;height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;font-size:14px;}
+@media(max-width:768px){
+  .pf-modal-box{width:100vw;height:100dvh;border-radius:0;margin:0;}
+  #pfModal{padding:0;align-items:flex-start;}
+  .pf-modal-body{flex-direction:column;}
+  .pf-left{width:100%;max-height:35vh;border-right:none;border-bottom:1px solid var(--brd);}
+  .pf-ins-list{max-height:calc(35vh - 48px);overflow-y:auto;}
+  .pf-right{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+  .pf-detail{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  #pfPlafondPanel{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+  #pfPlafondPanel > div:last-child{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .pf-paketo-wrap{overflow-y:auto;-webkit-overflow-scrolling:touch;}
+}
 .pf-modal-hdr{background:#1a56db;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:12px 18px;flex-shrink:0;}
 .pf-modal-hdr h2{font-size:15px;font-weight:700;color:#fff;margin:0;}
 .pf-modal-hdr button{background:rgba(255,255,255,.15);border:none;font-size:16px;cursor:pointer;color:#fff;padding:4px 10px;border-radius:6px;font-family:inherit;}
@@ -849,7 +861,7 @@ function pfBuildDetail(ins){
       +'<input type="text" id="pfSpecSearch" placeholder="🔍 Αναζήτηση επέμβασης..." oninput="pfFilterSpecial(this)" '
       +'style="width:100%;background:var(--s2);border:1px solid var(--brd);border-radius:6px;padding:6px 10px;font-size:13px;color:var(--txt);font-family:inherit;outline:none;box-sizing:border-box;">'
       +'</div>'
-      +'<div style="padding:12px 16px;flex:1;overflow-y:auto;">'
+      +'<div style="padding:12px 16px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">'
       +'<div style="font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Ειδικά Plafond</div>'
       +'<table id="'+detId+'" style="width:100%;border-collapse:collapse;font-size:13px;">'
       +'<thead><tr>'
