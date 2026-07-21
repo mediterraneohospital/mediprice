@@ -9,7 +9,24 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MediPrice">
 <link rel="manifest" href="manifest.json">
-<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js');}</script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js');}
+var deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();
+  deferredPrompt=e;
+  var btn=document.getElementById('installBtn');
+  if(btn) btn.style.display='flex';
+});
+window.addEventListener('appinstalled',function(){
+  var btn=document.getElementById('installBtn');
+  if(btn) btn.style.display='none';
+  deferredPrompt=null;
+});
+function installApp(){
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function(){ deferredPrompt=null; });
+}</script>
 <title>MediPrice</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
@@ -246,17 +263,31 @@ td.price-changed{background:#dcfce7!important;outline:2px solid #16a34a!importan
 #pfModal{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;overflow:auto;padding:10px;}
 #pfModal.open{display:flex;}
 .pf-modal-box{background:var(--sur);border-radius:12px;width:min(1400px,98vw);flex-shrink:0;height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;font-size:14px;}
-@media(max-width:768px){
-  .pf-modal-box{width:100vw;height:100dvh;border-radius:0;margin:0;}
-  #pfModal{padding:0;align-items:flex-start;}
-  .pf-modal-body{flex-direction:column;}
-  .pf-left{width:100%;max-height:35vh;border-right:none;border-bottom:1px solid var(--brd);}
-  .pf-ins-list{max-height:calc(35vh - 48px);overflow-y:auto;}
-  .pf-right{flex:1;overflow:hidden;display:flex;flex-direction:column;}
-  .pf-detail{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-  #pfPlafondPanel{flex:1;overflow:hidden;display:flex;flex-direction:column;}
-  #pfPlafondPanel > div:last-child{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-  .pf-paketo-wrap{overflow-y:auto;-webkit-overflow-scrolling:touch;}
+@media(max-width:900px){
+  .pf-modal-box{width:100vw;height:100dvh;max-height:100dvh;border-radius:0;margin:0;}
+  #pfModal{padding:0;align-items:flex-start;overflow:hidden;}
+  .pf-modal-body{flex-direction:column;overflow:hidden;}
+  .pf-left{width:100%;height:38dvh;max-height:38dvh;flex-shrink:0;border-right:none;border-bottom:2px solid var(--brd);}
+  .pf-ins-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .pf-right{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;}
+  .pf-placeholder{font-size:14px;}
+  .pf-detail{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;}
+  #pfPlafondPanel{flex:1;min-height:0;display:flex;flex-direction:column;}
+  #pfPlafondPanel > div:first-child{flex-shrink:0;}
+  #pfPlafondPanel > div:last-child{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 10px;}
+  #pfPlafondPanel table{font-size:13px;}
+  #pfPlafondPanel table td{padding:10px 8px;}
+  .pf-paketo-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .pf-detail-tabs{flex-shrink:0;}
+  .pf-modal-hdr{padding:10px 14px;flex-shrink:0;}
+  .pf-modal-hdr h2{font-size:14px;}
+  #pfDetail > div:first-child{flex-shrink:0;}
+}
+@media(max-width:900px) and (orientation:landscape){
+  .pf-modal-body{flex-direction:row;}
+  .pf-left{width:240px;height:100%;max-height:100%;border-right:2px solid var(--brd);border-bottom:none;}
+  .pf-ins-list{flex:1;overflow-y:auto;}
+  .pf-search{flex-shrink:0;}
 }
 .pf-modal-hdr{background:#1a56db;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:12px 18px;flex-shrink:0;}
 .pf-modal-hdr h2{font-size:15px;font-weight:700;color:#fff;margin:0;}
@@ -363,6 +394,7 @@ td.price-changed{background:#dcfce7!important;outline:2px solid #16a34a!importan
   
   <button id="katOpenBtn" onclick="openKat()" title="Κατηγοριοποίηση Επεμβάσεων">📋 Κατηγοριοποίηση</button>
   <button id="pfOpenBtn" onclick="openPlafond()" title="Plafond Ειδικών Υλικών">📄 Plafond Ειδικών Υλικών</button>
+  <button id="installBtn" onclick="installApp()" title="Εγκατάσταση εφαρμογής" style="display:none;align-items:center;gap:5px;background:var(--acc);color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600;">⬇ Εγκατάσταση</button>
   <button id="darkBtn" onclick="toggleDark()" title="Dark Mode" style="background:none;border:1px solid var(--brd);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:14px;color:var(--mut);line-height:1;flex-shrink:0;">🌙</button>
   <div class="sw">
     <svg class="sico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
