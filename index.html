@@ -41,6 +41,13 @@ header{height:48px;background:var(--sur);border-bottom:1px solid var(--brd);disp
 .logo .m{font-weight:700;color:#1a56db;}.logo .p{font-weight:700;color:#e53e3e;}
 .sep{width:1px;height:20px;background:var(--brd);}
 .hosp{font-size:12px;color:var(--mut);white-space:nowrap;}
+@media(max-width:900px){
+  .hosp{display:none;}
+  header .sw{flex:1;max-width:100%;}
+  header .sw .si{font-size:16px;padding:10px 14px;height:44px;border-radius:10px;}
+  header .sw .sico{width:20px;height:20px;}
+  #katOpenBtn span, #pfOpenBtn span{display:none;}
+}
 .badge{background:var(--s2);border:1px solid var(--brd);border-radius:20px;padding:2px 10px;font-size:11px;color:var(--mut);font-family:'DM Mono',monospace;white-space:nowrap;margin-left:auto;}
 .sw{position:relative;flex:1;max-width:420px;}
 @media(max-width:900px){
