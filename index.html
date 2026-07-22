@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="MediPrice">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <script>if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').then(function(reg){
     reg.addEventListener('updatefound', function(){
@@ -817,19 +818,21 @@ function mobShowSpecs(){
 }
 
 function mobShowPraxisEl(el){mobShowPraxis(decodeURIComponent(el.dataset.sheet));}
+var MOB_ROWS = [];
+
 function mobShowPraxis(sheet){
   mobCurSheet = sheet;
   var d = D[sheet];
-  var rows = [];
+  MOB_ROWS = [];
   if(d.__multi__){
-    d.tables.forEach(function(t){ t.rows.forEach(function(r){ if(r[0]&&r[1]) rows.push({row:r,headers:t.headers}); }); });
+    d.tables.forEach(function(t){ t.rows.forEach(function(r){ if(r[1]&&r[1].toString().trim()) MOB_ROWS.push({row:r,headers:t.headers}); }); });
   } else {
-    (d.rows||[]).forEach(function(r){ if(r[1]&&r[1].trim()&&!r[1].startsWith('📌')) rows.push({row:r,headers:d.headers}); });
+    (d.rows||[]).forEach(function(r){ if(r[1]&&r[1].toString().trim()) MOB_ROWS.push({row:r,headers:d.headers}); });
   }
   document.getElementById('mobBackLabel').textContent = 'Ειδικότητες';
-  document.getElementById('mobPraxisLbl').textContent = sheet + ' · ' + rows.length + ' εγγραφές';
+  document.getElementById('mobPraxisLbl').textContent = sheet + ' · ' + MOB_ROWS.length + ' εγγραφές';
   var el = document.getElementById('mobPraxisList');
-  el.innerHTML = rows.map(function(item,i){
+  el.innerHTML = MOB_ROWS.map(function(item,i){
     return mobBuildPraxisCard(item.row, item.headers, i, sheet);
   }).join('');
   document.getElementById('mobSpecView').style.display='none';
@@ -839,43 +842,57 @@ function mobShowPraxis(sheet){
   document.getElementById('mobPraxisList').scrollTop=0;
 }
 
-function mobBuildPraxisCard(row, headers, idx, sheet){
-  var title = row[1]||row[0]||'';
-  if(!title.trim()) return '';
-  // Βρες τιμές
-  var idiot = '', eopuu = '';
-  var norm = function(h){return h.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();};
+function mobShowDetailIdx(el){
+  var idx = parseInt(el.dataset.idx);
+  var item = MOB_ROWS[idx];
+  if(item) mobShowDetail(item.row, item.headers);
+}
+
+function mobNorm(s){return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
+
+function mobGetPrices(row, headers){
+  var res = {idiot:'', eopuu:''};
   headers.forEach(function(h,i){
-    var hn = norm(h);
-    if(!idiot && (hn.indexOf('idiotis ba')>=0||hn==='idiotis'||hn.indexOf('idiotis 2')>=0) && row[i]) idiot=row[i];
-    if(!eopuu && (hn.indexOf('eopuu ba')>=0||hn==='eopuu'||hn.indexOf('telikos eopuu')>=0) && row[i]) eopuu=row[i];
+    var hn = mobNorm(h);
+    var v = (row[i]||'').toString().trim();
+    if(!v) return;
+    if(!res.idiot && (hn.indexOf('idiotis ba')>=0 || hn==='idiotis' || hn==='idiotis ba3' || hn.indexOf('idiotis 2')>=0 || hn==='ba idiotis me fpa' || hn==='odc idiotis me fpa')) res.idiot=v;
+    if(!res.eopuu && (hn.indexOf('eopuu ba')>=0 || hn==='eopuu' || hn.indexOf('telikos eopuu')>=0 || hn==='ba eopuu me fpa' || hn==='odc eopuu me fpa' || hn==='eopuu me fpa')) res.eopuu=v;
   });
-  // ΚΕΝ & ΗΜ
-  var ken = row[headers.findIndex(function(h){var n=norm(h);return n==='ken'||n==='ken/p.d.'||n==='ken (2)';})];
-  var hm = row[headers.findIndex(function(h){return norm(h)==='im'||norm(h)==='im. nos'||norm(h)==='imeres nosileias'||norm(h)==='imeres';})];
-  var kenIdx = headers.findIndex(function(h){var n=norm(h);return n==='ken'||n==='ken/p.d.';});
+  return res;
+}
+
+function mobBuildPraxisCard(row, headers, idx, sheet){
+  var title = (row[1]||row[0]||'').toString().trim();
+  if(!title || title.startsWith('📌') || /^[0-9]+$/.test(title)) return '';
+
+  var kenIdx = headers.findIndex(function(h){var n=mobNorm(h);return n==='ken'||n==='ken/p.d.'||n==='ken (2)';});
   if(kenIdx<0) kenIdx=2;
-  ken = row[kenIdx]||'';
-  var hmIdx = headers.findIndex(function(h){var n=norm(h);return n.indexOf('imer')>=0||n==='im';});
-  hm = hmIdx>=0 ? row[hmIdx]||'' : '';
+  var ken = (row[kenIdx]||'').toString().trim();
+
+  var hmIdx = headers.findIndex(function(h){var n=mobNorm(h);return n==='im'||n==='im nos'||n.indexOf('imeres nos')>=0||n==='imeres'||n==='im. nos';});
+  var hm = hmIdx>=0?(row[hmIdx]||'').toString().trim():'';
+
+  var prices = mobGetPrices(row, headers);
 
   var badges = '';
   if(ken) badges += '<span class="mob-badge mob-badge-ken">'+ken+'</span>';
-  if(hm=='ODC'||hm=='odc') badges += '<span class="mob-badge mob-badge-odc">ODC</span>';
-  else if(hm) badges += '<span class="mob-badge mob-badge-hm">'+hm+' ημ.</span>';
+  if(hm.toLowerCase()==='odc') badges += '<span class="mob-badge mob-badge-odc">ODC</span>';
+  else if(hm && hm!='0') badges += '<span class="mob-badge mob-badge-hm">'+hm+' ημ.</span>';
 
-  var prices = '';
-  if(idiot||eopuu){
-    prices = '<div class="mob-prices">'
-      +(idiot?'<div class="mob-pbox"><div class="mob-plbl">Ιδιώτης</div><div class="mob-pval bl">'+idiot+'€</div></div>':'<div class="mob-pbox"><div class="mob-plbl">Ιδιώτης</div><div class="mob-pval" style="color:var(--mut)">—</div></div>')
-      +(eopuu?'<div class="mob-pbox"><div class="mob-plbl">ΕΟΠΥΥ</div><div class="mob-pval gr">'+eopuu+'€</div></div>':'<div class="mob-pbox"><div class="mob-plbl">ΕΟΠΥΥ</div><div class="mob-pval" style="color:var(--mut)">—</div></div>')
-      +'</div>';
-  }
+  var rowData = JSON.stringify({r:row, h:headers});
+  var safeData = rowData.replace(/'/g,'&apos;');
 
-  return '<div class="mob-praxis-row" onclick="mobShowDetail('+JSON.stringify(row)+','+JSON.stringify(headers)+')">'
+  var pricesHtml = '<div class="mob-prices">'
+    +'<div class="mob-pbox"><div class="mob-plbl">Ιδιώτης</div><div class="mob-pval bl">'+(prices.idiot?prices.idiot+'€':'—')+'</div></div>'
+    +'<div class="mob-pbox"><div class="mob-plbl">ΕΟΠΥΥ</div><div class="mob-pval gr">'+(prices.eopuu?prices.eopuu+'€':'—')+'</div></div>'
+    +'</div>';
+
+  return '<div class="mob-praxis-row" data-idx="'+idx+'" data-sheet="'+encodeURIComponent(sheet||'')
+    +'" onclick="mobShowDetailIdx(this)">'
     +'<div class="mob-praxis-title">'+title+'</div>'
     +(badges?'<div class="mob-badges">'+badges+'</div>':'')
-    +prices
+    +pricesHtml
     +'</div>';
 }
 
@@ -926,8 +943,14 @@ function mobShowDetail(row, headers){
   document.getElementById('mobDetailBackLabel').textContent = mobCurSheet||'Πίσω';
   document.getElementById('mobDetailBack').onclick = function(){
     document.getElementById('mobDetailView').style.display='none';
-    if(mobCurSheet) document.getElementById('mobPraxisView').style.display='flex';
-    else document.getElementById('mobSpecView').style.display='flex';
+    document.getElementById('mobDetailView').style.flexDirection='column';
+    if(mobCurSheet){
+      document.getElementById('mobPraxisView').style.display='flex';
+      document.getElementById('mobPraxisView').style.flexDirection='column';
+    } else {
+      document.getElementById('mobSpecView').style.display='flex';
+      document.getElementById('mobSpecView').style.flexDirection='column';
+    }
   };
 
   document.getElementById('mobSpecView').style.display='none';
