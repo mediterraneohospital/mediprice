@@ -800,7 +800,7 @@ function mobRenderSpecs(){
     var count = d.__multi__ 
       ? d.tables.reduce(function(s,t){return s+t.rows.filter(function(r){return r[0]&&r[1];}).length;},0)
       : (d.rows||[]).filter(function(r){return r[1]&&r[1].trim();}).length;
-    return '<div class="mob-spec-row" onclick="mobShowPraxis(''+k.replace(/'/g,"\'")+'')">'
+    return '<div class="mob-spec-row" data-sheet="'+encodeURIComponent(k)+'" onclick="mobShowPraxisEl(this)">'
       +'<span class="mob-spec-name">'+k+'</span>'
       +'<span class="mob-spec-count">'+count+'</span>'
       +'<i class="ti ti-chevron-right mob-spec-arr" aria-hidden="true"></i>'
@@ -816,6 +816,7 @@ function mobShowSpecs(){
   mobCurSheet=null;
 }
 
+function mobShowPraxisEl(el){mobShowPraxis(decodeURIComponent(el.dataset.sheet));}
 function mobShowPraxis(sheet){
   mobCurSheet = sheet;
   var d = D[sheet];
@@ -2865,7 +2866,7 @@ function katParseExcel(wb){
   <div class="mob-header" id="mobHeader">
     <div class="mob-logo">
       <span class="m">Medi</span><span class="p">Price</span>
-      <button class="mob-logo-dark" id="mobDarkBtn" onclick="toggleDark();updateMobDark()">🌙</button>
+      <button class="mob-logo-dark" id="mobDarkBtn" onclick="if(typeof toggleDark==='function'){toggleDark();updateMobDark();}">🌙</button>
     </div>
     <div class="mob-search">
       <i class="ti ti-search" aria-hidden="true"></i>
