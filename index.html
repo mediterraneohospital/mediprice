@@ -454,6 +454,7 @@ td.price-changed{background:#dcfce7!important;outline:2px solid #16a34a!importan
   #mobileUI{display:flex;}
   .main,.sidebar,header{display:none!important;}
   #pfModal,#katModal{z-index:3000;}
+  #aiBtn,#editBtn,.ai-panel,.edit-btn{display:none!important;}
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -825,9 +826,17 @@ function mobShowPraxis(sheet){
   var d = D[sheet];
   MOB_ROWS = [];
   if(d.__multi__){
-    d.tables.forEach(function(t){ t.rows.forEach(function(r){ if(r[1]&&r[1].toString().trim()) MOB_ROWS.push({row:r,headers:t.headers}); }); });
+    d.tables.forEach(function(t){
+      t.rows.forEach(function(r){
+        var title=(r[0]||r[1]||'').toString().trim();
+        if(title&&!title.startsWith('📌')) MOB_ROWS.push({row:r,headers:t.headers});
+      });
+    });
   } else {
-    (d.rows||[]).forEach(function(r){ if(r[1]&&r[1].toString().trim()) MOB_ROWS.push({row:r,headers:d.headers}); });
+    (d.rows||[]).forEach(function(r){
+      var title=(r[1]||r[0]||'').toString().trim();
+      if(title&&!title.startsWith('📌')) MOB_ROWS.push({row:r,headers:d.headers});
+    });
   }
   document.getElementById('mobBackLabel').textContent = 'Ειδικότητες';
   document.getElementById('mobPraxisLbl').textContent = sheet + ' · ' + MOB_ROWS.length + ' εγγραφές';
@@ -855,15 +864,27 @@ function mobGetPrices(row, headers){
   headers.forEach(function(h,i){
     var hn = mobNorm(h);
     var v = (row[i]||'').toString().trim();
-    if(!v) return;
-    if(!res.idiot && (hn.indexOf('idiotis ba')>=0 || hn==='idiotis' || hn==='idiotis ba3' || hn.indexOf('idiotis 2')>=0 || hn==='ba idiotis me fpa' || hn==='odc idiotis me fpa')) res.idiot=v;
-    if(!res.eopuu && (hn.indexOf('eopuu ba')>=0 || hn==='eopuu' || hn.indexOf('telikos eopuu')>=0 || hn==='ba eopuu me fpa' || hn==='odc eopuu me fpa' || hn==='eopuu me fpa')) res.eopuu=v;
+    if(!v || v==='0') return;
+    // ΙΔΙΩΤΗΣ — οτιδήποτε με idiotis/ιδιωτ (εκτός ΕΟΠΥΥ)
+    if(!res.idiot && hn.indexOf('idiot')>=0 && hn.indexOf('eopuu')<0) res.idiot=v;
+    // ΕΟΠΥΥ — οτιδήποτε με eopuu/εοπυυ ή telikos
+    if(!res.eopuu && (hn.indexOf('eopuu')>=0 || hn.indexOf('telikos')>=0)) res.eopuu=v;
   });
+  // Fallback: αν δεν βρήκε, ψάξε για αριθμητικές τιμές σε numeric columns
+  if(!res.idiot && !res.eopuu){
+    var nums = [];
+    headers.forEach(function(h,i){
+      var v = (row[i]||'').toString().trim();
+      if(v && !isNaN(parseFloat(v)) && parseFloat(v)>50) nums.push({h:h,v:v,i:i});
+    });
+    if(nums.length>=2){res.idiot=nums[0].v; res.eopuu=nums[1].v;}
+    else if(nums.length===1){res.idiot=nums[0].v;}
+  }
   return res;
 }
 
 function mobBuildPraxisCard(row, headers, idx, sheet){
-  var title = (row[1]||row[0]||'').toString().trim();
+  var title = (row[0]||row[1]||'').toString().trim();
   if(!title || title.startsWith('📌') || /^[0-9]+$/.test(title)) return '';
 
   var kenIdx = headers.findIndex(function(h){var n=mobNorm(h);return n==='ken'||n==='ken/p.d.'||n==='ken (2)';});
