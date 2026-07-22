@@ -393,6 +393,67 @@ td.price-changed{background:#dcfce7!important;outline:2px solid #16a34a!importan
 [data-dark] .pf-paketo-tag.warn{background:#422006;color:#fde68a;}
 .pf-praxis-grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
 .pf-praxis-chip{font-size:11px;background:var(--s2);border:1px solid var(--brd);border-radius:6px;padding:3px 8px;color:var(--dim);}
+
+/* ── MOBILE UI ─────────────────────────────────────── */
+#mobileUI{display:none;flex-direction:column;height:100dvh;background:var(--bg);overflow:hidden;}
+.mob-header{background:var(--sur);border-bottom:0.5px solid var(--brd);padding:12px 16px;flex-shrink:0;}
+.mob-logo{display:flex;align-items:center;margin-bottom:10px;}
+.mob-logo .m{font-size:22px;font-weight:700;color:#1a56db;letter-spacing:-.3px;}
+.mob-logo .p{font-size:22px;font-weight:700;color:#e53e3e;letter-spacing:-.3px;}
+.mob-logo-dark{margin-left:auto;background:none;border:0.5px solid var(--brd);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:16px;color:var(--mut);}
+.mob-search{display:flex;align-items:center;background:var(--s2);border:0.5px solid var(--brd);border-radius:12px;padding:10px 14px;gap:10px;}
+.mob-search i{color:var(--mut);font-size:18px;flex-shrink:0;}
+.mob-search input{flex:1;border:none;background:transparent;outline:none;font-size:15px;color:var(--txt);font-family:inherit;}
+.mob-search input::placeholder{color:var(--mut);}
+.mob-search-clear{background:none;border:none;color:var(--mut);font-size:16px;cursor:pointer;padding:0;display:none;}
+.mob-section-lbl{padding:10px 16px 6px;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;flex-shrink:0;}
+.mob-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 12px 12px;display:flex;flex-direction:column;gap:6px;}
+.mob-spec-row{background:var(--sur);border:0.5px solid var(--brd);border-radius:10px;padding:14px 16px;display:flex;align-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.mob-spec-row:active{background:var(--s2);}
+.mob-spec-name{font-size:14px;font-weight:500;color:var(--txt);flex:1;}
+.mob-spec-count{font-size:12px;color:var(--mut);margin-right:8px;}
+.mob-spec-arr{font-size:16px;color:var(--mut);}
+/* Πράξεις */
+.mob-praxis-row{background:var(--sur);border:0.5px solid var(--brd);border-radius:10px;padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.mob-praxis-row:active{background:var(--s2);}
+.mob-praxis-title{font-size:13px;font-weight:500;color:var(--txt);line-height:1.4;margin-bottom:7px;}
+.mob-badges{display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap;}
+.mob-badge{font-size:10px;padding:3px 7px;border-radius:6px;font-weight:500;}
+.mob-badge-ken{background:var(--s2);border:0.5px solid var(--brd);color:var(--dim);}
+.mob-badge-hm{background:var(--th-ec);color:var(--grn);}
+.mob-badge-odc{background:var(--th-pc);color:var(--acc);}
+.mob-prices{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.mob-pbox{background:var(--s2);border-radius:8px;padding:7px 10px;}
+.mob-plbl{font-size:10px;color:var(--mut);margin-bottom:2px;}
+.mob-pval{font-size:16px;font-weight:500;}
+.mob-pval.bl{color:var(--acc);}
+.mob-pval.gr{color:var(--grn);}
+/* Detail */
+.mob-detail-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;}
+.mob-detail-card{background:var(--sur);border:0.5px solid var(--brd);border-radius:12px;padding:14px;}
+.mob-detail-title{font-size:15px;font-weight:500;color:var(--txt);line-height:1.4;margin-bottom:10px;}
+.mob-detail-prices{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.mob-detail-pbox{background:var(--s2);border-radius:8px;padding:8px 10px;}
+.mob-detail-plbl{font-size:10px;color:var(--mut);margin-bottom:2px;}
+.mob-detail-pval{font-size:18px;font-weight:500;}
+.mob-det-section{border-top:0.5px solid var(--brd);padding-top:8px;margin-top:8px;}
+.mob-det-slbl{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+.mob-det-sval{font-size:12px;color:var(--dim);line-height:1.5;}
+/* Bottom nav */
+.mob-bnav{background:var(--sur);border-top:0.5px solid var(--brd);display:flex;padding:8px 0 max(4px,env(safe-area-inset-bottom));flex-shrink:0;}
+.mob-ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.mob-ni i{font-size:22px;color:var(--mut);}
+.mob-ni.active i{color:var(--acc);}
+.mob-ni span{font-size:10px;color:var(--mut);}
+.mob-ni.active span{color:var(--acc);}
+.mob-back{display:flex;align-items:center;gap:6px;padding:8px 16px 4px;flex-shrink:0;cursor:pointer;}
+.mob-back i{font-size:16px;color:var(--acc);}
+.mob-back span{font-size:13px;color:var(--acc);font-weight:500;}
+@media(max-width:700px){
+  #mobileUI{display:flex;}
+  .main,.sidebar,header{display:none!important;}
+  #pfModal,#katModal{z-index:3000;}
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -711,6 +772,219 @@ function makeEditable(el, onSave){
   });
 }
 
+
+
+// ── MOBILE UI ─────────────────────────────────────────────
+var mobCurSheet = null;
+var mobCurRow = null;
+
+function mobInit(){
+  if(window.innerWidth > 700) return;
+  mobRenderSpecs();
+  updateMobDark();
+}
+
+function updateMobDark(){
+  var isDark = document.documentElement.hasAttribute('data-dark');
+  var btn = document.getElementById('mobDarkBtn');
+  if(btn) btn.textContent = isDark ? '☀️' : '🌙';
+}
+
+function mobRenderSpecs(){
+  var el = document.getElementById('mobSpecList');
+  var total = 0;
+  Object.keys(D).forEach(function(k){ if(D[k].rows) total += D[k].rows.filter(function(r){return r[1]&&r[1].trim();}).length; });
+  document.getElementById('mobSpecLbl').textContent = Object.keys(D).length + ' ειδικότητες · ' + total + ' εγγραφές';
+  el.innerHTML = Object.keys(D).map(function(k){
+    var d = D[k];
+    var count = d.__multi__ 
+      ? d.tables.reduce(function(s,t){return s+t.rows.filter(function(r){return r[0]&&r[1];}).length;},0)
+      : (d.rows||[]).filter(function(r){return r[1]&&r[1].trim();}).length;
+    return '<div class="mob-spec-row" onclick="mobShowPraxis(''+k.replace(/'/g,"\'")+'')">'
+      +'<span class="mob-spec-name">'+k+'</span>'
+      +'<span class="mob-spec-count">'+count+'</span>'
+      +'<i class="ti ti-chevron-right mob-spec-arr" aria-hidden="true"></i>'
+      +'</div>';
+  }).join('');
+}
+
+function mobShowSpecs(){
+  document.getElementById('mobSpecView').style.display='flex';
+  document.getElementById('mobPraxisView').style.display='none';
+  document.getElementById('mobDetailView').style.display='none';
+  document.getElementById('mobSearchView').style.display='none';
+  mobCurSheet=null;
+}
+
+function mobShowPraxis(sheet){
+  mobCurSheet = sheet;
+  var d = D[sheet];
+  var rows = [];
+  if(d.__multi__){
+    d.tables.forEach(function(t){ t.rows.forEach(function(r){ if(r[0]&&r[1]) rows.push({row:r,headers:t.headers}); }); });
+  } else {
+    (d.rows||[]).forEach(function(r){ if(r[1]&&r[1].trim()&&!r[1].startsWith('📌')) rows.push({row:r,headers:d.headers}); });
+  }
+  document.getElementById('mobBackLabel').textContent = 'Ειδικότητες';
+  document.getElementById('mobPraxisLbl').textContent = sheet + ' · ' + rows.length + ' εγγραφές';
+  var el = document.getElementById('mobPraxisList');
+  el.innerHTML = rows.map(function(item,i){
+    return mobBuildPraxisCard(item.row, item.headers, i, sheet);
+  }).join('');
+  document.getElementById('mobSpecView').style.display='none';
+  document.getElementById('mobPraxisView').style.display='flex';
+  document.getElementById('mobDetailView').style.display='none';
+  document.getElementById('mobSearchView').style.display='none';
+  document.getElementById('mobPraxisList').scrollTop=0;
+}
+
+function mobBuildPraxisCard(row, headers, idx, sheet){
+  var title = row[1]||row[0]||'';
+  if(!title.trim()) return '';
+  // Βρες τιμές
+  var idiot = '', eopuu = '';
+  var norm = function(h){return h.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();};
+  headers.forEach(function(h,i){
+    var hn = norm(h);
+    if(!idiot && (hn.indexOf('idiotis ba')>=0||hn==='idiotis'||hn.indexOf('idiotis 2')>=0) && row[i]) idiot=row[i];
+    if(!eopuu && (hn.indexOf('eopuu ba')>=0||hn==='eopuu'||hn.indexOf('telikos eopuu')>=0) && row[i]) eopuu=row[i];
+  });
+  // ΚΕΝ & ΗΜ
+  var ken = row[headers.findIndex(function(h){var n=norm(h);return n==='ken'||n==='ken/p.d.'||n==='ken (2)';})];
+  var hm = row[headers.findIndex(function(h){return norm(h)==='im'||norm(h)==='im. nos'||norm(h)==='imeres nosileias'||norm(h)==='imeres';})];
+  var kenIdx = headers.findIndex(function(h){var n=norm(h);return n==='ken'||n==='ken/p.d.';});
+  if(kenIdx<0) kenIdx=2;
+  ken = row[kenIdx]||'';
+  var hmIdx = headers.findIndex(function(h){var n=norm(h);return n.indexOf('imer')>=0||n==='im';});
+  hm = hmIdx>=0 ? row[hmIdx]||'' : '';
+
+  var badges = '';
+  if(ken) badges += '<span class="mob-badge mob-badge-ken">'+ken+'</span>';
+  if(hm=='ODC'||hm=='odc') badges += '<span class="mob-badge mob-badge-odc">ODC</span>';
+  else if(hm) badges += '<span class="mob-badge mob-badge-hm">'+hm+' ημ.</span>';
+
+  var prices = '';
+  if(idiot||eopuu){
+    prices = '<div class="mob-prices">'
+      +(idiot?'<div class="mob-pbox"><div class="mob-plbl">Ιδιώτης</div><div class="mob-pval bl">'+idiot+'€</div></div>':'<div class="mob-pbox"><div class="mob-plbl">Ιδιώτης</div><div class="mob-pval" style="color:var(--mut)">—</div></div>')
+      +(eopuu?'<div class="mob-pbox"><div class="mob-plbl">ΕΟΠΥΥ</div><div class="mob-pval gr">'+eopuu+'€</div></div>':'<div class="mob-pbox"><div class="mob-plbl">ΕΟΠΥΥ</div><div class="mob-pval" style="color:var(--mut)">—</div></div>')
+      +'</div>';
+  }
+
+  return '<div class="mob-praxis-row" onclick="mobShowDetail('+JSON.stringify(row)+','+JSON.stringify(headers)+')">'
+    +'<div class="mob-praxis-title">'+title+'</div>'
+    +(badges?'<div class="mob-badges">'+badges+'</div>':'')
+    +prices
+    +'</div>';
+}
+
+function mobShowDetail(row, headers){
+  var title = row[1]||row[0]||'';
+  var norm = function(h){return h.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();};
+  var html = '<div class="mob-detail-title">'+title+'</div>';
+
+  // Badges
+  var kenIdx = headers.findIndex(function(h){var n=norm(h);return n==='ken'||n==='ken/p.d.';});
+  if(kenIdx<0) kenIdx=2;
+  var ken = row[kenIdx]||'';
+  var hmIdx = headers.findIndex(function(h){var n=norm(h);return n.indexOf('imer')>=0||n==='im';});
+  var hm = hmIdx>=0?row[hmIdx]||'':'';
+  var badges = '';
+  if(ken) badges += '<span class="mob-badge mob-badge-ken">'+ken+'</span>';
+  if(hm=='ODC'||hm=='odc') badges += '<span class="mob-badge mob-badge-odc">ODC</span>';
+  else if(hm) badges += '<span class="mob-badge mob-badge-hm">'+hm+' ημ.</span>';
+  if(badges) html += '<div class="mob-badges" style="margin-bottom:10px;">'+badges+'</div>';
+
+  // Τιμές — όλες
+  var priceRows = [];
+  headers.forEach(function(h,i){
+    if(!row[i]) return;
+    var hn = norm(h);
+    if(hn.indexOf('idiot')>=0||hn.indexOf('eopuu')>=0||hn.indexOf('telikos')>=0||hn.indexOf('ba ')>=0||hn==='ba'||hn==='a'||hn==='lux'||hn==='suite'||hn==='odc'){
+      priceRows.push({label:h, val:row[i]});
+    }
+  });
+  if(priceRows.length){
+    html += '<div class="mob-detail-prices">';
+    priceRows.forEach(function(p){
+      var isEo = norm(p.label).indexOf('eopuu')>=0||norm(p.label).indexOf('telikos')>=0;
+      html += '<div class="mob-detail-pbox"><div class="mob-detail-plbl">'+p.label+'</div><div class="mob-detail-pval '+(isEo?'gr':'bl')+'">'+p.val+'€</div></div>';
+    });
+    html += '</div>';
+  }
+
+  // Extra, Παρατηρήσεις, Ημερομηνία
+  var extraIdx = headers.findIndex(function(h){return norm(h).indexOf('extra')>=0||norm(h).indexOf('ulik')>=0;});
+  var paratIdx = headers.findIndex(function(h){return norm(h).indexOf('parat')>=0||norm(h).indexOf('scholia')>=0;});
+  var dateIdx = headers.findIndex(function(h){return norm(h).indexOf('imerom')>=0;});
+  if(extraIdx>=0&&row[extraIdx]) html+='<div class="mob-det-section"><div class="mob-det-slbl">Extra</div><div class="mob-det-sval">'+row[extraIdx]+'</div></div>';
+  if(paratIdx>=0&&row[paratIdx]) html+='<div class="mob-det-section"><div class="mob-det-slbl">Παρατηρήσεις</div><div class="mob-det-sval">'+row[paratIdx]+'</div></div>';
+  if(dateIdx>=0&&row[dateIdx]) html+='<div class="mob-det-section"><div class="mob-det-slbl">Ημ. αλλαγής</div><div class="mob-det-sval">'+row[dateIdx]+'</div></div>';
+
+  document.getElementById('mobDetailCard').innerHTML = html;
+  document.getElementById('mobDetailBackLabel').textContent = mobCurSheet||'Πίσω';
+  document.getElementById('mobDetailBack').onclick = function(){
+    document.getElementById('mobDetailView').style.display='none';
+    if(mobCurSheet) document.getElementById('mobPraxisView').style.display='flex';
+    else document.getElementById('mobSpecView').style.display='flex';
+  };
+
+  document.getElementById('mobSpecView').style.display='none';
+  document.getElementById('mobPraxisView').style.display='none';
+  document.getElementById('mobSearchView').style.display='none';
+  document.getElementById('mobDetailView').style.display='flex';
+  document.getElementById('mobDetailView').querySelector('.mob-detail-wrap').scrollTop=0;
+}
+
+function mobSearch(q){
+  var clear = document.getElementById('mobSearchClear');
+  if(!q){
+    clear.style.display='none';
+    document.getElementById('mobSearchView').style.display='none';
+    if(mobCurSheet) document.getElementById('mobPraxisView').style.display='flex';
+    else document.getElementById('mobSpecView').style.display='flex';
+    return;
+  }
+  clear.style.display='block';
+  var norm = function(s){return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();};
+  var qn = norm(q);
+  var results = [];
+  Object.keys(D).forEach(function(sheet){
+    var d = D[sheet];
+    var rows=[], headers=[];
+    if(d.__multi__){ d.tables.forEach(function(t){ t.rows.forEach(function(r){if(r[1]&&norm(r[1]).indexOf(qn)>=0) results.push({row:r,headers:t.headers,sheet:sheet});}); }); }
+    else { (d.rows||[]).forEach(function(r){if(r[1]&&norm(r[1]).indexOf(qn)>=0) results.push({row:r,headers:d.headers,sheet:sheet});}); }
+  });
+  document.getElementById('mobSearchLbl').textContent = results.length + ' αποτελέσματα';
+  var el = document.getElementById('mobSearchList');
+  el.innerHTML = results.slice(0,60).map(function(item,i){
+    return '<div style="font-size:10px;color:var(--mut);padding:2px 2px 0;">'+(item.sheet)+'</div>'
+      + mobBuildPraxisCard(item.row, item.headers, i, item.sheet);
+  }).join('');
+  document.getElementById('mobSpecView').style.display='none';
+  document.getElementById('mobPraxisView').style.display='none';
+  document.getElementById('mobDetailView').style.display='none';
+  document.getElementById('mobSearchView').style.display='flex';
+}
+
+function mobClearSearch(){
+  document.getElementById('mobSearchInput').value='';
+  mobSearch('');
+}
+
+function mobNavClick(tab){
+  document.querySelectorAll('.mob-ni').forEach(function(n){n.classList.remove('active');});
+  if(tab==='spec'){
+    document.getElementById('mobNavSpec').classList.add('active');
+    mobShowSpecs();
+  }
+}
+
+// Αρχικοποίηση μετά τη φόρτωση των δεδομένων
+var _origRender = window.renderSidebar || function(){};
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(mobInit, 500);
+});
 
 // ── PLAFOND ───────────────────────────────────────────────
 var MEDNET_SPECIAL=[
@@ -1572,6 +1846,7 @@ async function init(){
     var ks=Object.keys(D),total=ks.reduce(function(s,k){return s+rowCount(D[k]);},0);
     document.getElementById('badge').textContent=ks.length+' ειδικότητες · '+total+' εγγραφές';
     renderSB(); welcome();
+    mobInit();
   }catch(e){
     document.getElementById('ta').innerHTML='<div class="state"><div class="state-icon">⚠️</div><div class="state-title">'+e.message+'</div></div>';
   }
@@ -2579,6 +2854,76 @@ function katParseExcel(wb){
         </tr></thead>
         <tbody id="katTbody"></tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+
+<!-- MOBILE UI -->
+<div id="mobileUI">
+  <!-- Header -->
+  <div class="mob-header" id="mobHeader">
+    <div class="mob-logo">
+      <span class="m">Medi</span><span class="p">Price</span>
+      <button class="mob-logo-dark" id="mobDarkBtn" onclick="toggleDark();updateMobDark()">🌙</button>
+    </div>
+    <div class="mob-search">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      <input id="mobSearchInput" placeholder="Αναζήτηση πράξης..." type="text" oninput="mobSearch(this.value)">
+      <button class="mob-search-clear" id="mobSearchClear" onclick="mobClearSearch()">✕</button>
+    </div>
+  </div>
+
+  <!-- Views -->
+  <div id="mobView" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+    <!-- Spec list -->
+    <div id="mobSpecView" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="mob-section-lbl" id="mobSpecLbl">Ειδικότητες</div>
+      <div class="mob-list" id="mobSpecList"></div>
+    </div>
+    <!-- Praxis list -->
+    <div id="mobPraxisView" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="mob-back" onclick="mobShowSpecs()">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i>
+        <span id="mobBackLabel">Ειδικότητες</span>
+      </div>
+      <div class="mob-section-lbl" id="mobPraxisLbl"></div>
+      <div class="mob-list" id="mobPraxisList"></div>
+    </div>
+    <!-- Detail -->
+    <div id="mobDetailView" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="mob-back" id="mobDetailBack">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i>
+        <span id="mobDetailBackLabel">Πίσω</span>
+      </div>
+      <div class="mob-detail-wrap">
+        <div class="mob-detail-card" id="mobDetailCard"></div>
+      </div>
+    </div>
+    <!-- Search results -->
+    <div id="mobSearchView" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="mob-section-lbl" id="mobSearchLbl">Αποτελέσματα</div>
+      <div class="mob-list" id="mobSearchList"></div>
+    </div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="mob-bnav">
+    <div class="mob-ni active" id="mobNavSpec" onclick="mobNavClick('spec')">
+      <i class="ti ti-list" aria-hidden="true"></i>
+      <span>Ειδικότητες</span>
+    </div>
+    <div class="mob-ni" id="mobNavKat" onclick="openKat()">
+      <i class="ti ti-category" aria-hidden="true"></i>
+      <span>Κατηγορίες</span>
+    </div>
+    <div class="mob-ni" id="mobNavPf" onclick="openPlafond()">
+      <i class="ti ti-file-text" aria-hidden="true"></i>
+      <span>Plafond</span>
+    </div>
+    <div class="mob-ni" id="mobNavAI" onclick="toggleAI()">
+      <i class="ti ti-message" aria-hidden="true"></i>
+      <span>Βοηθός</span>
     </div>
   </div>
 </div>
