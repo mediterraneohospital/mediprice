@@ -124,6 +124,22 @@ tbody tr.sel{background:var(--acc-bg);}
 .detail-col h5{margin:0;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--acc-txt);font-weight:700;padding-bottom:4px;border-bottom:2px solid var(--acc-bg);width:100%;text-align:center;}
 .detail-prices{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
 .detail-price-box{background:var(--sur);border:1px solid var(--brd);border-radius:10px;padding:9px 16px;min-width:96px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+.dt-table{width:100%;border-collapse:collapse;font-size:13px;}
+.dt-table td{padding:7px 2px;vertical-align:middle;}
+.dt-table tr+tr td{border-top:0.5px solid var(--brd);}
+.dt-table .dt-label{color:var(--txt);}
+.dt-table .dt-val{text-align:right;color:var(--txt);}
+.dt-table .dt-val[contenteditable="true"]{cursor:text;}
+.dt-table tr.dt-price td{padding:9px 2px;}
+.dt-table tr.dt-price .dt-label{font-weight:600;font-size:13.5px;}
+.dt-table tr.dt-price .dt-val{font-weight:600;font-size:15.5px;}
+.dt-table tr.dt-price.idiot .dt-label,.dt-table tr.dt-price.idiot .dt-val{color:var(--acc-txt);}
+.dt-table tr.dt-price.eop .dt-label,.dt-table tr.dt-price.eop .dt-val{color:var(--grn-txt);}
+.dt-table tr.dt-price.bulk-selectable{cursor:pointer;}
+.dt-table tr.dt-price.price-selected td{background:#fdf3da;}
+[data-dark] .dt-table tr.dt-price.price-selected td{background:#3a2c10;}
+.dt-table tr.dt-price.price-changed td{background:var(--grn-bg);}
+.dt-table .dt-full td{white-space:pre-line;}
 .detail-price-box label{font-size:10px;color:var(--mut);display:block;margin-bottom:2px;font-weight:600;}
 .detail-price-box.idiot label{color:var(--acc-txt);}
 .detail-price-box.eop label{color:var(--grn-txt);}
@@ -329,6 +345,24 @@ th{position:relative;}
 </div>
 </div>
 </div>
+<div class="modal-overlay" id="addFieldModal">
+<div class="modal-box">
+<h3>Προσθήκη τιμής</h3>
+<div class="modal-field">
+<label>Τύπος</label>
+<select id="afType" onchange="renderAfTiers()"></select>
+</div>
+<div class="modal-field">
+<label>Θέση</label>
+<select id="afTier"></select>
+</div>
+<div class="modal-field"><label>Τιμή</label><input type="text" id="afValue" placeholder="π.χ. 850"></div>
+<div class="modal-actions">
+<button onclick="closeAddFieldModal()">Άκυρο</button>
+<button class="primary" onclick="submitAddField()">Προσθήκη</button>
+</div>
+</div>
+</div>
 <div class="drawer" id="drawer">
 <div class="dw-head"><h3 id="dwTitle"></h3><button class="dw-close" onclick="closeDrawer()">&times;</button></div>
 <div class="dw-body" id="dwBody"></div>
@@ -369,20 +403,60 @@ let SELECTED_ROW=null;
 let CURRENT_VIEW='single';
 
 const VIEW_EDIT_CONFIGS = {
- 'single': {arr:()=>ROWS, render:()=>renderTable(), aa:true},
- 'genchir': {arr:()=>GENCHIR.rows, render:()=>renderGenChir(), aa:true},
- 'thorax': {arr:()=>THORAX, render:()=>renderThorax(), aa:true},
- 'kardio': {arr:()=>KARDIO.rows, render:()=>renderKardio(), aa:true},
- 'cholif': {arr:()=>CHOLIF, render:()=>renderCholif()},
- 'spine': {arr:()=>SPINE, render:()=>renderSpine()},
- 'uro': {arr:()=>URO, render:()=>renderUro(), aa:true},
- 'neuro': {arr:()=>NEURO, render:()=>renderNeuro()},
- 'ponos': {arr:()=>PONOS, render:()=>renderPonos()},
- 'orl': {arr:()=>ORL, render:()=>renderOrl(), aa:true},
- 'hlek': {arr:()=>HLEK, render:()=>renderHlek()},
- 'pneumo': {arr:()=>PNEUMO, render:()=>renderPneumo(), aa:true},
- 'ortho': {arr:()=>ORTHO.rows, render:()=>renderOrtho(), aa:true}
+ 'single': {arr:()=>ROWS, render:()=>renderTable(), aa:true, listSel:'#cardList', toggleFn:'toggleCardDetail', fields:[['ken','ΚΕΝ'],['dur','Διάρκεια'],['room','Νοσηλεία'],['icu','ΜΑΠ/ΜΕΘ'],['idiot3','Ιδιώτης ΒΑ3'],['idiot','Ιδιώτης ΒΑ'],['eop3','ΕΟΠΥΥ ΒΑ3'],['eop','ΕΟΠΥΥ ΒΑ'],['extra','Extra'],['notes','Παρατηρήσεις']]},
+ 'genchir': {arr:()=>GENCHIR.rows, render:()=>renderGenChir(), aa:true, listSel:'#viewGenChir', toggleFn:'toggleGenChirCard', fields:[['ken','ΚΕΝ'],['dur','Διάρκεια'],['room','Νοσηλεία'],['icu','ΜΑΠ/ΜΕΘ'],['idiot3','Ιδιώτης ΒΑ3'],['idiot','Ιδιώτης ΒΑ'],['eop3','ΕΟΠΥΥ ΒΑ3'],['eop','ΕΟΠΥΥ ΒΑ'],['extra','Extra'],['notes','Παρατηρήσεις']]},
+ 'thorax': {arr:()=>THORAX, render:()=>renderThorax(), aa:true, listSel:'#viewThorax', toggleFn:'toggleThoraxCard', fields:[['ken','ΚΕΝ'],['dur','Διάρκεια'],['room','Νοσηλεία'],['icu','ΜΑΠ/ΜΕΘ'],['idiot3','Ιδιώτης ΒΑ3'],['idiot','Ιδιώτης ΒΑ'],['eop3','ΕΟΠΥΥ ΒΑ3'],['eop','ΕΟΠΥΥ ΒΑ'],['extra','Extra']]},
+ 'kardio': {arr:()=>KARDIO.rows, render:()=>renderKardio(), aa:true, listSel:'#viewKardio', toggleFn:'toggleKardioCard', fields:[['ken','ΚΕΝ'],['dur','Διάρκεια'],['room','Νοσηλεία'],['icu','ΜΑΠ/ΜΕΘ'],['idiot3','Ιδιώτης ΒΑ3'],['idiot','Ιδιώτης ΒΑ'],['idiotA','Ιδιώτης Α'],['eop3','ΕΟΠΥΥ ΒΑ3'],['eop','ΕΟΠΥΥ ΒΑ'],['eopA','ΕΟΠΥΥ Α'],['extra','Extra'],['notes','Παρατηρήσεις']]},
+ 'cholif': {arr:()=>CHOLIF, render:()=>renderCholif(), listSel:'#viewCholif', toggleFn:'toggleCholifCard', fields:[['ken','ΚΕΝ'],['hm','ΗΜ'],['idiot','Ιδιώτης'],['eop','ΕΟΠΥΥ'],['extra','Extra']]},
+ 'spine': {arr:()=>SPINE, render:()=>renderSpine(), listSel:'#viewSpine', toggleFn:'toggleSpineCard', fields:[['ken','ΚΕΝ'],['kod','Κωδικός Ι.Π.'],['hours','Ώρες χειρουργείου'],['hm','ΗΜ'],['idiot','Ιδιώτης'],['eop','ΕΟΠΥΥ']]},
+ 'uro': {arr:()=>URO, render:()=>renderUro(), aa:true, listSel:'#viewUro', toggleFn:'toggleUroCard', fields:[['hm','ΗΜ'],['ken','ΚΕΝ'],['dur','Χρόνος'],['idiot3','Ιδιώτης ΒΑ3'],['idiot','Ιδιώτης ΒΑ'],['eop3','ΕΟΠΥΥ ΒΑ3'],['eop','ΕΟΠΥΥ ΒΑ'],['extra','Extra'],['notes','Παρατηρήσεις']]},
+ 'neuro': {arr:()=>NEURO, render:()=>renderNeuro(), listSel:'#viewNeuro', toggleFn:'toggleNeuroCard', fields:[['meth','ΜΕΘ'],['ken','ΚΕΝ'],['hm','ΗΜ'],['idiot','Ιδιώτης'],['idiot_mat','Υλικά ιδιώτη'],['eop','ΕΟΠΥΥ'],['extra','Extra']]},
+ 'ponos': {arr:()=>PONOS, render:()=>renderPonos(), listSel:'#viewPonos', toggleFn:'togglePonosCard', fields:[['ken','ΚΕΝ'],['days','Ημέρες'],['eop','ΕΟΠΥΥ Στάνταρ'],['eop_new','ΕΟΠΥΥ Ενημερωμένο'],['idiot','Ιδιώτης'],['extra','Extra']]},
+ 'orl': {arr:()=>ORL, render:()=>renderOrl(), aa:true, listSel:'#viewOrl', toggleFn:'toggleOrlCard', fields:[['dur','Διάρκεια'],['ken','ΚΕΝ'],['hm','ΗΜ'],['idiot','Ιδιώτης ΒΑ'],['eop','ΕΟΠΥΥ ΒΑ'],['extra','Extra']]},
+ 'hlek': {arr:()=>HLEK, render:()=>renderHlek(), listSel:'#viewHlek', toggleFn:'toggleHlekCard', fields:[['ken','ΚΕΝ'],['hm','Ημέρες νοσηλείας'],['ken_price','Τιμή ΚΕΝ'],['cost','Κόστος υλικών'],['materials','Υλικά που περιλαμβάνονται'],['eop','ΕΟΠΥΥ'],['clinic','Κλινική'],['final_medtronic','Τελικός ΕΟΠΥΥ (MEDTRONIC)'],['final_boston','Τελικός ΕΟΠΥΥ (BOSTON)']]},
+ 'pneumo': {arr:()=>PNEUMO, render:()=>renderPneumo(), aa:true, listSel:'#viewPneumo', toggleFn:'togglePneumoCard', fields:[['room','Δωμάτιο'],['ken','ΚΕΝ'],['dur','Χειρ. χρόνος'],['anaisth','Αμοιβή αναισθ.'],['idiot','Ιδιώτης'],['eop','ΕΟΠΥΥ'],['notes','Παρατηρήσεις']]},
+ 'ortho': {arr:()=>ORTHO.rows, render:()=>renderOrtho(), aa:true, listSel:'#viewOrtho', toggleFn:'toggleOrthoCard', fields:[['ken','ΚΕΝ'],['hm','ΗΜ'],['idiot3','Ιδιώτης ΒΑ3'],['idiot','Ιδιώτης ΒΑ'],['eop3','ΕΟΠΥΥ ΒΑ3'],['eop','ΕΟΠΥΥ ΒΑ'],['extra','Extra'],['notes','Παρατηρήσεις']]}
 };
+
+let AF_IDX=null;
+const AF_TIERS = {
+  'Ιδιώτης': [['idiot3','ΒΑ3'],['idiot','ΒΑ'],['idiotA','Α']],
+  'ΕΟΠΥΥ': [['eop3','ΒΑ3'],['eop','ΒΑ'],['eopA','Α']]
+};
+function openAddFieldModal(idx){
+  const cfg=VIEW_EDIT_CONFIGS[CURRENT_VIEW];
+  if(!cfg)return;
+  AF_IDX=idx;
+  document.getElementById('afType').innerHTML='<option value="Ιδιώτης">Ιδιώτης</option><option value="ΕΟΠΥΥ">ΕΟΠΥΥ</option>';
+  renderAfTiers();
+  document.getElementById('afValue').value='';
+  document.getElementById('addFieldModal').classList.add('open');
+}
+function renderAfTiers(){
+  const type=document.getElementById('afType').value;
+  document.getElementById('afTier').innerHTML=AF_TIERS[type].map(([f,label])=>'<option value="'+f+'">'+label+'</option>').join('');
+}
+function closeAddFieldModal(){
+  document.getElementById('addFieldModal').classList.remove('open');
+}
+function submitAddField(){
+  const cfg=VIEW_EDIT_CONFIGS[CURRENT_VIEW];
+  const field=document.getElementById('afTier').value;
+  const raw=document.getElementById('afValue').value.trim();
+  if(!raw){alert('Συμπλήρωσε μια τιμή.');return;}
+  const num=parseFloat(raw.replace(',','.'));
+  const arr=cfg.arr();
+  pushUndo();
+  arr[AF_IDX][field]=isNaN(num)?raw:num;
+  arr[AF_IDX].date=new Date().toLocaleDateString('el-GR');
+  const savedIdx=AF_IDX;
+  closeAddFieldModal();
+  cfg.render();
+  if(cfg.listSel && cfg.toggleFn){
+    const card=document.querySelectorAll(cfg.listSel+' .proc-card')[savedIdx];
+    if(card)window[cfg.toggleFn](savedIdx,card);
+  }
+}
 
 function genSaveField(idx,field,el,isNumeric){
   const cfg=VIEW_EDIT_CONFIGS[CURRENT_VIEW];
@@ -475,31 +549,27 @@ function undoEdit(){
   const cfg=VIEW_EDIT_CONFIGS[view];
   if(!cfg){if(!UNDO_STACK.length)document.getElementById('undoBtn').disabled=true;return;}
   const arr=cfg.arr();
-  if(view==='single'){
-    arr.length=0;
-    snap.forEach(r=>arr.push(r));
-    document.querySelectorAll('#cardList .proc-card').forEach(card=>{
-      const idx=parseInt(card.dataset.idx);
-      const descEl=card.querySelector('.pc-desc');
-      if(descEl && arr[idx])descEl.textContent=arr[idx].desc;
-    });
-    document.querySelectorAll('#cardList .proc-card.active').forEach(card=>{
-      const idx=parseInt(card.dataset.idx);
+  const listSel = cfg.listSel || '#cardList';
+  const toggleFn = cfg.toggleFn || 'toggleCardDetail';
+  const openIdxs=[];
+  document.querySelectorAll(listSel+' .proc-card.active').forEach(card=>{
+    const idx=[...card.parentElement.children].filter(c=>c.classList.contains('proc-card')).indexOf(card);
+    openIdxs.push(idx);
+  });
+  arr.length=0;
+  snap.forEach(r=>arr.push(r));
+  cfg.render();
+  openIdxs.forEach(idx=>{
+    const card=document.querySelectorAll(listSel+' .proc-card')[idx];
+    if(card && arr[idx]){
+      window[toggleFn](idx,card);
       const det=card.nextElementSibling;
-      if(det && det.classList.contains('card-detail'))det.remove();
-      card.classList.remove('active');
-      toggleCardDetail(idx,card);
-      const newDet=card.nextElementSibling;
-      if(newDet){
-        newDet.classList.add('undo-flash');
-        setTimeout(()=>newDet.classList.remove('undo-flash'),900);
+      if(det && det.classList.contains('card-detail')){
+        det.classList.add('undo-flash');
+        setTimeout(()=>det.classList.remove('undo-flash'),900);
       }
-    });
-  }else{
-    arr.length=0;
-    snap.forEach(r=>arr.push(r));
-    cfg.render();
-  }
+    }
+  });
   if(!UNDO_STACK.length)document.getElementById('undoBtn').disabled=true;
 }
 
@@ -529,7 +599,11 @@ const ADD_CONFIGS = {
   'Πνευμονολογικό': {arr:()=>PNEUMO, render:renderPneumo, aa:true,
     fields:[['room','Δωμάτιο'],['ken','ΚΕΝ'],['dur','Χειρ. χρόνος (λεπτά)'],['anaisth','Αμοιβή αναισθ.'],['idiot','Ιδιώτης'],['eop','ΕΟΠΥΥ'],['notes','Παρατηρήσεις']]},
   'Ορθοπεδική': {arr:()=>ORTHO.rows, render:renderOrtho, aa:true,
-    fields:[['ken','ΚΕΝ'],['hm','ΗΜ'],['idiot3','Ιδιώτης ΒΑ3'],['idiot','Ιδιώτης ΒΑ'],['eop3','ΕΟΠΥΥ ΒΑ3'],['eop','ΕΟΠΥΥ ΒΑ'],['extra','Extra'],['notes','Παρατηρήσεις'],['date','Ημ. αλλαγής']]}
+    fields:[['ken','ΚΕΝ'],['hm','ΗΜ'],['idiot3','Ιδιώτης ΒΑ3'],['idiot','Ιδιώτης ΒΑ'],['eop3','ΕΟΠΥΥ ΒΑ3'],['eop','ΕΟΠΥΥ ΒΑ'],['extra','Extra'],['notes','Παρατηρήσεις'],['date','Ημ. αλλαγής']]},
+  'Βηματοδότες-Απινιδωτές': {arr:()=>BHMATO, render:renderBhmato,
+    fields:[['ken','ΚΕΝ'],['hm','Νοσηλεία'],['final_medtronic','Τελικός ΕΟΠΥΥ (MEDTRONIC)'],['final_boston','Τελικός ΕΟΠΥΥ (BOSTON)']]},
+  'Θεραπείες Πόνου με συσκευές': {arr:()=>PONOSYSK, render:renderPonoSysk,
+    fields:[['hm','ΗΜ'],['idiot','Ιδιώτης'],['eop','ΕΟΠΥΥ'],['apofasi','Απόφαση ΚΕΣΥ']]}
 };
 
 function openAddProcModal(){
@@ -577,6 +651,7 @@ function submitAddProc(){
     obj[f]=numOrNull(el.value);
   });
   obj.date=new Date().toLocaleDateString('el-GR');
+  if(key==='Θεραπείες Πόνου με συσκευές')obj.materials=[];
   let pos=parseInt(document.getElementById('apPosition').value);
   if(isNaN(pos)||pos<1||pos>arr.length+1){
     arr.push(obj);
@@ -637,11 +712,11 @@ function applyBulkPercent(pct){
     if(v!=null){
       const newVal=Math.round(v*(1+pct/100)*100)/100;
       ROWS[idx][field]=newVal;
-      const box=document.querySelector('.detail-price-box[data-idx="'+idx+'"][data-field="'+field+'"]');
+      const box=document.querySelector('.dt-price[data-idx="'+idx+'"][data-field="'+field+'"]');
       if(box){
         box.classList.remove('price-selected');
         box.classList.add('price-changed');
-        box.querySelector('.val').textContent=fmt(newVal);
+        box.querySelector('.dt-val').textContent=fmt(newVal);
       }
     }
   });
@@ -871,7 +946,9 @@ function renderOrl(){
     +'</div></div></div>';
   let cardsHtml='<div class="card-list">';
   ORL.forEach((r,idx)=>{
-    cardsHtml+='<div class="proc-card" onclick="toggleOrlCard('+idx+',this)"><span class="pc-aa">'+r.aa+'</span><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
+    const ce=EDIT_MODE?' contenteditable="true"':'';
+    const stop=ce?' onclick="event.stopPropagation()"':'';
+    cardsHtml+='<div class="proc-card" onclick="toggleOrlCard('+idx+',this)"><span class="pc-aa">'+r.aa+'</span><span class="pc-desc"'+ce+stop+' onblur="genSaveDesc('+idx+',this)">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   cardsHtml+='</div>';
   wrap.innerHTML=instrHtml+cardsHtml;
@@ -886,20 +963,19 @@ function toggleOrlCard(idx,card){
   const r=ORL[idx];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  if(r.ken)html+='<span class="dw-pill">ΚΕΝ '+r.ken+'</span>';
-  if(r.dur)html+='<span class="dw-pill">Διάρκεια '+r.dur+' ώρ.</span>';
-  if(r.hm)html+='<span class="dw-pill">ΗΜ '+r.hm+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές</h5><div class="detail-prices">'
-    +'<div class="detail-price-box idiot"><label>Ιδιώτης ΒΑ</label><div class="val">'+fmt(r.idiot)+'</div></div>'
-    +'<div class="detail-price-box eop"><label>ΕΟΠΥΥ ΒΑ</label><div class="val">'+fmt(r.eop)+'</div></div>'
-    +'</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text'+(r.extra?'':' muted')+'">'+(r.extra||'—')+'</div></div>';
-  html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  const ce=EDIT_MODE?' contenteditable="true"':'';
+  const stop=ce?' onclick="event.stopPropagation()"':'';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow('genDeleteProc('+idx+')');
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+(r.ken||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">Διάρκεια</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'dur\',this,false)">'+(r.dur||'')+' ώρ.</td></tr>';
+  html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'hm\',this,false)">'+(r.hm||'')+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -934,21 +1010,17 @@ function toggleSpineCard(idx,card){
   det.className='card-detail';
   const ce=EDIT_MODE?' contenteditable="true"':'';
   const stop=ce?' onclick="event.stopPropagation()"':'';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  html+='<span class="dw-pill">ΚΕΝ <span'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+(r.ken||'')+'</span></span>';
-  html+='<span class="dw-pill">Κωδικός Ι.Π. <span'+ce+stop+' onblur="genSaveField('+idx+',\'kod\',this,false)">'+(r.kod||'')+'</span></span>';
-  html+='<span class="dw-pill">Ώρες χειρουργείου <span'+ce+stop+' onblur="genSaveField('+idx+',\'hours\',this,false)">'+(r.hours||'')+'</span></span>';
-  html+='<span class="dw-pill">ΗΜ <span'+ce+stop+' onblur="genSaveField('+idx+',\'hm\',this,false)">'+(r.hm||'')+'</span></span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές με ΦΠΑ</h5><div class="detail-prices">'
-    +'<div class="detail-price-box idiot"><label>Ιδιώτης</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</div></div>'
-    +'<div class="detail-price-box eop"><label>ΕΟΠΥΥ (05.03.26)</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</div></div>'
-    +'</div></div>';
-    html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text" id="genDate-'+idx+'">'+r.date+'</div></div>';
-  if(EDIT_MODE)html+='<button class="card-detail-delete" onclick="event.stopPropagation();genDeleteProc('+idx+')"><i class="ti ti-trash"></i></button>';
-html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow('genDeleteProc('+idx+')');
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+(r.ken||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">Κωδικός Ι.Π.</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'kod\',this,false)">'+(r.kod||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ώρες χειρουργείου</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'hours\',this,false)">'+(r.hours||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'hm\',this,false)">'+(r.hm||'')+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ (05.03.26)</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1017,18 +1089,15 @@ function toggleBhmatoCard(idx,card){
   const r=BHMATO[idx];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  html+='<span class="dw-pill">ΚΕΝ '+r.ken+'</span>';
-  html+='<span class="dw-pill">Νοσηλεία '+r.hm+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τελικός ΕΟΠΥΥ με ΦΠΑ</h5><div class="detail-prices">'
-    +(r.final_medtronic!=null?'<div class="detail-price-box eop"><label>MEDTRONIC</label><div class="val">'+fmt(r.final_medtronic)+'</div></div>':'')
-    +(r.final_boston!=null?'<div class="detail-price-box eop"><label>BOSTON</label><div class="val">'+fmt(r.final_boston)+'</div></div>':'')
-    +'</div></div>';
-  html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow(null);
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val">'+r.ken+'</td></tr>';
+  html+='<tr><td class="dt-label">Νοσηλεία</td><td class="dt-val">'+r.hm+'</td></tr>';
+  if(r.final_medtronic!=null)html+='<tr class="dt-price eop"><td class="dt-label">Τελικός ΕΟΠΥΥ (MEDTRONIC)</td><td class="dt-val">'+fmt(r.final_medtronic)+'</td></tr>';
+  if(r.final_boston!=null)html+='<tr class="dt-price eop"><td class="dt-label">Τελικός ΕΟΠΥΥ (BOSTON)</td><td class="dt-val">'+fmt(r.final_boston)+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1045,20 +1114,20 @@ function toggleCholifCard(idx,card){
   det.className='card-detail';
   const ce=EDIT_MODE?' contenteditable="true"':'';
   const stop=ce?' onclick="event.stopPropagation()"':'';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  html+='<span class="dw-pill">ΚΕΝ <span'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+r.ken+'</span></span>';
-  html+='<span class="dw-pill">ΗΜ <span'+ce+stop+' onblur="genSaveField('+idx+',\'hm\',this,false)">'+r.hm+'</span></span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές</h5><div class="detail-prices">'
-    +'<div class="detail-price-box idiot"><label>Ιδιώτης ΒΑ</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</div></div>'
-    +'<div class="detail-price-box eop"><label>ΕΟΠΥΥ ΒΑ</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</div></div>'
-    +'</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+r.extra+'</div></div>';
-  html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text" id="genDate-'+idx+'">'+r.date+'</div></div>';
-  if(EDIT_MODE)html+='<button class="card-detail-delete" onclick="event.stopPropagation();genDeleteProc('+idx+')"><i class="ti ti-trash"></i></button>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow('genDeleteProc('+idx+')');
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+r.ken+'</td></tr>';
+  html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'hm\',this,false)">'+r.hm+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</td></tr>';
+  if(r.idiot3!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot3\',this,true)">'+fmt(r.idiot3)+'</td></tr>';
+  if(r.eop3!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop3\',this,true)">'+fmt(r.eop3)+'</td></tr>';
+  if(r.idiotA!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης Α</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiotA\',this,true)">'+fmt(r.idiotA)+'</td></tr>';
+  if(r.eopA!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ Α</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eopA\',this,true)">'+fmt(r.eopA)+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+r.extra+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1075,7 +1144,9 @@ function renderPonos(){
     +'</div></div></div>';
   let cardsHtml='<div class="card-list">';
   PONOS.forEach((r,idx)=>{
-    cardsHtml+='<div class="proc-card" onclick="togglePonosCard('+idx+',this)"><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
+    const ce=EDIT_MODE?' contenteditable="true"':'';
+    const stop=ce?' onclick="event.stopPropagation()"':'';
+    cardsHtml+='<div class="proc-card" onclick="togglePonosCard('+idx+',this)"><span class="pc-desc"'+ce+stop+' onblur="genSaveDesc('+idx+',this)">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   cardsHtml+='</div>';
   wrap.innerHTML=instrHtml+cardsHtml;
@@ -1090,23 +1161,23 @@ function togglePonosCard(idx,card){
   const r=PONOS[idx];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  if(r.ken)html+='<span class="dw-pill">ΚΕΝ '+r.ken+'</span>';
-  html+='<span class="dw-pill">Ημέρες '+r.days+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>ΕΟΠΥΥ</h5><div class="detail-prices">'
-    +(r.eop!=null?'<div class="detail-price-box eop"><label>Στάνταρ</label><div class="val">'+fmt(r.eop)+'</div></div>':'')
-    +(r.eop_new!=null?'<div class="detail-price-box eop"><label>Ενημερωμένο 05.03.26</label><div class="val">'+fmt(r.eop_new)+'</div></div>':'')
-    +(r.eop==null&&r.eop_new==null?'<div class="detail-price-box eop"><label>—</label><div class="val">—</div></div>':'')
-    +'</div></div>';
-  html+='<div class="detail-col"><h5>Ιδιώτης</h5><div class="detail-prices">'
-    +'<div class="detail-price-box idiot"><label>Με ΦΠΑ</label><div class="val">'+fmt(r.idiot)+'</div></div>'
-    +'</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text">'+r.extra+'</div></div>';
-    html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  const ce=EDIT_MODE?' contenteditable="true"':'';
+  const stop=ce?' onclick="event.stopPropagation()"':'';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow('genDeleteProc('+idx+')');
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+(r.ken||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημέρες</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'days\',this,false)">'+(r.days||'')+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ Στάνταρ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ Ενημερωμένο</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop_new\',this,true)">'+fmt(r.eop_new)+'</td></tr>';
+  if(r.idiot3!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot3\',this,true)">'+fmt(r.idiot3)+'</td></tr>';
+  if(r.eop3!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop3\',this,true)">'+fmt(r.eop3)+'</td></tr>';
+  if(r.idiotA!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης Α</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiotA\',this,true)">'+fmt(r.idiotA)+'</td></tr>';
+  if(r.eopA!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ Α</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eopA\',this,true)">'+fmt(r.eopA)+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+r.extra+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1123,7 +1194,9 @@ function renderPneumo(){
     +'</div></div></div>';
   let cardsHtml='<div class="card-list">';
   PNEUMO.forEach((r,idx)=>{
-    cardsHtml+='<div class="proc-card" onclick="togglePneumoCard('+idx+',this)"><span class="pc-aa">'+r.aa+'</span><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
+    const ce=EDIT_MODE?' contenteditable="true"':'';
+    const stop=ce?' onclick="event.stopPropagation()"':'';
+    cardsHtml+='<div class="proc-card" onclick="togglePneumoCard('+idx+',this)"><span class="pc-aa">'+r.aa+'</span><span class="pc-desc"'+ce+stop+' onblur="genSaveDesc('+idx+',this)">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   cardsHtml+='</div>';
   wrap.innerHTML=instrHtml+cardsHtml;
@@ -1138,21 +1211,24 @@ function togglePneumoCard(idx,card){
   const r=PNEUMO[idx];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  if(r.ken)html+='<span class="dw-pill">ΚΕΝ '+r.ken+'</span>';
-  html+='<span class="dw-pill">Δωμάτιο '+r.room+'</span>';
-  if(r.dur)html+='<span class="dw-pill">Χειρ. χρόνος '+r.dur+"'</span>";
-  if(r.anaisth!=null)html+='<span class="dw-pill">Αμοιβή αναισθ. '+fmt(r.anaisth)+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές με ΦΠΑ</h5><div class="detail-prices">'
-    +'<div class="detail-price-box idiot"><label>Ιδιώτης</label><div class="val">'+fmt(r.idiot)+'</div></div>'
-    +(r.eop!=null?'<div class="detail-price-box eop"><label>ΕΟΠΥΥ</label><div class="val">'+fmt(r.eop)+'</div></div>':'')
-    +'</div></div>';
-  html+='<div class="detail-col detail-full"><h5>Παρατηρήσεις</h5><div class="detail-text" style="text-align:left;">'+r.notes+'</div></div>';
-    html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  const ce=EDIT_MODE?' contenteditable="true"':'';
+  const stop=ce?' onclick="event.stopPropagation()"':'';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow('genDeleteProc('+idx+')');
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+(r.ken||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">Δωμάτιο</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'room\',this,false)">'+(r.room||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">Χειρ. χρόνος</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'dur\',this,false)">'+(r.dur||'')+"'</td></tr>";
+  html+='<tr><td class="dt-label">Αμοιβή αναισθ.</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'anaisth\',this,true)">'+fmt(r.anaisth)+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</td></tr>';
+  if(r.idiot3!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot3\',this,true)">'+fmt(r.idiot3)+'</td></tr>';
+  if(r.eop3!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop3\',this,true)">'+fmt(r.eop3)+'</td></tr>';
+  if(r.idiotA!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης Α</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiotA\',this,true)">'+fmt(r.idiotA)+'</td></tr>';
+  if(r.eopA!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ Α</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eopA\',this,true)">'+fmt(r.eopA)+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'notes\',this,false)">'+r.notes+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1201,21 +1277,18 @@ function togglePlasticCard(idx,card){
   const r=PLASTIC.procs[idx];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  if(r.dur)html+='<span class="dw-pill">Έως '+r.dur+' ώρ.</span>';
-  if(r.ramm!=null)html+='<span class="dw-pill">Μέγ. κόστος ραμμάτων '+fmt(r.ramm)+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές με ΦΠΑ (ανά επίπεδο δωματίου)</h5><div class="detail-prices">'
-    +(r.odc!=null?'<div class="detail-price-box idiot"><label>ODC</label><div class="val">'+fmt(r.odc)+'</div></div>':'')
-    +(r.ba!=null?'<div class="detail-price-box idiot"><label>ΒΑ</label><div class="val">'+fmt(r.ba)+'</div></div>':'')
-    +(r.a!=null?'<div class="detail-price-box eop"><label>Α</label><div class="val">'+fmt(r.a)+'</div></div>':'')
-    +(r.lux!=null?'<div class="detail-price-box eop"><label>LUX</label><div class="val">'+fmt(r.lux)+'</div></div>':'')
-    +(r.suite!=null?'<div class="detail-price-box eop"><label>SUITE</label><div class="val">'+fmt(r.suite)+'</div></div>':'')
-    +'</div></div>';
-    html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow(null);
+  html+='<table class="dt-table"><tbody>';
+  if(r.dur)html+='<tr><td class="dt-label">Έως</td><td class="dt-val">'+r.dur+' ώρ.</td></tr>';
+  if(r.ramm!=null)html+='<tr><td class="dt-label">Μέγ. κόστος ραμμάτων</td><td class="dt-val">'+fmt(r.ramm)+'</td></tr>';
+  if(r.odc!=null)html+='<tr class="dt-price idiot"><td class="dt-label">ODC</td><td class="dt-val">'+fmt(r.odc)+'</td></tr>';
+  if(r.ba!=null)html+='<tr class="dt-price idiot"><td class="dt-label">ΒΑ</td><td class="dt-val">'+fmt(r.ba)+'</td></tr>';
+  if(r.a!=null)html+='<tr class="dt-price eop"><td class="dt-label">Α</td><td class="dt-val">'+fmt(r.a)+'</td></tr>';
+  if(r.lux!=null)html+='<tr class="dt-price eop"><td class="dt-label">LUX</td><td class="dt-val">'+fmt(r.lux)+'</td></tr>';
+  if(r.suite!=null)html+='<tr class="dt-price eop"><td class="dt-label">SUITE</td><td class="dt-val">'+fmt(r.suite)+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1230,15 +1303,14 @@ function togglePlasticMinorCard(idx,card){
   const r=PLASTIC.minor[idx];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills"><span class="dw-pill">ODC</span></div></div>';
-  html+='<div class="detail-col"><h5>Τιμή με ΦΠΑ</h5><div class="detail-prices">'
-    +'<div class="detail-price-box idiot"><label>ODC</label><div class="val">'+fmt(r.price)+'</div></div>'
-    +'</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text">'+r.extra+'</div></div>';
-    html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow(null);
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">Δωμάτιο</td><td class="dt-val">ODC</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Τιμή</td><td class="dt-val">'+fmt(r.price)+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val">'+r.extra+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1274,29 +1346,24 @@ function toggleOfthCard(idx,card){
   const r=OFTH.procs[idx];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  if(r.ken)html+='<span class="dw-pill">ΚΕΝ '+r.ken+'</span>';
-  if(r.hm)html+='<span class="dw-pill">ΗΜ '+r.hm+'</span>';
-  if(r.room)html+='<span class="dw-pill">Δωμάτιο '+r.room+'</span>';
-  if(r.time)html+='<span class="dw-pill">Χειρ. χρόνος '+r.time+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Ιδιώτης</h5><div class="detail-prices">'
-    +'<div class="detail-price-box idiot"><label>Με ΦΠΑ</label><div class="val">'+(typeof r.idiot==='string'?r.idiot:fmt(r.idiot))+'</div></div>'
-    +'</div></div>';
-  html+='<div class="detail-col"><h5>ΕΟΠΥΥ</h5><div class="detail-prices">';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow(null);
+  html+='<table class="dt-table"><tbody>';
+  if(r.ken)html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val">'+r.ken+'</td></tr>';
+  if(r.hm)html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val">'+r.hm+'</td></tr>';
+  if(r.room)html+='<tr><td class="dt-label">Δωμάτιο</td><td class="dt-val">'+r.room+'</td></tr>';
+  if(r.time)html+='<tr><td class="dt-label">Χειρ. χρόνος</td><td class="dt-val">'+r.time+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης</td><td class="dt-val">'+(typeof r.idiot==='string'?r.idiot:fmt(r.idiot))+'</td></tr>';
   if(r.eop3!=null){
-    html+='<div class="detail-price-box eop"><label>ΒΑ3 (τρίκλινο)</label><div class="val">'+fmt(r.eop3)+'</div></div>';
-    html+='<div class="detail-price-box eop"><label>ΒΑ (δίκλινο)</label><div class="val">'+fmt(r.eop)+'</div></div>';
+    html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ3 (τρίκλινο)</td><td class="dt-val">'+fmt(r.eop3)+'</td></tr>';
+    html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ (δίκλινο)</td><td class="dt-val">'+fmt(r.eop)+'</td></tr>';
   }else{
-    html+='<div class="detail-price-box eop"><label>Με ΦΠΑ</label><div class="val">'+(r.eop!=null?fmt(r.eop):'—')+'</div></div>';
+    html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ</td><td class="dt-val">'+(r.eop!=null?fmt(r.eop):'—')+'</td></tr>';
   }
-  html+='</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text'+(r.extra?'':' muted')+'" style="text-align:left;">'+(r.extra||'—')+'</div></div>';
-  if(r.notes)html+='<div class="detail-col detail-full"><h5>Παρατηρήσεις</h5><div class="detail-text" style="text-align:left;">'+r.notes+'</div></div>';
-    html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val">'+(r.extra||'—')+'</td></tr>';
+  if(r.notes)html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val">'+r.notes+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1327,7 +1394,6 @@ function toggleOfthRefCard(key,card){
     html+='</tbody></table>';
   }
   html+='</div>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
   html+='</div>';
   det.innerHTML=html;
   card.after(det);
@@ -1385,26 +1451,20 @@ function toggleUroCard(idx,card){
   det.className='card-detail';
   const ce=EDIT_MODE?' contenteditable="true"':'';
   const stop=ce?' onclick="event.stopPropagation()"':'';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  html+='<span class="dw-pill">ΚΕΝ <span'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+(r.ken||'')+'</span></span>';
-  html+='<span class="dw-pill">ΗΜ <span'+ce+stop+' onblur="genSaveField('+idx+',\'hm\',this,false)">'+(r.hm||'')+'</span></span>';
-  html+='<span class="dw-pill">Χρόνος <span'+ce+stop+' onblur="genSaveField('+idx+',\'dur\',this,false)">'+(r.dur||'')+'</span></span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Ιδιώτης</h5><div class="detail-prices">'
-    +(r.idiot3!=null?'<div class="detail-price-box idiot"><label>ΒΑ3</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot3\',this,true)">'+fmt(r.idiot3)+'</div></div>':'')
-    +(r.idiot!=null?'<div class="detail-price-box idiot"><label>ΒΑ</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</div></div>':'')
-    +'</div></div>';
-  html+='<div class="detail-col"><h5>ΕΟΠΥΥ</h5><div class="detail-prices">'
-    +(r.eop3!=null?'<div class="detail-price-box eop"><label>ΒΑ3</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop3\',this,true)">'+fmt(r.eop3)+'</div></div>':'')
-    +(r.eop!=null?'<div class="detail-price-box eop"><label>ΒΑ</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</div></div>':'')
-    +'</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text'+(r.extra?'':' muted')+'"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+(r.extra||'—')+'</div></div>';
-  html+='<div class="detail-col detail-full"><h5>Παρατηρήσεις</h5><div class="detail-text'+(r.notes?'':' muted')+'" style="text-align:left;"'+ce+stop+' onblur="genSaveField('+idx+',\'notes\',this,false)">'+(r.notes||'—')+'</div></div>';
-  html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text" id="genDate-'+idx+'">'+r.date+'</div></div>';
-  if(EDIT_MODE)html+='<button class="card-detail-delete" onclick="event.stopPropagation();genDeleteProc('+idx+')"><i class="ti ti-trash"></i></button>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow('genDeleteProc('+idx+')');
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+(r.ken||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'hm\',this,false)">'+(r.hm||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">Χρόνος</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'dur\',this,false)">'+(r.dur||'')+'</td></tr>';
+  if(r.idiot3!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot3\',this,true)">'+fmt(r.idiot3)+'</td></tr>';
+  if(r.idiot!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</td></tr>';
+  if(r.eop3!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop3\',this,true)">'+fmt(r.eop3)+'</td></tr>';
+  if(r.eop!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'notes\',this,false)">'+(r.notes||'—')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1441,7 +1501,9 @@ function renderOrtho(){
     +'</div></div></div>';
   let cardsHtml='<div class="card-list">';
   ORTHO.rows.forEach((r,idx)=>{
-    cardsHtml+='<div class="proc-card" onclick="toggleOrthoCard('+idx+',this)"><span class="pc-aa">'+r.aa+'</span><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
+    const ce=EDIT_MODE?' contenteditable="true"':'';
+    const stop=ce?' onclick="event.stopPropagation()"':'';
+    cardsHtml+='<div class="proc-card" onclick="toggleOrthoCard('+idx+',this)"><span class="pc-aa">'+r.aa+'</span><span class="pc-desc"'+ce+stop+' onblur="genSaveDesc('+idx+',this)">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   cardsHtml+='</div>';
   let specialHtml='<div class="card-list" style="margin-top:20px;padding:0 20px;">'
@@ -1467,7 +1529,6 @@ function toggleOrthoSpecialGroupCard(card){
     html+='<div class="proc-card" onclick="event.stopPropagation();toggleOrthoSpecialCard('+idx+',this)"><span class="pc-aa">'+r.aa+'</span><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   html+='</div>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
   html+='</div>';
   det.innerHTML=html;
   card.after(det);
@@ -1483,24 +1544,21 @@ function toggleOrthoCard(idx,card){
   const r=ORTHO.rows[idx];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  if(r.ken)html+='<span class="dw-pill">ΚΕΝ '+r.ken+'</span>';
-  if(r.hm)html+='<span class="dw-pill">ΗΜ '+r.hm+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Ιδιώτης</h5><div class="detail-prices">'
-    +(r.idiot3!=null?'<div class="detail-price-box idiot"><label>ΒΑ3</label><div class="val">'+fmt(r.idiot3)+'</div></div>':'')
-    +(r.idiot!=null?'<div class="detail-price-box idiot"><label>ΒΑ</label><div class="val">'+fmt(r.idiot)+'</div></div>':'')
-    +'</div></div>';
-  html+='<div class="detail-col"><h5>ΕΟΠΥΥ</h5><div class="detail-prices">'
-    +(r.eop3!=null?'<div class="detail-price-box eop"><label>ΒΑ3</label><div class="val">'+fmt(r.eop3)+'</div></div>':'')
-    +(r.eop!=null?'<div class="detail-price-box eop"><label>ΒΑ</label><div class="val">'+fmt(r.eop)+'</div></div>':'')
-    +'</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text'+(r.extra?'':' muted')+'">'+(r.extra||'—')+'</div></div>';
-  html+='<div class="detail-col detail-full"><h5>Παρατηρήσεις</h5><div class="detail-text'+(r.notes?'':' muted')+'" style="text-align:left;">'+(r.notes||'—')+'</div></div>';
-  html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  const ce=EDIT_MODE?' contenteditable="true"':'';
+  const stop=ce?' onclick="event.stopPropagation()"':'';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow('genDeleteProc('+idx+')');
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+(r.ken||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'hm\',this,false)">'+(r.hm||'')+'</td></tr>';
+  if(r.idiot3!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot3\',this,true)">'+fmt(r.idiot3)+'</td></tr>';
+  if(r.idiot!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</td></tr>';
+  if(r.eop3!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop3\',this,true)">'+fmt(r.eop3)+'</td></tr>';
+  if(r.eop!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'notes\',this,false)">'+(r.notes||'—')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1515,20 +1573,17 @@ function toggleOrthoSpecialCard(idx,card){
   const r=ORTHO.special_rows[idx];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  if(r.ken)html+='<span class="dw-pill">ΚΕΝ '+r.ken+'</span>';
-  if(r.hm)html+='<span class="dw-pill">ΗΜ '+r.hm+'</span>';
-  html+='<span class="dw-pill">Θέση Γ (5-4κλινο)</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές (πακέτο)</h5><div class="detail-prices">'
-    +'<div class="detail-price-box idiot"><label>Ιδιώτης</label><div class="val">'+r.price_idiot+'</div></div>'
-    +'<div class="detail-price-box eop"><label>ΕΟΠΥΥ</label><div class="val">'+r.price_eop+'</div></div>'
-    +'</div></div>';
-  html+='<div class="detail-col detail-full"><h5>Παρατηρήσεις</h5><div class="detail-text" style="text-align:left;">'+r.notes+'</div></div>';
-  html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow(null);
+  html+='<table class="dt-table"><tbody>';
+  if(r.ken)html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val">'+r.ken+'</td></tr>';
+  if(r.hm)html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val">'+r.hm+'</td></tr>';
+  html+='<tr><td class="dt-label">Θέση</td><td class="dt-val">Γ (5-4κλινο)</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης (πακέτο)</td><td class="dt-val">'+r.price_idiot+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ (πακέτο)</td><td class="dt-val">'+r.price_eop+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val">'+r.notes+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1560,19 +1615,15 @@ function toggleOnpCard(idx,card){
   const r=ONP[idx];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  html+='<span class="dw-pill">Παραμονή '+r.room+'</span>';
-  if(r.tier)html+='<span class="dw-pill">Τιμή για '+r.tier+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές</h5><div class="detail-prices">'
-    +'<div class="detail-price-box idiot"><label>Ιδιώτης με ΦΠΑ'+(r.tier?' ('+r.tier+')':'')+'</label><div class="val">'+fmt(r.idiot)+'</div></div>'
-    +'<div class="detail-price-box eop"><label>ΕΟΠΥΥ με ΦΠΑ'+(r.tier?' ('+r.tier+')':'')+'</label><div class="val">'+fmt(r.eop)+'</div></div>'
-    +'</div></div>';
-  html+='<div class="detail-col detail-full"><h5>Εξετάσεις πακέτου</h5><div class="detail-text" style="text-align:left;">'+r.exams+'</div></div>';
-    html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow(null);
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">Παραμονή</td><td class="dt-val">'+r.room+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης'+(r.tier?' ('+r.tier+')':'')+'</td><td class="dt-val">'+fmt(r.idiot)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ'+(r.tier?' ('+r.tier+')':'')+'</td><td class="dt-val">'+fmt(r.eop)+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Εξετάσεις πακέτου</td><td class="dt-val">'+r.exams+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1589,7 +1640,9 @@ function renderNeuro(){
     +'</div></div></div>';
   let cardsHtml='<div class="card-list">';
   NEURO.forEach((r,idx)=>{
-    cardsHtml+='<div class="proc-card" onclick="toggleNeuroCard('+idx+',this)"><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
+    const ce=EDIT_MODE?' contenteditable="true"':'';
+    const stop=ce?' onclick="event.stopPropagation()"':'';
+    cardsHtml+='<div class="proc-card" onclick="toggleNeuroCard('+idx+',this)"><span class="pc-desc"'+ce+stop+' onblur="genSaveDesc('+idx+',this)">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   cardsHtml+='</div>';
   wrap.innerHTML=instrHtml+cardsHtml;
@@ -1604,26 +1657,25 @@ function toggleNeuroCard(idx,card){
   const r=NEURO[idx];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  if(r.ken)html+='<span class="dw-pill">ΚΕΝ '+r.ken+'</span>';
-  if(r.hm)html+='<span class="dw-pill">ΗΜ '+r.hm+'</span>';
-  if(r.meth)html+='<span class="dw-pill">ΜΕΘ '+r.meth+'</span>';
-  if(r.kesy)html+='<span class="dw-pill">Απόφαση ΚΕΣΥ: ΝΑΙ</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Ιδιώτης</h5><div class="detail-prices">'
-    +(r.idiot!=null?'<div class="detail-price-box idiot"><label>Ιδιώτης</label><div class="val">'+fmt(r.idiot)+'</div></div>':'')
-    +'</div>'
-    +(r.idiot_mat?'<div class="detail-text" style="margin-top:8px;">Υλικά ιδιώτη: '+r.idiot_mat+'</div>':'')
-    +'</div>';
-  html+='<div class="detail-col"><h5>ΕΟΠΥΥ</h5><div class="detail-prices">'
-    +'<div class="detail-price-box eop"><label>ΕΟΠΥΥ</label><div class="val">'+fmt(r.eop)+'</div></div>'
-    +'</div>'
-    +(r.extra?'<div class="detail-text" style="margin-top:8px;">'+r.extra+'</div>':'')
-    +'</div>';
-    html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  const ce=EDIT_MODE?' contenteditable="true"':'';
+  const stop=ce?' onclick="event.stopPropagation()"':'';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow('genDeleteProc('+idx+')');
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+(r.ken||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'hm\',this,false)">'+(r.hm||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">ΜΕΘ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'meth\',this,false)">'+(r.meth||'')+'</td></tr>';
+  if(r.kesy)html+='<tr><td class="dt-label">Απόφαση ΚΕΣΥ</td><td class="dt-val">ΝΑΙ</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</td></tr>';
+  html+='<tr><td class="dt-label">Υλικά ιδιώτη</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot_mat\',this,false)">'+(r.idiot_mat||'')+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</td></tr>';
+  if(r.idiot3!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot3\',this,true)">'+fmt(r.idiot3)+'</td></tr>';
+  if(r.eop3!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop3\',this,true)">'+fmt(r.eop3)+'</td></tr>';
+  if(r.idiotA!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης Α</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiotA\',this,true)">'+fmt(r.idiotA)+'</td></tr>';
+  if(r.eopA!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ Α</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eopA\',this,true)">'+fmt(r.eopA)+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+(r.extra||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1663,7 +1715,6 @@ function toggleMastosGroupCard(gi,card){
     html+='<div class="proc-card" onclick="event.stopPropagation();toggleMastosCard('+gi+','+ri+',this)"><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   html+='</div>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
   html+='</div>';
   det.innerHTML=html;
   card.after(det);
@@ -1679,33 +1730,26 @@ function toggleMastosCard(gi,ri,card){
   const r=MASTOS.groups[gi].rows[ri];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  if(r.ken)html+='<span class="dw-pill">ΚΕΝ '+r.ken+'</span>';
-  if(r.hm)html+='<span class="dw-pill">ΗΜ '+r.hm+'</span>';
-  html+='</div></div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow(null);
+  html+='<table class="dt-table"><tbody>';
+  if(r.ken)html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val">'+r.ken+'</td></tr>';
+  if(r.hm)html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val">'+r.hm+'</td></tr>';
   if(r.tiers){
-    html+='<div class="detail-col"><h5>Τιμές ανά θάλαμο</h5><div class="detail-prices">';
     r.tiers.forEach(t=>{
-      html+='<div class="detail-price-box idiot"><label>'+t.label+' Ιδιώτης</label><div class="val">'+fmt(t.idiot)+'</div></div>';
-      html+='<div class="detail-price-box eop"><label>'+t.label+' ΕΟΠΥΥ</label><div class="val">'+fmt(t.eop)+'</div></div>';
+      html+='<tr class="dt-price idiot"><td class="dt-label">'+t.label+' Ιδιώτης</td><td class="dt-val">'+fmt(t.idiot)+'</td></tr>';
+      html+='<tr class="dt-price eop"><td class="dt-label">'+t.label+' ΕΟΠΥΥ</td><td class="dt-val">'+fmt(t.eop)+'</td></tr>';
     });
-    html+='</div></div>';
   }else if(r.price!=null){
-    html+='<div class="detail-col"><h5>Τιμή</h5><div class="detail-prices">'
-      +'<div class="detail-price-box idiot"><label>Τιμή</label><div class="val">'+r.price+'</div></div>'
-      +'</div></div>';
+    html+='<tr class="dt-price idiot"><td class="dt-label">Τιμή</td><td class="dt-val">'+r.price+'</td></tr>';
   }else{
-    html+='<div class="detail-col"><h5>Τιμές</h5><div class="detail-prices">'
-      +'<div class="detail-price-box idiot"><label>Ιδιώτης</label><div class="val">'+fmt(r.idiot)+'</div></div>'
-      +'<div class="detail-price-box eop"><label>ΕΟΠΥΥ</label><div class="val">'+fmt(r.eop)+'</div></div>'
-      +'</div></div>';
+    html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης</td><td class="dt-val">'+fmt(r.idiot)+'</td></tr>';
+    html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ</td><td class="dt-val">'+fmt(r.eop)+'</td></tr>';
   }
-  if(r.extra!=null)html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text'+(r.extra?'':' muted')+'">'+(r.extra||'—')+'</div></div>';
-  html+='<div class="detail-col detail-full"><h5>Παρατηρήσεις</h5><div class="detail-text'+(r.notes?'':' muted')+'" style="text-align:left;">'+(r.notes||'—')+'</div></div>';
-    html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  if(r.extra)html+='<tr><td class="dt-label">Extra</td><td class="dt-val">'+r.extra+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val">'+(r.notes||'—')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1764,29 +1808,23 @@ function toggleKardioCard(idx,card){
   det.className='card-detail';
   const ce=EDIT_MODE?' contenteditable="true"':'';
   const stop=ce?' onclick="event.stopPropagation()"':'';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  html+='<span class="dw-pill">ΚΕΝ <span'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+r.ken+'</span></span>';
-  html+='<span class="dw-pill">Χειρ. χρόνος <span'+ce+stop+' onblur="genSaveField('+idx+',\'dur\',this,false)">'+r.dur+'</span> ώρ.</span>';
-  html+='<span class="dw-pill">Νοσηλεία <span'+ce+stop+' onblur="genSaveField('+idx+',\'room\',this,false)">'+r.room+'</span></span>';
-  html+='<span class="dw-pill">ΜΑΠ/ΜΕΘ <span'+ce+stop+' onblur="genSaveField('+idx+',\'icu\',this,false)">'+r.icu+'</span></span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>ΕΟΠΥΥ</h5><div class="detail-prices">'
-    +'<div class="detail-price-box eop"><label>ΒΑ3</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop3\',this,true)">'+fmt(r.eop3)+'</div></div>'
-    +'<div class="detail-price-box eop"><label>ΒΑ</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</div></div>'
-    +'<div class="detail-price-box eop"><label>Α</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'eopA\',this,true)">'+fmt(r.eopA)+'</div></div>'
-    +'</div></div>';
-  html+='<div class="detail-col"><h5>Ιδιώτης</h5><div class="detail-prices">'
-    +'<div class="detail-price-box idiot"><label>ΒΑ3</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot3\',this,true)">'+fmt(r.idiot3)+'</div></div>'
-    +'<div class="detail-price-box idiot"><label>ΒΑ</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</div></div>'
-    +'<div class="detail-price-box idiot"><label>Α</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiotA\',this,true)">'+fmt(r.idiotA)+'</div></div>'
-    +'</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text'+(r.extra?'':' muted')+'"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+(r.extra||'—')+'</div></div>';
-  html+='<div class="detail-col detail-full"><h5>Παρατηρήσεις</h5><div class="detail-text'+(r.notes?'':' muted')+'"'+ce+stop+' onblur="genSaveField('+idx+',\'notes\',this,false)">'+(r.notes||'—')+'</div></div>';
-    html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text" id="genDate-'+idx+'">'+r.date+'</div></div>';
-  if(EDIT_MODE)html+='<button class="card-detail-delete" onclick="event.stopPropagation();genDeleteProc('+idx+')"><i class="ti ti-trash"></i></button>';
-html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow('genDeleteProc('+idx+')');
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+r.ken+'</td></tr>';
+  html+='<tr><td class="dt-label">Χειρ. χρόνος</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'dur\',this,false)">'+r.dur+' ώρ.</td></tr>';
+  html+='<tr><td class="dt-label">Νοσηλεία</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'room\',this,false)">'+r.room+'</td></tr>';
+  html+='<tr><td class="dt-label">ΜΑΠ/ΜΕΘ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'icu\',this,false)">'+r.icu+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot3\',this,true)">'+fmt(r.idiot3)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop3\',this,true)">'+fmt(r.eop3)+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης Α</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiotA\',this,true)">'+fmt(r.idiotA)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ Α</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eopA\',this,true)">'+fmt(r.eopA)+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'notes\',this,false)">'+(r.notes||'—')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1801,22 +1839,19 @@ function toggleKardioExtraCard(idx,card){
   const r=KARDIO.extra_procs[idx];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  html+='<span class="dw-pill">ΚΕΝ '+r.ken+'</span>';
-  html+='<span class="dw-pill">Διάρκεια '+r.dur+'</span>';
-  html+='<span class="dw-pill">Νοσηλεία '+r.room+'</span>';
-  html+='<span class="dw-pill">ΜΑΠ/ΜΕΘ '+r.icu+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές</h5><div class="detail-prices">'
-    +'<div class="detail-price-box idiot"><label>Ιδιώτης ΒΑ</label><div class="val">'+fmt(r.idiot_ba)+'</div></div>'
-    +'<div class="detail-price-box eop"><label>ΕΟΠΥΥ ΒΑ</label><div class="val">'+fmt(r.eop_ba)+'</div></div>'
-    +'</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text">'+r.extra+'</div></div>';
-  html+='<div class="detail-col detail-full"><h5>Παρατηρήσεις</h5><div class="detail-text" style="text-align:left;">'+r.notes+'</div></div>';
-  html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow(null);
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val">'+r.ken+'</td></tr>';
+  html+='<tr><td class="dt-label">Διάρκεια</td><td class="dt-val">'+r.dur+'</td></tr>';
+  html+='<tr><td class="dt-label">Νοσηλεία</td><td class="dt-val">'+r.room+'</td></tr>';
+  html+='<tr><td class="dt-label">ΜΑΠ/ΜΕΘ</td><td class="dt-val">'+r.icu+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ</td><td class="dt-val">'+fmt(r.idiot_ba)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ</td><td class="dt-val">'+fmt(r.eop_ba)+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val">'+r.extra+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val">'+r.notes+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1867,24 +1902,20 @@ function toggleThoraxCard(idx,card){
   det.className='card-detail';
   const ce=EDIT_MODE?' contenteditable="true"':'';
   const stop=ce?' onclick="event.stopPropagation()"':'';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  html+='<span class="dw-pill">ΚΕΝ <span'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+r.ken+'</span></span>';
-  if(r.dur)html+='<span class="dw-pill">Διάρκεια <span'+ce+stop+' onblur="genSaveField('+idx+',\'dur\',this,false)">'+r.dur+'</span> ώρ.</span>';
-  if(r.room)html+='<span class="dw-pill">Νοσηλεία <span'+ce+stop+' onblur="genSaveField('+idx+',\'room\',this,false)">'+r.room+'</span></span>';
-  if(r.icu)html+='<span class="dw-pill">ΜΑΠ/ΜΕΘ <span'+ce+stop+' onblur="genSaveField('+idx+',\'icu\',this,false)">'+r.icu+'</span></span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές</h5><div class="detail-prices">'
-    +'<div class="detail-price-box idiot"><label>Ιδιώτης ΒΑ3</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot3\',this,true)">'+fmt(r.idiot3)+'</div></div>'
-    +'<div class="detail-price-box eop"><label>ΕΟΠΥΥ ΒΑ3</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop3\',this,true)">'+fmt(r.eop3)+'</div></div>'
-    +'<div class="detail-price-box idiot"><label>Ιδιώτης ΒΑ</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</div></div>'
-    +'<div class="detail-price-box eop"><label>ΕΟΠΥΥ ΒΑ</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</div></div>'
-    +'</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text'+(r.extra?'':' muted')+'"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+(r.extra||'—')+'</div></div>';
-  html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text" id="genDate-'+idx+'">'+r.date+'</div></div>';
-  if(EDIT_MODE)html+='<button class="card-detail-delete" onclick="event.stopPropagation();genDeleteProc('+idx+')"><i class="ti ti-trash"></i></button>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow('genDeleteProc('+idx+')');
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+r.ken+'</td></tr>';
+  html+='<tr><td class="dt-label">Διάρκεια</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'dur\',this,false)">'+(r.dur||'')+' ώρ.</td></tr>';
+  html+='<tr><td class="dt-label">Νοσηλεία</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'room\',this,false)">'+(r.room||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">ΜΑΠ/ΜΕΘ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'icu\',this,false)">'+(r.icu||'')+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot3\',this,true)">'+fmt(r.idiot3)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop3\',this,true)">'+fmt(r.eop3)+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1917,12 +1948,13 @@ function toggleInterstimCard(pi,card){
   const ph=INTERSTIM.phases[pi];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  html+='<span class="dw-pill">INTERSTIM</span>';
-  html+='<span class="dw-pill">'+ph.title+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col detail-full"><h5>Υλικά πακέτου</h5>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow(null);
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">Πρόγραμμα</td><td class="dt-val">INTERSTIM</td></tr>';
+  html+='<tr><td class="dt-label">Φάση</td><td class="dt-val">'+ph.title+'</td></tr>';
+  html+='</tbody></table>';
+  html+='<div style="margin-top:10px;"><h5 style="margin:0 0 8px;">Υλικά πακέτου</h5>';
   html+='<table class="ref-table" style="width:100%;"><thead><tr>'+ph.headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>';
   ph.rows.forEach(r=>{
     html+='<tr>'+r.map((c,ci)=>'<td'+(ci===0?'':' class="num"')+'>'+(c||'—')+'</td>').join('')+'</tr>';
@@ -1930,7 +1962,6 @@ function toggleInterstimCard(pi,card){
   const totalCols=ph.headers.length-2;
   html+='<tr style="font-weight:700;background:var(--acc-bg);"><td colspan="'+totalCols+'">Σύνολο</td><td class="num" colspan="2">'+fmt(ph.total)+'</td></tr>';
   html+='</tbody></table></div>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
   html+='</div>';
   det.innerHTML=html;
   card.after(det);
@@ -1964,19 +1995,16 @@ function togglePonoSyskCard(idx,card){
   const r=PONOSYSK[idx];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  if(r.hm)html+='<span class="dw-pill">Ημέρες νοσηλείας '+r.hm+'</span>';
-  if(r.apofasi)html+='<span class="dw-pill">Απόφαση ΚΕΣΥ: '+r.apofasi+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές με ΦΠΑ</h5><div class="detail-prices">'
-    +(r.idiot!=null?'<div class="detail-price-box idiot"><label>Ιδιώτης ΒΑ</label><div class="val">'+fmt(r.idiot)+'</div></div>':'')
-    +'<div class="detail-price-box eop"><label>ΕΟΠΥΥ ΒΑ</label><div class="val">'+fmt(r.eop)+'</div></div>'
-    +'</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Υλικό</h5><div class="detail-text">'+r.materials.map(m=>(m.brand||'—')+(m.cost?': '+m.cost:'')).join('<br>')+'</div></div>';
-    html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow(null);
+  html+='<table class="dt-table"><tbody>';
+  if(r.hm)html+='<tr><td class="dt-label">Ημέρες νοσηλείας</td><td class="dt-val">'+r.hm+'</td></tr>';
+  if(r.apofasi)html+='<tr><td class="dt-label">Απόφαση ΚΕΣΥ</td><td class="dt-val">'+r.apofasi+'</td></tr>';
+  if(r.idiot!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ</td><td class="dt-val">'+fmt(r.idiot)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ</td><td class="dt-val">'+fmt(r.eop)+'</td></tr>';
+  html+='<tr><td class="dt-label">Υλικό</td><td class="dt-val">'+r.materials.map(m=>(m.brand||'—')+(m.cost?': '+m.cost:'')).join('<br>')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1994,7 +2022,9 @@ function renderHlek(){
     +'</div></div></div>';
   let cardsHtml='<div class="card-list">';
   HLEK.forEach((r,idx)=>{
-    cardsHtml+='<div class="proc-card" onclick="toggleHlekCard('+idx+',this)"><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
+    const ce=EDIT_MODE?' contenteditable="true"':'';
+    const stop=ce?' onclick="event.stopPropagation()"':'';
+    cardsHtml+='<div class="proc-card" onclick="toggleHlekCard('+idx+',this)"><span class="pc-desc"'+ce+stop+' onblur="genSaveDesc('+idx+',this)">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   cardsHtml+='</div>';
   wrap.innerHTML=instrHtml+cardsHtml;
@@ -2008,25 +2038,25 @@ function toggleHlekCard(idx,card){
   card.classList.add('active');
   const r=HLEK[idx];
   const brand = r.final_medtronic!=null ? 'MEDTRONIC' : (r.final_boston!=null ? 'BOSTON' : null);
+  const finalField = r.final_medtronic!=null ? 'final_medtronic' : 'final_boston';
   const finalVal = r.final_medtronic!=null ? r.final_medtronic : r.final_boston;
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  if(r.ken)html+='<span class="dw-pill">ΚΕΝ '+r.ken+'</span>';
-  if(r.hm!=null)html+='<span class="dw-pill">Ημέρες νοσηλείας '+r.hm+'</span>';
-  if(r.ken_price!=null)html+='<span class="dw-pill">Τιμή ΚΕΝ '+fmt(r.ken_price)+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές</h5><div class="detail-prices">'
-    +(r.cost!=null?'<div class="detail-price-box"><label>Κόστος υλικών</label><div class="val" style="color:var(--txt)">'+fmt(r.cost)+'</div></div>':'')
-    +'<div class="detail-price-box eop"><label>ΕΟΠΥΥ</label><div class="val">'+fmt(r.eop)+'</div></div>'
-    +(r.clinic!=null?'<div class="detail-price-box"><label>Κλινική</label><div class="val" style="color:var(--txt)">'+fmt(r.clinic)+'</div></div>':'')
-    +(finalVal!=null?'<div class="detail-price-box eop"><label>Τελικός ΕΟΠΥΥ με ΦΠΑ'+(brand?' ('+brand+')':'')+'</label><div class="val">'+fmt(finalVal)+'</div></div>':'')
-    +'</div></div>';
-  if(r.materials)html+='<div class="detail-col detail-full"><h5>Υλικά που περιλαμβάνονται</h5><div class="detail-text" style="white-space:pre-line;text-align:left;">'+r.materials+'</div></div>';
-    html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  const ce=EDIT_MODE?' contenteditable="true"':'';
+  const stop=ce?' onclick="event.stopPropagation()"':'';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow('genDeleteProc('+idx+')');
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+(r.ken||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημέρες νοσηλείας</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'hm\',this,false)">'+(r.hm!=null?r.hm:'')+'</td></tr>';
+  html+='<tr><td class="dt-label">Τιμή ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken_price\',this,true)">'+fmt(r.ken_price)+'</td></tr>';
+  html+='<tr><td class="dt-label">Κόστος υλικών</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'cost\',this,true)">'+fmt(r.cost)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</td></tr>';
+  html+='<tr><td class="dt-label">Κλινική</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'clinic\',this,true)">'+fmt(r.clinic)+'</td></tr>';
+  if(finalVal!=null)html+='<tr class="dt-price eop"><td class="dt-label">Τελικός ΕΟΠΥΥ'+(brand?' ('+brand+')':'')+'</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\''+finalField+'\',this,true)">'+fmt(finalVal)+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Υλικά που περιλαμβάνονται</td><td class="dt-val" style="white-space:pre-line;"'+ce+stop+' onblur="genSaveField('+idx+',\'materials\',this,false)">'+(r.materials||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -2079,23 +2109,20 @@ function toggleEpkardCard(grp,idx,card){
   const r = grp===1 ? EPKARD.group1[idx] : EPKARD.group2[idx];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  if(r.ken)html+='<span class="dw-pill">ΚΕΝ '+r.ken+'</span>';
-  if(r.dur)html+='<span class="dw-pill">Διάρκεια '+r.dur+' ώρ.</span>';
-  if(r.room)html+='<span class="dw-pill">Νοσηλεία '+r.room+'</span>';
-  if(r.icu)html+='<span class="dw-pill">ΜΑΠ/ΜΕΘ '+r.icu+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές</h5><div class="detail-prices">'
-    +(r.idiot!=null?'<div class="detail-price-box idiot"><label>Ιδιώτης ΒΑ3</label><div class="val">'+fmt(r.idiot)+'</div></div>':'')
-    +(r.eop!=null?'<div class="detail-price-box eop"><label>ΕΟΠΥΥ ΒΑ3</label><div class="val">'+fmt(r.eop)+'</div></div>':'')
-    +'</div></div>';
-  if(r.materials)html+='<div class="detail-col detail-full"><h5>Υλικά ιδιώτη</h5><div class="detail-text">'+r.materials+'</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text'+(r.extra?'':' muted')+'">'+(r.extra||'—')+'</div></div>';
-  html+='<div class="detail-col detail-full"><h5>Σχόλια</h5><div class="detail-text'+(r.notes?'':' muted')+'">'+(r.notes||'—')+'</div></div>';
-  if(r.date)html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow(null);
+  html+='<table class="dt-table"><tbody>';
+  if(r.ken)html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val">'+r.ken+'</td></tr>';
+  if(r.dur)html+='<tr><td class="dt-label">Διάρκεια</td><td class="dt-val">'+r.dur+' ώρ.</td></tr>';
+  if(r.room)html+='<tr><td class="dt-label">Νοσηλεία</td><td class="dt-val">'+r.room+'</td></tr>';
+  if(r.icu)html+='<tr><td class="dt-label">ΜΑΠ/ΜΕΘ</td><td class="dt-val">'+r.icu+'</td></tr>';
+  if(r.idiot!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ3</td><td class="dt-val">'+fmt(r.idiot)+'</td></tr>';
+  if(r.eop!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ3</td><td class="dt-val">'+fmt(r.eop)+'</td></tr>';
+  if(r.materials)html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Υλικά ιδιώτη</td><td class="dt-val">'+r.materials+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Σχόλια</td><td class="dt-val">'+(r.notes||'—')+'</td></tr>';
+  if(r.date)html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -2159,30 +2186,26 @@ function toggleEpaktCard(idx,card){
   const r=EPAKT[idx];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  html+='<span class="dw-pill">ΚΕΝ/Π.Δ. '+r.ken+'</span>';
-  if(r.icd)html+='<span class="dw-pill">ICD10 '+r.icd+'</span>';
-  if(r.dur)html+='<span class="dw-pill">Διάρκεια '+r.dur+' ώρ.</span>';
-  if(r.room)html+='<span class="dw-pill">Νοσηλεία '+r.room+'</span>';
-  if(r.icu)html+='<span class="dw-pill">ΜΑΠ/ΜΕΘ '+r.icu+'</span>';
-  html+='</div></div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow(null);
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ/Π.Δ.</td><td class="dt-val">'+r.ken+'</td></tr>';
+  if(r.icd)html+='<tr><td class="dt-label">ICD10</td><td class="dt-val">'+r.icd+'</td></tr>';
+  if(r.dur)html+='<tr><td class="dt-label">Διάρκεια</td><td class="dt-val">'+r.dur+' ώρ.</td></tr>';
+  if(r.room)html+='<tr><td class="dt-label">Νοσηλεία</td><td class="dt-val">'+r.room+'</td></tr>';
+  if(r.icu)html+='<tr><td class="dt-label">ΜΑΠ/ΜΕΘ</td><td class="dt-val">'+r.icu+'</td></tr>';
   if(r.odc!=null){
-    html+='<div class="detail-col"><h5>Τιμή</h5><div class="detail-prices">'
-      +'<div class="detail-price-box idiot"><label>ODC</label><div class="val">'+fmt(r.odc)+'</div></div>'
-      +'</div></div>';
+    html+='<tr class="dt-price idiot"><td class="dt-label">ODC</td><td class="dt-val">'+fmt(r.odc)+'</td></tr>';
   }else{
-    html+='<div class="detail-col"><h5>Τιμές ανά θάλαμο</h5><div class="detail-prices">'
-      +'<div class="detail-price-box idiot"><label>ΒΑ</label><div class="val">'+fmt(r.ba)+'</div></div>'
-      +'<div class="detail-price-box idiot"><label>Α</label><div class="val">'+fmt(r.a)+'</div></div>'
-      +'<div class="detail-price-box eop"><label>LUX</label><div class="val">'+fmt(r.lux)+'</div></div>'
-      +'<div class="detail-price-box eop"><label>SUITE</label><div class="val">'+fmt(r.suite)+'</div></div>'
-      +'</div></div>';
+    html+='<tr class="dt-price idiot"><td class="dt-label">ΒΑ</td><td class="dt-val">'+fmt(r.ba)+'</td></tr>';
+    html+='<tr class="dt-price idiot"><td class="dt-label">Α</td><td class="dt-val">'+fmt(r.a)+'</td></tr>';
+    html+='<tr class="dt-price eop"><td class="dt-label">LUX</td><td class="dt-val">'+fmt(r.lux)+'</td></tr>';
+    html+='<tr class="dt-price eop"><td class="dt-label">SUITE</td><td class="dt-val">'+fmt(r.suite)+'</td></tr>';
   }
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text'+(r.extra?'':' muted')+'">'+(r.extra||'—')+'</div></div>';
-  html+='<div class="detail-col detail-full"><h5>Παρατηρήσεις</h5><div class="detail-text'+(r.notes?'':' muted')+'">'+(r.notes||'—')+'</div></div>';
-    html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val">'+(r.notes||'—')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   html+='</div>';
   det.innerHTML=html;
   card.after(det);
@@ -2234,22 +2257,20 @@ function toggleGynCard(idx,card){
   const roomLabel = isOdc ? 'ODC' : 'ΒΑ';
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  html+='<span class="dw-pill">ΚΕΝ '+r.ken+'</span>';
-  if(r.dur)html+='<span class="dw-pill">Διάρκεια '+r.dur+' ώρ.</span>';
-  if(r.room)html+='<span class="dw-pill">ΗΜ '+r.room+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές</h5><div class="detail-prices">'
-    +'<div class="detail-price-box idiot"><label>Ιδιώτης '+roomLabel+' προ ΦΠΑ</label><div class="val">'+fmt(idiotPro)+'</div></div>'
-    +'<div class="detail-price-box idiot"><label>Ιδιώτης '+roomLabel+' με ΦΠΑ</label><div class="val">'+fmt(idiotMe)+'</div></div>'
-    +'<div class="detail-price-box eop"><label>ΕΟΠΥΥ '+roomLabel+' προ ΦΠΑ</label><div class="val">'+fmt(eopPro)+'</div></div>'
-    +'<div class="detail-price-box eop"><label>ΕΟΠΥΥ '+roomLabel+' με ΦΠΑ</label><div class="val">'+fmt(eopMe)+'</div></div>'
-    +'</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text'+(r.extra?'':' muted')+'">'+(r.extra||'—')+'</div></div>';
-  html+='<div class="detail-col detail-full"><h5>Παρατηρήσεις</h5><div class="detail-text'+(r.notes?'':' muted')+'">'+(r.notes||'—')+'</div></div>';
-    html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow(null);
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val">'+r.ken+'</td></tr>';
+  if(r.dur)html+='<tr><td class="dt-label">Διάρκεια</td><td class="dt-val">'+r.dur+' ώρ.</td></tr>';
+  if(r.room)html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val">'+r.room+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης '+roomLabel+' προ ΦΠΑ</td><td class="dt-val">'+fmt(idiotPro)+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης '+roomLabel+' με ΦΠΑ</td><td class="dt-val">'+fmt(idiotMe)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ '+roomLabel+' προ ΦΠΑ</td><td class="dt-val">'+fmt(eopPro)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ '+roomLabel+' με ΦΠΑ</td><td class="dt-val">'+fmt(eopMe)+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val">'+(r.notes||'—')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   html+='</div>';
   det.innerHTML=html;
   card.after(det);
@@ -2305,33 +2326,27 @@ function toggleGenChirCard(idx,card){
   document.querySelectorAll('.proc-card').forEach(x=>x.classList.remove('active'));
   card.classList.add('active');
   const r=GENCHIR.rows[idx];
-  const idiotVal = r.idiot3!=null?r.idiot3:r.idiot;
-  const idiotFallback = r.idiot3==null && r.idiot!=null;
-  const idiotField = idiotFallback?'idiot':'idiot3';
-  const eopVal = r.eop3!=null?r.eop3:r.eop;
-  const eopFallback = r.eop3==null && r.eop!=null;
-  const eopField = eopFallback?'eop':'eop3';
   const det=document.createElement('div');
   det.className='card-detail';
   const ce=EDIT_MODE?' contenteditable="true"':'';
   const stop=ce?' onclick="event.stopPropagation()"':'';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  html+='<span class="dw-pill">ΚΕΝ <span'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+r.ken+'</span></span>';
-  if(r.dur)html+='<span class="dw-pill">Διάρκεια <span'+ce+stop+' onblur="genSaveField('+idx+',\'dur\',this,false)">'+r.dur+'</span> ώρ.</span>';
-  if(r.room)html+='<span class="dw-pill">Νοσηλεία <span'+ce+stop+' onblur="genSaveField('+idx+',\'room\',this,false)">'+r.room+'</span></span>';
-  if(r.icu)html+='<span class="dw-pill">ΜΑΠ/ΜΕΘ <span'+ce+stop+' onblur="genSaveField('+idx+',\'icu\',this,false)">'+r.icu+'</span></span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές</h5><div class="detail-prices">'
-    +'<div class="detail-price-box idiot"><label>Ιδιώτης'+(idiotFallback?' ΒΑ':' ΒΑ3')+'</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\''+idiotField+'\',this,true)">'+fmt(idiotVal)+'</div></div>'
-    +'<div class="detail-price-box eop"><label>ΕΟΠΥΥ'+(eopFallback?' ΒΑ':' ΒΑ3')+'</label><div class="val"'+ce+stop+' onblur="genSaveField('+idx+',\''+eopField+'\',this,true)">'+fmt(eopVal)+'</div></div>'
-    +'</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text'+(r.extra?'':' muted')+'"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+(r.extra||'—')+'</div></div>';
-  html+='<div class="detail-col detail-full"><h5>Παρατηρήσεις</h5><div class="detail-text'+(r.notes?'':' muted')+'"'+ce+stop+' onblur="genSaveField('+idx+',\'notes\',this,false)">'+(r.notes||'—')+'</div></div>';
-  html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text" id="genDate-'+idx+'">'+r.date+'</div></div>';
-  if(EDIT_MODE)html+='<button class="card-detail-delete" onclick="event.stopPropagation();genDeleteProc('+idx+')"><i class="ti ti-trash"></i></button>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow('genDeleteProc('+idx+')');
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+r.ken+'</td></tr>';
+  if(r.dur)html+='<tr><td class="dt-label">Διάρκεια</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'dur\',this,false)">'+r.dur+' ώρ.</td></tr>';
+  if(r.room)html+='<tr><td class="dt-label">Νοσηλεία</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'room\',this,false)">'+r.room+'</td></tr>';
+  if(r.icu)html+='<tr><td class="dt-label">ΜΑΠ/ΜΕΘ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'icu\',this,false)">'+r.icu+'</td></tr>';
+  if(r.idiot3!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot3\',this,true)">'+fmt(r.idiot3)+'</td></tr>';
+  if(r.idiot!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</td></tr>';
+  if(r.idiotA!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης Α</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiotA\',this,true)">'+fmt(r.idiotA)+'</td></tr>';
+  if(r.eop3!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop3\',this,true)">'+fmt(r.eop3)+'</td></tr>';
+  if(r.eop!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</td></tr>';
+  if(r.eopA!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ Α</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eopA\',this,true)">'+fmt(r.eopA)+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'notes\',this,false)">'+(r.notes||'—')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -2348,21 +2363,18 @@ function toggleGenChirExtraCard(si,ri,card){
   const isHipec=sec.title.includes('Κυριαζάνο');
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  if(r.ken)html+='<span class="dw-pill">ΚΕΝ '+r.ken+'</span>';
-  if(r.dur)html+='<span class="dw-pill">Διάρκεια '+r.dur+'</span>';
-  if(r.room)html+='<span class="dw-pill">Νοσηλεία '+r.room+'</span>';
-  if(r.icu)html+='<span class="dw-pill">ΜΑΠ/ΜΕΘ '+r.icu+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές</h5><div class="detail-prices">'
-    +'<div class="detail-price-box idiot"><label>Ιδιώτης ΒΑ3</label><div class="val">'+fmt(r.idiot)+'</div></div>'
-    +(isHipec?'<div class="detail-price-box eop"><label>ΕΟΠΥΥ ΒΑ3</label><div class="val">'+fmt(r.eop)+'</div></div>':'<div class="detail-price-box idiot"><label>Ιδιώτης ΒΑ</label><div class="val">'+fmt(r.idiot)+'</div></div>')
-    +'</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text'+(r.extra?'':' muted')+'">'+(r.extra||'—')+'</div></div>';
-  if(r.notes)html+='<div class="detail-col detail-full"><h5>Παρατηρήσεις</h5><div class="detail-text">'+r.notes+'</div></div>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
-  html+='</div>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow(null);
+  html+='<table class="dt-table"><tbody>';
+  if(r.ken)html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val">'+r.ken+'</td></tr>';
+  if(r.dur)html+='<tr><td class="dt-label">Διάρκεια</td><td class="dt-val">'+r.dur+'</td></tr>';
+  if(r.room)html+='<tr><td class="dt-label">Νοσηλεία</td><td class="dt-val">'+r.room+'</td></tr>';
+  if(r.icu)html+='<tr><td class="dt-label">ΜΑΠ/ΜΕΘ</td><td class="dt-val">'+r.icu+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ3</td><td class="dt-val">'+fmt(r.idiot)+'</td></tr>';
+  html+=isHipec?('<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ3</td><td class="dt-val">'+fmt(r.eop)+'</td></tr>'):('<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ</td><td class="dt-val">'+fmt(r.idiot)+'</td></tr>');
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val">'+(r.extra||'—')+'</td></tr>';
+  if(r.notes)html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val">'+r.notes+'</td></tr>';
+  html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
   det.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -2455,7 +2467,6 @@ function toggleGnathoSectionCard(si,card){
     });
     html+='</div>';
   }
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
   html+='</div>';
   det.innerHTML=html;
   card.after(det);
@@ -2486,7 +2497,6 @@ function toggleGnathoSubtableCard(si,sti,card){
     html+='</div>';
     if(st.footnotes)html+='<div class="foot-box">'+st.footnotes.map(f=>'<div>📌 '+f+'</div>').join('')+'</div>';
   }
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
   html+='</div>';
   det.innerHTML=html;
   card.after(det);
@@ -2502,19 +2512,17 @@ function toggleGnathoProcCard(si,sti,ri,card){
   const r=GNATHO.sections[si].subtables[sti].rows[ri];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  html+='<span class="dw-pill">Διάρκεια '+r.dur+'</span>';
-  if(r.ken)html+='<span class="dw-pill">ΚΕΝ '+r.ken+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές</h5><div class="detail-prices">'
-    +(r.idiot_clinic!=null?'<div class="detail-price-box idiot"><label>Ιδιώτης κλινική</label><div class="val">'+fmt(r.idiot_clinic)+'</div></div>':'')
-    +(r.eop_clinic!=null?'<div class="detail-price-box eop"><label>ΕΟΠΥΥ κλινική</label><div class="val">'+fmt(r.eop_clinic)+'</div></div>':'')
-    +(r.idiot_anaisth!=null?'<div class="detail-price-box"><label>Αμοιβή αναισθ. (Ιδιώτης)</label><div class="val" style="color:var(--txt)">'+fmt(r.idiot_anaisth)+'</div></div>':'')
-    +(r.eop_anaisth!=null?'<div class="detail-price-box"><label>Αμοιβή αναισθ. (ΕΟΠΥΥ)</label><div class="val" style="color:var(--txt)">'+fmt(r.eop_anaisth)+'</div></div>':'')
-    +'</div></div>';
-    html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow(null);
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">Διάρκεια</td><td class="dt-val">'+r.dur+'</td></tr>';
+  if(r.ken)html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val">'+r.ken+'</td></tr>';
+  if(r.idiot_clinic!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης κλινική</td><td class="dt-val">'+fmt(r.idiot_clinic)+'</td></tr>';
+  if(r.eop_clinic!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ κλινική</td><td class="dt-val">'+fmt(r.eop_clinic)+'</td></tr>';
+  if(r.idiot_anaisth!=null)html+='<tr><td class="dt-label">Αμοιβή αναισθ. (Ιδιώτης)</td><td class="dt-val">'+fmt(r.idiot_anaisth)+'</td></tr>';
+  if(r.eop_anaisth!=null)html+='<tr><td class="dt-label">Αμοιβή αναισθ. (ΕΟΠΥΥ)</td><td class="dt-val">'+fmt(r.eop_anaisth)+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   html+='</div>';
   det.innerHTML=html;
   card.after(det);
@@ -2547,7 +2555,6 @@ function toggleGastroGroupCard(gi,card){
     html+='<div class="proc-card" onclick="event.stopPropagation();toggleGastroCard('+gi+','+ri+',this)"><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   html+='</div>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
   html+='</div>';
   det.innerHTML=html;
   card.after(det);
@@ -2563,21 +2570,19 @@ function toggleGastroCard(gi,ri,card){
   const r=GASTRO.groups[gi].rows[ri];
   const det=document.createElement('div');
   det.className='card-detail';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  html+='<span class="dw-pill">ΚΕΝ '+r.ken+'</span>';
-  if(r.hm)html+='<span class="dw-pill">ΗΜ '+r.hm+'</span>';
-  if(r.time)html+='<span class="dw-pill">Χρόνος '+r.time+'</span>';
-  if(r.room)html+='<span class="dw-pill">Δωμάτιο '+r.room+'</span>';
-  html+='</div></div>';
-  html+='<div class="detail-col"><h5>Τιμές</h5><div class="detail-prices">'
-    +'<div class="detail-price-box idiot"><label>Ιδιώτης</label><div class="val">'+fmt(r.idiot)+'</div></div>'
-    +'<div class="detail-price-box eop"><label>ΕΟΠΥΥ</label><div class="val">'+fmt(r.eopyy)+'</div></div>'
-    +'</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text'+(r.extra?'':' muted')+'">'+(r.extra||'—')+'</div></div>';
-  html+='<div class="detail-col detail-full"><h5>Παρατηρήσεις</h5><div class="detail-text'+(r.notes?'':' muted')+'" style="text-align:left;">'+(r.notes||'—')+'</div></div>';
-    html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text">'+r.date+'</div></div>';
-html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow(null);
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val">'+r.ken+'</td></tr>';
+  if(r.hm)html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val">'+r.hm+'</td></tr>';
+  if(r.time)html+='<tr><td class="dt-label">Χρόνος</td><td class="dt-val">'+r.time+'</td></tr>';
+  if(r.room)html+='<tr><td class="dt-label">Δωμάτιο</td><td class="dt-val">'+r.room+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης</td><td class="dt-val">'+fmt(r.idiot)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ</td><td class="dt-val">'+fmt(r.eopyy)+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val">'+(r.notes||'—')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='</tbody></table></div>';
   html+='</div>';
   det.innerHTML=html;
   card.after(det);
@@ -2601,6 +2606,20 @@ function renderTable(){
   });
 }
 
+function btnRow(delCall){
+  if(!EDIT_MODE)return '';
+  const cfg=VIEW_EDIT_CONFIGS[CURRENT_VIEW];
+  const idxMatch = delCall && delCall.match(/\d+/);
+  const idx = idxMatch ? idxMatch[0] : null;
+  const showAddField = cfg && cfg.fields && idx!=null;
+  if(!showAddField && !delCall)return '';
+  let h='<div style="display:flex;justify-content:flex-end;gap:6px;height:22px;align-items:center;">';
+  if(showAddField)h+='<button class="card-detail-addfield" style="background:none;border:none;color:var(--acc-txt);cursor:pointer;font-size:11px;font-weight:600;" onclick="event.stopPropagation();openAddFieldModal('+idx+')">+ Τιμή</button>';
+  if(delCall)h+='<button class="card-detail-delete" style="position:static;font-size:13px;line-height:1;padding:0 4px;" onclick="event.stopPropagation();'+delCall+'"><i class="ti ti-trash"></i></button>';
+  h+='</div>';
+  return h;
+}
+
 function toggleCardDetail(idx,card){
   const existing=card.nextElementSibling;
   if(existing && existing.classList.contains('card-detail')){
@@ -2618,33 +2637,32 @@ function toggleCardDetail(idx,card){
   det.className='card-detail';
   const ce = (EDIT_MODE && !BULK_MODE) ? ' contenteditable="true"' : '';
   const stop = ce ? ' onclick="event.stopPropagation()"' : '';
-  let html='<div class="detail-wrap">';
-  html+='<div class="detail-col"><h5>Στοιχεία</h5><div class="dw-pills">';
-  html+='<span class="dw-pill">ΚΕΝ <span'+ce+stop+' onblur="saveEditField(event,'+idx+',\'ken\')">'+(r.ken||'')+'</span></span>';
-  html+='<span class="dw-pill">Διάρκεια <span'+ce+stop+' onblur="saveEditField(event,'+idx+',\'dur\')">'+(r.dur||'')+'</span> ώρ.</span>';
-  html+='<span class="dw-pill">Νοσηλεία <span'+ce+stop+' onblur="saveEditField(event,'+idx+',\'room\')">'+(r.room||'')+'</span></span>';
-  html+='<span class="dw-pill">ΜΑΠ/ΜΕΘ <span'+ce+stop+' onblur="saveEditField(event,'+idx+',\'icu\')">'+(r.icu||'')+'</span></span>';
-  html+='</div></div>';
-  function priceBox(cls,label,field,val){
+  let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
+  html+=btnRow('deleteProc('+idx+')');
+  html+='<table class="dt-table"><tbody>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="saveEditField(event,'+idx+',\'ken\')">'+(r.ken||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">Διάρκεια</td><td class="dt-val"'+ce+stop+' onblur="saveEditField(event,'+idx+',\'dur\')">'+(r.dur||'')+' ώρ.</td></tr>';
+  html+='<tr><td class="dt-label">Νοσηλεία</td><td class="dt-val"'+ce+stop+' onblur="saveEditField(event,'+idx+',\'room\')">'+(r.room||'')+'</td></tr>';
+  html+='<tr><td class="dt-label">ΜΑΠ/ΜΕΘ</td><td class="dt-val"'+ce+stop+' onblur="saveEditField(event,'+idx+',\'icu\')">'+(r.icu||'')+'</td></tr>';
+  function priceRow(cls,label,field,val){
     const isSel = SELECTED_PRICES.some(p=>p.idx===idx&&p.field===field);
     if(BULK_MODE){
-      return '<div class="detail-price-box '+cls+' bulk-selectable'+(isSel?' price-selected':'')+'" data-idx="'+idx+'" data-field="'+field+'" onclick="event.stopPropagation();togglePriceSelection('+idx+',\''+field+'\',this)"><label>'+label+'</label><div class="val">'+fmt(val)+'</div></div>';
+      return '<tr class="dt-price '+cls+' bulk-selectable'+(isSel?' price-selected':'')+'" data-idx="'+idx+'" data-field="'+field+'" onclick="event.stopPropagation();togglePriceSelection('+idx+',\''+field+'\',this)"><td class="dt-label">'+label+'</td><td class="dt-val">'+fmt(val)+'</td></tr>';
     }
-    return '<div class="detail-price-box '+cls+'"><label>'+label+'</label><div class="val"'+ce+stop+' onblur="saveEdit(event,'+idx+',\''+field+'\')">'+fmt(val)+'</div></div>';
+    return '<tr class="dt-price '+cls+'"><td class="dt-label">'+label+'</td><td class="dt-val"'+ce+stop+' onblur="saveEdit(event,'+idx+',\''+field+'\')">'+fmt(val)+'</td></tr>';
   }
-  html+='<div class="detail-col"><h5>Τιμές</h5><div class="detail-prices">'
-    +(r.idiot3!=null?priceBox('idiot','Ιδιώτης ΒΑ3','idiot3',r.idiot3):'')
-    +(r.eop3!=null?priceBox('eop','ΕΟΠΥΥ ΒΑ3','eop3',r.eop3):'')
-    +(r.idiot!=null?priceBox('idiot','Ιδιώτης','idiot',r.idiot):'')
-    +(r.eop!=null?priceBox('eop','ΕΟΠΥΥ','eop',r.eop):'')
-    +(r.eop_cheap!=null?priceBox('eop','ΕΟΠΥΥ (φθηνό υλικό)','eop_cheap',r.eop_cheap):'')
-    +(r.eop_expensive!=null?priceBox('eop','ΕΟΠΥΥ (ακριβό υλικό)','eop_expensive',r.eop_expensive):'')
-    +'</div></div>';
-  html+='<div class="detail-col detail-wide"><h5>Extra</h5><div class="detail-text'+(r.extra?'':' muted')+'"'+ce+stop+' onblur="saveEditField(event,'+idx+',\'extra\')">'+(r.extra||'—')+'</div></div>';
-  html+='<div class="detail-col detail-full"><h5>Παρατηρήσεις</h5><div class="detail-text'+(r.notes?'':' muted')+'"'+ce+stop+' onblur="saveEditField(event,'+idx+',\'notes\')">'+(r.notes||'—')+'</div></div>';
-  html+='<div class="detail-col detail-left"><h5>Ημ. αλλαγής</h5><div class="detail-text" id="dateDisplay-'+idx+'">'+r.date+'</div></div>';
-  if(EDIT_MODE)html+='<button class="card-detail-delete" onclick="event.stopPropagation();deleteProc('+idx+')"><i class="ti ti-trash"></i></button>';
-  html+='<button class="detail-close" onclick="event.stopPropagation();closeCardDetail(this)">&times;</button>';
+  html+=(r.idiot3!=null?priceRow('idiot','Ιδιώτης ΒΑ3','idiot3',r.idiot3):'');
+  html+=(r.eop3!=null?priceRow('eop','ΕΟΠΥΥ ΒΑ3','eop3',r.eop3):'');
+  html+=(r.idiot!=null?priceRow('idiot','Ιδιώτης','idiot',r.idiot):'');
+  html+=(r.eop!=null?priceRow('eop','ΕΟΠΥΥ','eop',r.eop):'');
+  html+=(r.eop_cheap!=null?priceRow('eop','ΕΟΠΥΥ (φθηνό υλικό)','eop_cheap',r.eop_cheap):'');
+  html+=(r.eop_expensive!=null?priceRow('eop','ΕΟΠΥΥ (ακριβό υλικό)','eop_expensive',r.eop_expensive):'');
+  html+=(r.idiotA!=null?priceRow('idiot','Ιδιώτης Α','idiotA',r.idiotA):'');
+  html+=(r.eopA!=null?priceRow('eop','ΕΟΠΥΥ Α','eopA',r.eopA):'');
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val"'+ce+stop+' onblur="saveEditField(event,'+idx+',\'extra\')">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val"'+ce+stop+' onblur="saveEditField(event,'+idx+',\'notes\')">'+(r.notes||'—')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="dateDisplay-'+idx+'">'+r.date+'</td></tr>';
+  html+='</tbody></table>';
   html+='</div>';
   det.innerHTML=html;
   card.after(det);
