@@ -415,7 +415,9 @@ const VIEW_EDIT_CONFIGS = {
  'orl': {arr:()=>ORL, render:()=>renderOrl(), aa:true, listSel:'#viewOrl', toggleFn:'toggleOrlCard', fields:[['dur','Διάρκεια'],['ken','ΚΕΝ'],['hm','ΗΜ'],['idiot','Ιδιώτης ΒΑ'],['eop','ΕΟΠΥΥ ΒΑ'],['extra','Extra']]},
  'hlek': {arr:()=>HLEK, render:()=>renderHlek(), listSel:'#viewHlek', toggleFn:'toggleHlekCard', fields:[['ken','ΚΕΝ'],['hm','Ημέρες νοσηλείας'],['ken_price','Τιμή ΚΕΝ'],['cost','Κόστος υλικών'],['materials','Υλικά που περιλαμβάνονται'],['eop','ΕΟΠΥΥ'],['clinic','Κλινική'],['final_medtronic','Τελικός ΕΟΠΥΥ (MEDTRONIC)'],['final_boston','Τελικός ΕΟΠΥΥ (BOSTON)']]},
  'pneumo': {arr:()=>PNEUMO, render:()=>renderPneumo(), aa:true, listSel:'#viewPneumo', toggleFn:'togglePneumoCard', fields:[['room','Δωμάτιο'],['ken','ΚΕΝ'],['dur','Χειρ. χρόνος'],['anaisth','Αμοιβή αναισθ.'],['idiot','Ιδιώτης'],['eop','ΕΟΠΥΥ'],['notes','Παρατηρήσεις']]},
- 'ortho': {arr:()=>ORTHO.rows, render:()=>renderOrtho(), aa:true, listSel:'#viewOrtho', toggleFn:'toggleOrthoCard', fields:[['ken','ΚΕΝ'],['hm','ΗΜ'],['idiot3','Ιδιώτης ΒΑ3'],['idiot','Ιδιώτης ΒΑ'],['eop3','ΕΟΠΥΥ ΒΑ3'],['eop','ΕΟΠΥΥ ΒΑ'],['extra','Extra'],['notes','Παρατηρήσεις']]}
+ 'ortho': {arr:()=>ORTHO.rows, render:()=>renderOrtho(), aa:true, listSel:'#viewOrtho', toggleFn:'toggleOrthoCard', fields:[['ken','ΚΕΝ'],['hm','ΗΜ'],['idiot3','Ιδιώτης ΒΑ3'],['idiot','Ιδιώτης ΒΑ'],['eop3','ΕΟΠΥΥ ΒΑ3'],['eop','ΕΟΠΥΥ ΒΑ'],['extra','Extra'],['notes','Παρατηρήσεις']]},
+ 'bhmato': {arr:()=>BHMATO, render:()=>renderBhmato(), listSel:'#viewBhmato', toggleFn:'toggleBhmatoCard', fields:[['ken','ΚΕΝ'],['hm','Νοσηλεία'],['final_medtronic','Τελικός ΕΟΠΥΥ (MEDTRONIC)'],['final_boston','Τελικός ΕΟΠΥΥ (BOSTON)']]},
+ 'onp': {arr:()=>ONP, render:()=>renderOnp(), listSel:'#viewOnp', toggleFn:'toggleOnpCard', fields:[['room','Παραμονή'],['idiot','Ιδιώτης'],['eop','ΕΟΠΥΥ'],['exams','Εξετάσεις πακέτου']]}
 };
 
 let AF_IDX=null;
@@ -603,7 +605,9 @@ const ADD_CONFIGS = {
   'Βηματοδότες-Απινιδωτές': {arr:()=>BHMATO, render:renderBhmato,
     fields:[['ken','ΚΕΝ'],['hm','Νοσηλεία'],['final_medtronic','Τελικός ΕΟΠΥΥ (MEDTRONIC)'],['final_boston','Τελικός ΕΟΠΥΥ (BOSTON)']]},
   'Θεραπείες Πόνου με συσκευές': {arr:()=>PONOSYSK, render:renderPonoSysk,
-    fields:[['hm','ΗΜ'],['idiot','Ιδιώτης'],['eop','ΕΟΠΥΥ'],['apofasi','Απόφαση ΚΕΣΥ']]}
+    fields:[['hm','ΗΜ'],['idiot','Ιδιώτης'],['eop','ΕΟΠΥΥ'],['apofasi','Απόφαση ΚΕΣΥ']]},
+  'ΟΝΠ': {arr:()=>ONP, render:renderOnp,
+    fields:[['room','Παραμονή'],['idiot','Ιδιώτης'],['eop','ΕΟΠΥΥ'],['exams','Εξετάσεις πακέτου'],['tier','Ειδική τιμή για']]}
 };
 
 function openAddProcModal(){
@@ -1074,7 +1078,9 @@ function renderBhmato(){
     +'</div></div></div>';
   let cardsHtml='<div class="card-list">';
   BHMATO.forEach((r,idx)=>{
-    cardsHtml+='<div class="proc-card" onclick="toggleBhmatoCard('+idx+',this)"><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
+    const ce=EDIT_MODE?' contenteditable="true"':'';
+    const stop=ce?' onclick="event.stopPropagation()"':'';
+    cardsHtml+='<div class="proc-card" onclick="toggleBhmatoCard('+idx+',this)"><span class="pc-desc"'+ce+stop+' onblur="genSaveDesc('+idx+',this)">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   cardsHtml+='</div>';
   wrap.innerHTML=instrHtml+cardsHtml;
@@ -1089,14 +1095,16 @@ function toggleBhmatoCard(idx,card){
   const r=BHMATO[idx];
   const det=document.createElement('div');
   det.className='card-detail';
+  const ce=EDIT_MODE?' contenteditable="true"':'';
+  const stop=ce?' onclick="event.stopPropagation()"':'';
   let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
-  html+=btnRow(null);
+  html+=btnRow('genDeleteProc('+idx+')');
   html+='<table class="dt-table"><tbody>';
-  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val">'+r.ken+'</td></tr>';
-  html+='<tr><td class="dt-label">Νοσηλεία</td><td class="dt-val">'+r.hm+'</td></tr>';
-  if(r.final_medtronic!=null)html+='<tr class="dt-price eop"><td class="dt-label">Τελικός ΕΟΠΥΥ (MEDTRONIC)</td><td class="dt-val">'+fmt(r.final_medtronic)+'</td></tr>';
-  if(r.final_boston!=null)html+='<tr class="dt-price eop"><td class="dt-label">Τελικός ΕΟΠΥΥ (BOSTON)</td><td class="dt-val">'+fmt(r.final_boston)+'</td></tr>';
-  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+r.ken+'</td></tr>';
+  html+='<tr><td class="dt-label">Νοσηλεία</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'hm\',this,false)">'+r.hm+'</td></tr>';
+  if(r.final_medtronic!=null)html+='<tr class="dt-price eop"><td class="dt-label">Τελικός ΕΟΠΥΥ (MEDTRONIC)</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'final_medtronic\',this,true)">'+fmt(r.final_medtronic)+'</td></tr>';
+  if(r.final_boston!=null)html+='<tr class="dt-price eop"><td class="dt-label">Τελικός ΕΟΠΥΥ (BOSTON)</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'final_boston\',this,true)">'+fmt(r.final_boston)+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
   html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
@@ -1600,7 +1608,9 @@ function renderOnp(){
     +'</div></div></div>';
   let cardsHtml='<div class="card-list">';
   ONP.forEach((r,idx)=>{
-    cardsHtml+='<div class="proc-card" onclick="toggleOnpCard('+idx+',this)"><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
+    const ce=EDIT_MODE?' contenteditable="true"':'';
+    const stop=ce?' onclick="event.stopPropagation()"':'';
+    cardsHtml+='<div class="proc-card" onclick="toggleOnpCard('+idx+',this)"><span class="pc-desc"'+ce+stop+' onblur="genSaveDesc('+idx+',this)">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   cardsHtml+='</div>';
   wrap.innerHTML=instrHtml+cardsHtml;
@@ -1615,14 +1625,16 @@ function toggleOnpCard(idx,card){
   const r=ONP[idx];
   const det=document.createElement('div');
   det.className='card-detail';
+  const ce=EDIT_MODE?' contenteditable="true"':'';
+  const stop=ce?' onclick="event.stopPropagation()"':'';
   let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
-  html+=btnRow(null);
+  html+=btnRow('genDeleteProc('+idx+')');
   html+='<table class="dt-table"><tbody>';
-  html+='<tr><td class="dt-label">Παραμονή</td><td class="dt-val">'+r.room+'</td></tr>';
-  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης'+(r.tier?' ('+r.tier+')':'')+'</td><td class="dt-val">'+fmt(r.idiot)+'</td></tr>';
-  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ'+(r.tier?' ('+r.tier+')':'')+'</td><td class="dt-val">'+fmt(r.eop)+'</td></tr>';
-  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Εξετάσεις πακέτου</td><td class="dt-val">'+r.exams+'</td></tr>';
-  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='<tr><td class="dt-label">Παραμονή</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'room\',this,false)">'+r.room+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης'+(r.tier?' ('+r.tier+')':'')+'</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+fmt(r.idiot)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ'+(r.tier?' ('+r.tier+')':'')+'</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Εξετάσεις πακέτου</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'exams\',this,false)">'+r.exams+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
   html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
