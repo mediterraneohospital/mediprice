@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Κατηγοριοποίηση Επεμβάσεων — MediPrice</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+:root{
+  --bg:#faf8f5;--sur:#ffffff;--s2:#f3efe8;--brd:#e8e1d5;--txt:#1b2130;--mut:#7c8494;
+  --acc:#3b6fe0;--acc-bg:#eef0e6;--acc-txt:#1e4fbf;
+  --grn:#1f9d6f;--grn-bg:#eef3e5;--grn-txt:#0f7a53;
+  --pill-bg:#f0ede4;--pill-txt:#6b6152;
+  --amb-bg:#fdf3da;--amb-txt:#8a5a0b;
+  --r:12px;--r-sm:8px;
+}
+[data-dark]{
+  --bg:#161a26;--sur:#1f2432;--s2:#262c3d;--brd:#333b52;--txt:#e7eaf3;--mut:#8b93aa;
+  --acc:#6d93f0;--acc-bg:#1c2c4d;--acc-txt:#9db8f7;
+  --grn:#3fcf99;--grn-bg:#123729;--grn-txt:#5fe0ae;
+  --pill-bg:#2a3143;--pill-txt:#a7aec2;
+  --amb-bg:#3a2c10;--amb-txt:#f0b358;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;font-family:'Inter',sans-serif;font-size:13.5px;background:var(--bg);color:var(--txt);}
+#app{display:grid;grid-template-columns:270px 1fr;grid-template-rows:52px 1fr;height:100vh;}
+header{grid-column:1/3;background:var(--sur);border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:12px;padding:0 18px;flex-shrink:0;}
+header .back{display:flex;align-items:center;gap:6px;color:var(--mut);text-decoration:none;font-size:12.5px;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);padding:0 12px;height:32px;}
+header .back:hover{color:var(--txt);border-color:var(--acc);}
+header .sep{width:1px;height:20px;background:var(--brd);}
+header .title{font-weight:700;font-size:15px;}
+header .title span{color:#e0362b;}
+header .hosp{font-size:12px;color:var(--mut);}
+#darkBtn{margin-left:auto;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);color:var(--txt);width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+#darkBtn:hover{border-color:var(--acc);}
+
+.sidebar{background:var(--sur);border-right:1px solid var(--brd);display:flex;flex-direction:column;overflow:hidden;}
+.ins-tabs{display:flex;gap:4px;padding:10px 10px 0;flex-shrink:0;}
+.ins-tab{flex:1;text-align:center;padding:8px 4px;border-radius:var(--r-sm) var(--r-sm) 0 0;font-size:11.5px;font-weight:700;color:var(--mut);cursor:pointer;background:var(--s2);border:1px solid var(--brd);border-bottom:none;}
+.ins-tab.active{background:var(--sur);color:var(--acc-txt);}
+.sb-search{position:relative;padding:10px;border-bottom:1px solid var(--brd);}
+.sb-search input{width:100%;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);padding:8px 10px 8px 32px;font-size:12.5px;color:var(--txt);outline:none;font-family:inherit;}
+.sb-search i{position:absolute;left:22px;top:50%;transform:translateY(-50%);color:var(--mut);font-size:15px;pointer-events:none;}
+.sb-search input:focus{border-color:var(--acc);}
+.sb-list{overflow-y:auto;flex:1;padding:8px;}
+.sb-item{padding:9px 12px;border-radius:var(--r-sm);cursor:pointer;font-size:13px;color:var(--txt);margin-bottom:2px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.sb-item:hover{background:var(--s2);}
+.sb-item.active{background:var(--acc-bg);color:var(--acc-txt);font-weight:600;}
+.sb-count{font-size:11px;color:var(--mut);font-family:'DM Mono',monospace;background:var(--pill-bg);padding:1px 7px;border-radius:20px;}
+.sb-item.active .sb-count{background:var(--sur);color:var(--acc-txt);}
+
+main{overflow:hidden;display:flex;flex-direction:column;}
+.placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--mut);}
+.placeholder i{font-size:44px;opacity:.4;}
+.placeholder p{font-size:13px;max-width:340px;text-align:center;line-height:1.5;}
+
+.detail{display:flex;flex-direction:column;overflow:hidden;flex:1;min-height:0;}
+.det-head{padding:16px 24px 12px;border-bottom:1px solid var(--brd);flex-shrink:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.det-name{font-size:17px;font-weight:700;}
+.det-searchbox{position:relative;margin-left:auto;width:280px;}
+.det-searchbox input{width:100%;background:var(--s2);border:1px solid var(--brd);border-radius:20px;padding:7px 12px 7px 32px;font-size:12px;color:var(--txt);outline:none;font-family:inherit;}
+.det-searchbox i{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--mut);font-size:14px;}
+.det-searchbox input:focus{border-color:var(--acc);}
+
+.cat-chips{display:flex;gap:6px;flex-wrap:wrap;padding:12px 24px;border-bottom:1px solid var(--brd);flex-shrink:0;}
+.cat-chip{font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--brd);background:var(--s2);color:var(--mut);}
+.cat-chip.active{background:var(--acc);border-color:var(--acc);color:#fff;}
+.cat-chip .n{opacity:.7;font-weight:500;margin-left:3px;}
+
+.table-wrap{flex:1;overflow:auto;}
+table{border-collapse:collapse;width:100%;font-size:12.8px;}
+th{background:var(--s2);color:var(--mut);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;padding:8px 14px;text-align:left;border-bottom:1px solid var(--brd);position:sticky;top:0;z-index:1;}
+th.code{width:70px;}th.cat{width:150px;}
+td{padding:8px 14px;border-bottom:1px solid var(--brd);vertical-align:top;}
+td.code{font-family:'DM Mono',monospace;color:var(--mut);font-size:11.5px;}
+tbody tr:hover{background:var(--s2);}
+.cat-badge{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+.cat-badge.c1{background:var(--grn-bg);color:var(--grn-txt);}
+.cat-badge.c2{background:var(--acc-bg);color:var(--acc-txt);}
+.cat-badge.c3{background:var(--pill-bg);color:var(--pill-txt);}
+.cat-badge.c4{background:var(--amb-bg);color:var(--amb-txt);}
+.cat-badge.c5{background:#fde3d3;color:#b5560f;}
+.cat-badge.c6{background:#fbe3e3;color:#c0392b;}
+.cat-badge.c7{background:#f0e3fb;color:#7b3ec0;}
+[data-dark] .cat-badge.c5{background:#3a2410;color:#f0a35a;}
+[data-dark] .cat-badge.c6{background:#3a1f1f;color:#f0908f;}
+[data-dark] .cat-badge.c7{background:#2a1c3a;color:#c295f0;}
+.empty-note{padding:40px;text-align:center;color:var(--mut);font-size:12.5px;}
+
+@media(max-width:900px){
+  #app{grid-template-columns:1fr;grid-template-rows:52px 200px 1fr;}
+  .sidebar{grid-row:2;border-right:none;border-bottom:1px solid var(--brd);}
+  header .hosp{display:none;}
+  .det-searchbox{width:100%;margin-left:0;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+<a class="back" href="index.html"><i class="ti ti-arrow-left"></i> MediPrice</a>
+<div class="sep"></div>
+<span class="title">Κατηγοριοποίηση <span>Επεμβάσεων</span></span>
+<span class="hosp">Mediterraneo Hospital</span>
+<button id="darkBtn" onclick="toggleDark()"><i class="ti ti-moon"></i></button>
+</header>
+<div class="sidebar">
+<div class="ins-tabs" id="insTabs"></div>
+<div class="sb-search"><i class="ti ti-search"></i><input id="sbSearch" placeholder="Αναζήτηση ειδικότητας..." oninput="renderSidebar(this.value)"></div>
+<div class="sb-list" id="sbList"></div>
+</div>
+<main id="mainArea">
+<div class="placeholder" id="placeholder">
+<i class="ti ti-list-details"></i>
+<p>Επίλεξε ασφαλιστική εταιρεία πάνω αριστερά και μετά ειδικότητα από τη λίστα, για να δεις την κατηγοριοποίηση βαρύτητας των επεμβάσεων.</p>
+</div>
+<div class="detail" id="detail" style="display:none;">
+<div class="det-head">
+<div class="det-name" id="detName"></div>
+<div class="det-searchbox"><i class="ti ti-search"></i><input id="procSearch" placeholder="Αναζήτηση πράξης..." oninput="filterRows(this.value)"></div>
+</div>
+<div class="cat-chips" id="catChips"></div>
+<div class="table-wrap">
+<table>
+<thead><tr><th class="code">Κωδικός</th><th>Περιγραφή</th><th class="cat">Κατηγορία</th></tr></thead>
+<tbody id="rowsBody"></tbody>
+</table>
+</div>
+</div>
+</main>
+</div>
+
+<script src="kat_data.js"></script>
+<script>
+var INSURERS = [
+  {key:'MEDNET', label:'MEDNET', data: (typeof KAT_MEDNET!=='undefined'?KAT_MEDNET:[])},
+  {key:'ETHNIKI', label:'ΕΘΝΙΚΗ', data: (typeof KAT_ETHNIKI!=='undefined'?KAT_ETHNIKI:[])},
+  {key:'INTER', label:'INTERAMERICAN', data: (typeof KAT_INTER!=='undefined'?KAT_INTER:[])},
+];
+var currentIns = 0;
+var currentSpecialty = null;
+var currentCat = null;
+
+var CAT_ORDER = ['ΠΟΛΥ ΜΙΚΡΕΣ','ΜΙΚΡΕΣ','ΜΕΣΑΙΕΣ','ΜΕΓΑΛΕΣ','ΒΑΡΕΙΕΣ','ΕΞΑΙΡΕΤΙΚΑ ΒΑΡΕΙΕΣ','ΕΙΔΙΚΕΣ'];
+function catClass(num){ return 'c'+num; }
+
+function renderInsTabs(){
+  var host = document.getElementById('insTabs');
+  host.innerHTML = INSURERS.map(function(ins, i){
+    return '<div class="ins-tab'+(i===currentIns?' active':'')+'" onclick="selectInsurer('+i+')">'+ins.label+'</div>';
+  }).join('');
+}
+function selectInsurer(i){
+  currentIns = i;
+  currentSpecialty = null;
+  currentCat = null;
+  renderInsTabs();
+  renderSidebar(document.getElementById('sbSearch').value);
+  document.getElementById('placeholder').style.display='flex';
+  document.getElementById('detail').style.display='none';
+}
+
+function getSpecialties(){
+  var data = INSURERS[currentIns].data;
+  var map = {};
+  data.forEach(function(row){
+    if(!row.specialty) return;
+    map[row.specialty] = (map[row.specialty]||0) + 1;
+  });
+  return Object.keys(map).sort(function(a,b){return a.localeCompare(b,'el');}).map(function(k){ return {name:k, count:map[k]}; });
+}
+
+function renderSidebar(q){
+  q=(q||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  var list = document.getElementById('sbList');
+  var specs = getSpecialties().filter(function(s){
+    return !q || s.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().indexOf(q)>=0;
+  });
+  if(!specs.length){ list.innerHTML='<div class="sb-item" style="opacity:.5;cursor:default;">Καμία ειδικότητα δεν βρέθηκε.</div>'; return; }
+  list.innerHTML = specs.map(function(s){
+    var active = currentSpecialty===s.name ? ' active' : '';
+    return '<div class="sb-item'+active+'" onclick="selectSpecialty(\''+s.name.replace(/'/g,"\\'")+'\')">'
+      +'<span>'+s.name+'</span><span class="sb-count">'+s.count+'</span></div>';
+  }).join('');
+}
+
+function selectSpecialty(name){
+  currentSpecialty = name;
+  currentCat = null;
+  renderSidebar(document.getElementById('sbSearch').value);
+  document.getElementById('placeholder').style.display='none';
+  document.getElementById('detail').style.display='flex';
+  document.getElementById('detName').textContent = name + ' — ' + INSURERS[currentIns].label;
+  document.getElementById('procSearch').value='';
+  renderChips();
+  renderRows();
+}
+
+function getRowsForSpecialty(){
+  return INSURERS[currentIns].data.filter(function(r){ return r.specialty===currentSpecialty; });
+}
+
+function renderChips(){
+  var rows = getRowsForSpecialty();
+  var counts = {};
+  rows.forEach(function(r){ counts[r.category_label] = (counts[r.category_label]||0)+1; });
+  var host = document.getElementById('catChips');
+  var chips = '<div class="cat-chip'+(currentCat===null?' active':'')+'" onclick="setCat(null)">ΟΛΕΣ <span class="n">'+rows.length+'</span></div>';
+  CAT_ORDER.forEach(function(cat){
+    if(!counts[cat]) return;
+    chips += '<div class="cat-chip'+(currentCat===cat?' active':'')+'" onclick="setCat(\''+cat+'\')">'+cat+' <span class="n">'+counts[cat]+'</span></div>';
+  });
+  host.innerHTML = chips;
+}
+function setCat(cat){ currentCat = cat; renderChips(); renderRows(); }
+
+function renderRows(q){
+  q=(q||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  var rows = getRowsForSpecialty();
+  if(currentCat) rows = rows.filter(function(r){ return r.category_label===currentCat; });
+  if(q) rows = rows.filter(function(r){ return (r.description||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().indexOf(q)>=0; });
+  var body = document.getElementById('rowsBody');
+  if(!rows.length){ body.innerHTML = '<tr><td colspan="3"><div class="empty-note">Δεν βρέθηκαν πράξεις.</div></td></tr>'; return; }
+  body.innerHTML = rows.map(function(r){
+    var numIdx = CAT_ORDER.indexOf(r.category_label)+1;
+    return '<tr><td class="code">'+(r.code||'—')+'</td><td>'+r.description+'</td><td><span class="cat-badge '+catClass(numIdx||1)+'">'+r.category_label+'</span></td></tr>';
+  }).join('');
+}
+function filterRows(v){ renderRows(v); }
+
+function toggleDark(){
+  var isDark=document.documentElement.hasAttribute('data-dark');
+  if(isDark){ document.documentElement.removeAttribute('data-dark'); localStorage.setItem('mediDark','0'); }
+  else { document.documentElement.setAttribute('data-dark',''); localStorage.setItem('mediDark','1'); }
+}
+(function(){
+  if(localStorage.getItem('mediDark')==='1') document.documentElement.setAttribute('data-dark','');
+})();
+
+document.addEventListener('DOMContentLoaded', function(){
+  renderInsTabs();
+  renderSidebar('');
+});
+</script>
+</body>
+</html>
