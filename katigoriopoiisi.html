@@ -154,6 +154,7 @@ var INSURERS = [
 var currentIns = 0;
 var currentCat = null;
 var currentQuery = '';
+var currentSpecialty = null; // click-filter on sidebar breakdown, not a search field
 
 var CAT_ORDER = ['ΠΟΛΥ ΜΙΚΡΕΣ','ΜΙΚΡΕΣ','ΜΕΣΑΙΕΣ','ΜΕΓΑΛΕΣ','ΒΑΡΕΙΕΣ','ΕΞΑΙΡΕΤΙΚΑ ΒΑΡΕΙΕΣ','ΕΙΔΙΚΕΣ'];
 function catClass(num){ return 'c'+num; }
@@ -180,6 +181,7 @@ function getFilteredRows(){
   var data = INSURERS[currentIns].data;
   var nq = norm(currentQuery);
   return data.filter(function(r){
+    if(currentSpecialty && r.specialty!==currentSpecialty) return false;
     if(currentCat && r.category_label!==currentCat) return false;
     if(nq && norm(r.description).indexOf(nq)<0) return false;
     return true;
@@ -189,27 +191,43 @@ function getFilteredRowsIgnoringCat(){
   var data = INSURERS[currentIns].data;
   var nq = norm(currentQuery);
   return data.filter(function(r){
+    if(currentSpecialty && r.specialty!==currentSpecialty) return false;
+    if(nq && norm(r.description).indexOf(nq)<0) return false;
+    return true;
+  });
+}
+function getFilteredRowsIgnoringSpecialty(){
+  var data = INSURERS[currentIns].data;
+  var nq = norm(currentQuery);
+  return data.filter(function(r){
     if(nq && norm(r.description).indexOf(nq)<0) return false;
     return true;
   });
 }
 
 function updateView(){
-  document.getElementById('detName').textContent = (currentQuery ? 'Αποτελέσματα για "'+currentQuery+'"' : 'Όλες οι ειδικότητες') + ' — ' + INSURERS[currentIns].label;
+  var label = (currentQuery ? 'Αποτελέσματα για "'+currentQuery+'"' : 'Όλες οι ειδικότητες') + (currentSpecialty ? ' · '+currentSpecialty : '');
+  document.getElementById('detName').textContent = label + ' — ' + INSURERS[currentIns].label;
   renderSidebarBreakdown();
   renderChips();
   renderRows();
 }
 
+function toggleSpecialty(name){
+  currentSpecialty = (currentSpecialty===name) ? null : name;
+  updateView();
+}
+
 function renderSidebarBreakdown(){
-  var rows = getFilteredRowsIgnoringCat();
+  var rows = getFilteredRowsIgnoringSpecialty();
   var map = {};
   rows.forEach(function(r){ if(r.specialty) map[r.specialty] = (map[r.specialty]||0)+1; });
   var specs = Object.keys(map).sort(function(a,b){ return map[b]-map[a] || a.localeCompare(b,'el'); });
   var list = document.getElementById('sbList');
   if(!specs.length){ list.innerHTML = '<div class="sb-item" style="opacity:.5;cursor:default;">Καμία πράξη δεν βρέθηκε.</div>'; return; }
   list.innerHTML = specs.map(function(name){
-    return '<div class="sb-item" style="cursor:default;"><span>'+name+'</span><span class="sb-count">'+map[name]+'</span></div>';
+    var active = currentSpecialty===name ? ' active' : '';
+    return '<div class="sb-item'+active+'" onclick="toggleSpecialty(\''+name.replace(/'/g,"\\'")+'\')"><span>'+name+'</span><span class="sb-count">'+map[name]+'</span></div>';
   }).join('');
 }
 
@@ -241,7 +259,7 @@ function renderRows(){
   var nq = norm(currentQuery);
   var body = document.getElementById('rowsBody');
   if(!rows.length){ body.innerHTML = '<tr><td colspan="4"><div class="empty-note">Δεν βρέθηκαν πράξεις.</div></td></tr>'; return; }
-  var capped = rows.length > 500 && !nq && !currentCat;
+  var capped = rows.length > 500 && !nq && !currentCat && !currentSpecialty;
   var toRender = capped ? rows.slice(0, 500) : rows;
   body.innerHTML = toRender.map(function(r){
     var numIdx = CAT_ORDER.indexOf(r.category_label)+1;
