@@ -124,7 +124,7 @@ tbody tr:hover{background:var(--s2);}
 <div class="ins-tabs" id="insTabs"></div>
 <div class="sb-search" style="position:relative;">
 <i class="ti ti-search"></i>
-<input id="sbSearch" placeholder="Φίλτρο ειδικότητας..." oninput="renderSidebar(this.value)">
+<input id="procSearch" placeholder="Αναζήτηση πράξης..." oninput="onProcSearch(this.value)">
 </div>
 <div class="sb-list" id="sbList"></div>
 </div>
@@ -132,7 +132,6 @@ tbody tr:hover{background:var(--s2);}
 <div class="detail" id="detail">
 <div class="det-head">
 <div class="det-name" id="detName">Όλες οι ειδικότητες — MEDNET</div>
-<div class="det-searchbox"><i class="ti ti-search"></i><input id="procSearch" placeholder="Αναζήτηση πράξης..." oninput="onProcSearch(this.value)"></div>
 </div>
 <div class="cat-chips" id="catChips"></div>
 <div class="table-wrap">
@@ -153,7 +152,6 @@ var INSURERS = [
   {key:'INTER', label:'INTERAMERICAN', data: (typeof KAT_INTER!=='undefined'?KAT_INTER:[])},
 ];
 var currentIns = 0;
-var selectedSpecialties = {}; // set of specialty names used as filter (empty = all)
 var currentCat = null;
 var currentQuery = '';
 
@@ -169,41 +167,7 @@ function renderInsTabs(){
 }
 function selectInsurer(i){
   currentIns = i;
-  selectedSpecialties = {};
-  currentCat = null;
   renderInsTabs();
-  renderSidebar(document.getElementById('sbSearch').value);
-  updateView();
-}
-
-function getSpecialties(){
-  var data = INSURERS[currentIns].data;
-  var map = {};
-  data.forEach(function(row){
-    if(!row.specialty) return;
-    map[row.specialty] = (map[row.specialty]||0) + 1;
-  });
-  return Object.keys(map).sort(function(a,b){return a.localeCompare(b,'el');}).map(function(k){ return {name:k, count:map[k]}; });
-}
-
-function renderSidebar(q){
-  var nq = norm(q||'');
-  var list = document.getElementById('sbList');
-  var specs = getSpecialties().filter(function(s){ return !nq || norm(s.name).indexOf(nq)>=0; });
-  if(!specs.length){ list.innerHTML='<div class="sb-item" style="opacity:.5;cursor:default;">Καμία ειδικότητα δεν βρέθηκε.</div>'; return; }
-  var anySelected = Object.keys(selectedSpecialties).length>0;
-  list.innerHTML = specs.map(function(s){
-    var isActive = !!selectedSpecialties[s.name];
-    var dim = anySelected && !isActive ? ' spec-dim' : '';
-    return '<div class="sb-item'+(isActive?' active':'')+dim+'" onclick="toggleSpecialty(\''+s.name.replace(/'/g,"\\'")+'\')">'
-      +'<span>'+s.name+'</span><span class="sb-count">'+s.count+'</span></div>';
-  }).join('');
-}
-
-function toggleSpecialty(name){
-  if(selectedSpecialties[name]) delete selectedSpecialties[name];
-  else selectedSpecialties[name] = true;
-  renderSidebar(document.getElementById('sbSearch').value);
   updateView();
 }
 
@@ -214,22 +178,39 @@ function onProcSearch(v){
 
 function getFilteredRows(){
   var data = INSURERS[currentIns].data;
-  var specKeys = Object.keys(selectedSpecialties);
   var nq = norm(currentQuery);
   return data.filter(function(r){
-    if(specKeys.length && !selectedSpecialties[r.specialty]) return false;
     if(currentCat && r.category_label!==currentCat) return false;
+    if(nq && norm(r.description).indexOf(nq)<0) return false;
+    return true;
+  });
+}
+function getFilteredRowsIgnoringCat(){
+  var data = INSURERS[currentIns].data;
+  var nq = norm(currentQuery);
+  return data.filter(function(r){
     if(nq && norm(r.description).indexOf(nq)<0) return false;
     return true;
   });
 }
 
 function updateView(){
-  var specKeys = Object.keys(selectedSpecialties);
-  var label = specKeys.length ? specKeys.join(', ') : 'Όλες οι ειδικότητες';
-  document.getElementById('detName').textContent = label + ' — ' + INSURERS[currentIns].label;
+  document.getElementById('detName').textContent = (currentQuery ? 'Αποτελέσματα για "'+currentQuery+'"' : 'Όλες οι ειδικότητες') + ' — ' + INSURERS[currentIns].label;
+  renderSidebarBreakdown();
   renderChips();
   renderRows();
+}
+
+function renderSidebarBreakdown(){
+  var rows = getFilteredRowsIgnoringCat();
+  var map = {};
+  rows.forEach(function(r){ if(r.specialty) map[r.specialty] = (map[r.specialty]||0)+1; });
+  var specs = Object.keys(map).sort(function(a,b){ return map[b]-map[a] || a.localeCompare(b,'el'); });
+  var list = document.getElementById('sbList');
+  if(!specs.length){ list.innerHTML = '<div class="sb-item" style="opacity:.5;cursor:default;">Καμία πράξη δεν βρέθηκε.</div>'; return; }
+  list.innerHTML = specs.map(function(name){
+    return '<div class="sb-item" style="cursor:default;"><span>'+name+'</span><span class="sb-count">'+map[name]+'</span></div>';
+  }).join('');
 }
 
 function renderChips(){
@@ -244,16 +225,6 @@ function renderChips(){
     chips += '<div class="cat-chip'+(currentCat===cat?' active':'')+'" onclick="setCat(\''+cat+'\')">'+cat+' <span class="n">'+counts[cat]+'</span></div>';
   });
   host.innerHTML = chips;
-}
-function getFilteredRowsIgnoringCat(){
-  var data = INSURERS[currentIns].data;
-  var specKeys = Object.keys(selectedSpecialties);
-  var nq = norm(currentQuery);
-  return data.filter(function(r){
-    if(specKeys.length && !selectedSpecialties[r.specialty]) return false;
-    if(nq && norm(r.description).indexOf(nq)<0) return false;
-    return true;
-  });
 }
 function setCat(cat){ currentCat = cat; renderChips(); renderRows(); }
 
@@ -270,13 +241,12 @@ function renderRows(){
   var nq = norm(currentQuery);
   var body = document.getElementById('rowsBody');
   if(!rows.length){ body.innerHTML = '<tr><td colspan="4"><div class="empty-note">Δεν βρέθηκαν πράξεις.</div></td></tr>'; return; }
-  // cap rendering for performance when very broad (no filters at all)
-  var capped = rows.length > 500 && !nq && Object.keys(selectedSpecialties).length===0 && !currentCat;
+  var capped = rows.length > 500 && !nq && !currentCat;
   var toRender = capped ? rows.slice(0, 500) : rows;
   body.innerHTML = toRender.map(function(r){
     var numIdx = CAT_ORDER.indexOf(r.category_label)+1;
     return '<tr><td class="code">'+(r.code||'—')+'</td><td>'+highlightMark(r.description, nq)+'</td><td style="color:var(--mut);font-size:11.5px;">'+r.specialty+'</td><td><span class="cat-badge '+catClass(numIdx||1)+'">'+r.category_label+'</span></td></tr>';
-  }).join('') + (capped ? '<tr><td colspan="4"><div class="gs-more">Δείχνονται οι πρώτες 500 από '+rows.length+' — γράψε κάτι στην αναζήτηση ή επίλεξε ειδικότητα για να στενέψεις τα αποτελέσματα</div></td></tr>' : '');
+  }).join('') + (capped ? '<tr><td colspan="4"><div class="gs-more">Δείχνονται οι πρώτες 500 από '+rows.length+' — γράψε κάτι στην αναζήτηση για να στενέψεις τα αποτελέσματα</div></td></tr>' : '');
 }
 
 function toggleDark(){
@@ -290,7 +260,6 @@ function toggleDark(){
 
 document.addEventListener('DOMContentLoaded', function(){
   renderInsTabs();
-  renderSidebar('');
   updateView();
 });
 </script>
