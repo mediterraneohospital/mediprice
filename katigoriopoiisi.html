@@ -50,6 +50,20 @@ header .hosp{font-size:12px;color:var(--mut);}
 .sb-item.active{background:var(--acc-bg);color:var(--acc-txt);font-weight:600;}
 .sb-count{font-size:11px;color:var(--mut);font-family:'DM Mono',monospace;background:var(--pill-bg);padding:1px 7px;border-radius:20px;}
 .sb-item.active .sb-count{background:var(--sur);color:var(--acc-txt);}
+.sb-item.spec-dim{opacity:.4;}
+
+.gs-drop{position:absolute;top:38px;left:10px;right:10px;background:var(--sur);border:1px solid var(--brd);border-radius:var(--r-sm);box-shadow:0 8px 24px rgba(0,0,0,.14);max-height:360px;overflow-y:auto;z-index:50;display:none;}
+.gs-drop.open{display:block;}
+.gs-item{padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--brd);}
+.gs-item:last-child{border-bottom:none;}
+.gs-item:hover{background:var(--s2);}
+.gs-item .gs-desc{font-size:12px;color:var(--txt);margin-bottom:3px;line-height:1.4;}
+.gs-item .gs-desc mark{background:var(--acc-bg);color:var(--acc-txt);border-radius:3px;padding:0 2px;}
+.gs-item .gs-meta{display:flex;gap:6px;align-items:center;font-size:10.5px;color:var(--mut);}
+.gs-item .gs-sp{background:var(--pill-bg);color:var(--pill-txt);border-radius:10px;padding:1px 7px;}
+.gs-item .gs-cat{border-radius:10px;padding:1px 7px;}
+.gs-empty{padding:12px;font-size:12px;color:var(--mut);text-align:center;}
+.gs-more{padding:8px 12px;font-size:11px;color:var(--mut);text-align:center;font-style:italic;}
 
 main{overflow:hidden;display:flex;flex-direction:column;}
 .placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--mut);}
@@ -108,23 +122,22 @@ tbody tr:hover{background:var(--s2);}
 </header>
 <div class="sidebar">
 <div class="ins-tabs" id="insTabs"></div>
-<div class="sb-search"><i class="ti ti-search"></i><input id="sbSearch" placeholder="Αναζήτηση ειδικότητας..." oninput="renderSidebar(this.value)"></div>
+<div class="sb-search" style="position:relative;">
+<i class="ti ti-search"></i>
+<input id="sbSearch" placeholder="Φίλτρο ειδικότητας..." oninput="renderSidebar(this.value)">
+</div>
 <div class="sb-list" id="sbList"></div>
 </div>
 <main id="mainArea">
-<div class="placeholder" id="placeholder">
-<i class="ti ti-list-details"></i>
-<p>Επίλεξε ασφαλιστική εταιρεία πάνω αριστερά και μετά ειδικότητα από τη λίστα, για να δεις την κατηγοριοποίηση βαρύτητας των επεμβάσεων.</p>
-</div>
-<div class="detail" id="detail" style="display:none;">
+<div class="detail" id="detail">
 <div class="det-head">
-<div class="det-name" id="detName"></div>
-<div class="det-searchbox"><i class="ti ti-search"></i><input id="procSearch" placeholder="Αναζήτηση πράξης..." oninput="filterRows(this.value)"></div>
+<div class="det-name" id="detName">Όλες οι ειδικότητες — MEDNET</div>
+<div class="det-searchbox"><i class="ti ti-search"></i><input id="procSearch" placeholder="Αναζήτηση πράξης..." oninput="onProcSearch(this.value)"></div>
 </div>
 <div class="cat-chips" id="catChips"></div>
 <div class="table-wrap">
 <table>
-<thead><tr><th class="code">Κωδικός</th><th>Περιγραφή</th><th class="cat">Κατηγορία</th></tr></thead>
+<thead><tr><th class="code">Κωδικός</th><th>Περιγραφή</th><th style="width:170px;">Ειδικότητα</th><th class="cat">Κατηγορία</th></tr></thead>
 <tbody id="rowsBody"></tbody>
 </table>
 </div>
@@ -140,11 +153,13 @@ var INSURERS = [
   {key:'INTER', label:'INTERAMERICAN', data: (typeof KAT_INTER!=='undefined'?KAT_INTER:[])},
 ];
 var currentIns = 0;
-var currentSpecialty = null;
+var selectedSpecialties = {}; // set of specialty names used as filter (empty = all)
 var currentCat = null;
+var currentQuery = '';
 
 var CAT_ORDER = ['ΠΟΛΥ ΜΙΚΡΕΣ','ΜΙΚΡΕΣ','ΜΕΣΑΙΕΣ','ΜΕΓΑΛΕΣ','ΒΑΡΕΙΕΣ','ΕΞΑΙΡΕΤΙΚΑ ΒΑΡΕΙΕΣ','ΕΙΔΙΚΕΣ'];
 function catClass(num){ return 'c'+num; }
+function norm(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
 
 function renderInsTabs(){
   var host = document.getElementById('insTabs');
@@ -154,12 +169,11 @@ function renderInsTabs(){
 }
 function selectInsurer(i){
   currentIns = i;
-  currentSpecialty = null;
+  selectedSpecialties = {};
   currentCat = null;
   renderInsTabs();
   renderSidebar(document.getElementById('sbSearch').value);
-  document.getElementById('placeholder').style.display='flex';
-  document.getElementById('detail').style.display='none';
+  updateView();
 }
 
 function getSpecialties(){
@@ -173,62 +187,97 @@ function getSpecialties(){
 }
 
 function renderSidebar(q){
-  q=(q||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  var nq = norm(q||'');
   var list = document.getElementById('sbList');
-  var specs = getSpecialties().filter(function(s){
-    return !q || s.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().indexOf(q)>=0;
-  });
+  var specs = getSpecialties().filter(function(s){ return !nq || norm(s.name).indexOf(nq)>=0; });
   if(!specs.length){ list.innerHTML='<div class="sb-item" style="opacity:.5;cursor:default;">Καμία ειδικότητα δεν βρέθηκε.</div>'; return; }
+  var anySelected = Object.keys(selectedSpecialties).length>0;
   list.innerHTML = specs.map(function(s){
-    var active = currentSpecialty===s.name ? ' active' : '';
-    return '<div class="sb-item'+active+'" onclick="selectSpecialty(\''+s.name.replace(/'/g,"\\'")+'\')">'
+    var isActive = !!selectedSpecialties[s.name];
+    var dim = anySelected && !isActive ? ' spec-dim' : '';
+    return '<div class="sb-item'+(isActive?' active':'')+dim+'" onclick="toggleSpecialty(\''+s.name.replace(/'/g,"\\'")+'\')">'
       +'<span>'+s.name+'</span><span class="sb-count">'+s.count+'</span></div>';
   }).join('');
 }
 
-function selectSpecialty(name){
-  currentSpecialty = name;
-  currentCat = null;
+function toggleSpecialty(name){
+  if(selectedSpecialties[name]) delete selectedSpecialties[name];
+  else selectedSpecialties[name] = true;
   renderSidebar(document.getElementById('sbSearch').value);
-  document.getElementById('placeholder').style.display='none';
-  document.getElementById('detail').style.display='flex';
-  document.getElementById('detName').textContent = name + ' — ' + INSURERS[currentIns].label;
-  document.getElementById('procSearch').value='';
+  updateView();
+}
+
+function onProcSearch(v){
+  currentQuery = v;
+  updateView();
+}
+
+function getFilteredRows(){
+  var data = INSURERS[currentIns].data;
+  var specKeys = Object.keys(selectedSpecialties);
+  var nq = norm(currentQuery);
+  return data.filter(function(r){
+    if(specKeys.length && !selectedSpecialties[r.specialty]) return false;
+    if(currentCat && r.category_label!==currentCat) return false;
+    if(nq && norm(r.description).indexOf(nq)<0) return false;
+    return true;
+  });
+}
+
+function updateView(){
+  var specKeys = Object.keys(selectedSpecialties);
+  var label = specKeys.length ? specKeys.join(', ') : 'Όλες οι ειδικότητες';
+  document.getElementById('detName').textContent = label + ' — ' + INSURERS[currentIns].label;
   renderChips();
   renderRows();
 }
 
-function getRowsForSpecialty(){
-  return INSURERS[currentIns].data.filter(function(r){ return r.specialty===currentSpecialty; });
-}
-
 function renderChips(){
-  var rows = getRowsForSpecialty();
+  var rowsNoCat = getFilteredRowsIgnoringCat();
   var counts = {};
-  rows.forEach(function(r){ counts[r.category_label] = (counts[r.category_label]||0)+1; });
+  rowsNoCat.forEach(function(r){ counts[r.category_label] = (counts[r.category_label]||0)+1; });
   var host = document.getElementById('catChips');
-  var chips = '<div class="cat-chip'+(currentCat===null?' active':'')+'" onclick="setCat(null)">ΟΛΕΣ <span class="n">'+rows.length+'</span></div>';
+  var total = rowsNoCat.length;
+  var chips = '<div class="cat-chip'+(currentCat===null?' active':'')+'" onclick="setCat(null)">ΟΛΕΣ <span class="n">'+total+'</span></div>';
   CAT_ORDER.forEach(function(cat){
     if(!counts[cat]) return;
     chips += '<div class="cat-chip'+(currentCat===cat?' active':'')+'" onclick="setCat(\''+cat+'\')">'+cat+' <span class="n">'+counts[cat]+'</span></div>';
   });
   host.innerHTML = chips;
 }
+function getFilteredRowsIgnoringCat(){
+  var data = INSURERS[currentIns].data;
+  var specKeys = Object.keys(selectedSpecialties);
+  var nq = norm(currentQuery);
+  return data.filter(function(r){
+    if(specKeys.length && !selectedSpecialties[r.specialty]) return false;
+    if(nq && norm(r.description).indexOf(nq)<0) return false;
+    return true;
+  });
+}
 function setCat(cat){ currentCat = cat; renderChips(); renderRows(); }
 
-function renderRows(q){
-  q=(q||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-  var rows = getRowsForSpecialty();
-  if(currentCat) rows = rows.filter(function(r){ return r.category_label===currentCat; });
-  if(q) rows = rows.filter(function(r){ return (r.description||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().indexOf(q)>=0; });
-  var body = document.getElementById('rowsBody');
-  if(!rows.length){ body.innerHTML = '<tr><td colspan="3"><div class="empty-note">Δεν βρέθηκαν πράξεις.</div></td></tr>'; return; }
-  body.innerHTML = rows.map(function(r){
-    var numIdx = CAT_ORDER.indexOf(r.category_label)+1;
-    return '<tr><td class="code">'+(r.code||'—')+'</td><td>'+r.description+'</td><td><span class="cat-badge '+catClass(numIdx||1)+'">'+r.category_label+'</span></td></tr>';
-  }).join('');
+function highlightMark(text, nq){
+  if(!nq) return text;
+  var nt = norm(text);
+  var idx = nt.indexOf(nq);
+  if(idx<0) return text;
+  return text.slice(0,idx) + '<mark>' + text.slice(idx, idx+nq.length) + '</mark>' + text.slice(idx+nq.length);
 }
-function filterRows(v){ renderRows(v); }
+
+function renderRows(){
+  var rows = getFilteredRows();
+  var nq = norm(currentQuery);
+  var body = document.getElementById('rowsBody');
+  if(!rows.length){ body.innerHTML = '<tr><td colspan="4"><div class="empty-note">Δεν βρέθηκαν πράξεις.</div></td></tr>'; return; }
+  // cap rendering for performance when very broad (no filters at all)
+  var capped = rows.length > 500 && !nq && Object.keys(selectedSpecialties).length===0 && !currentCat;
+  var toRender = capped ? rows.slice(0, 500) : rows;
+  body.innerHTML = toRender.map(function(r){
+    var numIdx = CAT_ORDER.indexOf(r.category_label)+1;
+    return '<tr><td class="code">'+(r.code||'—')+'</td><td>'+highlightMark(r.description, nq)+'</td><td style="color:var(--mut);font-size:11.5px;">'+r.specialty+'</td><td><span class="cat-badge '+catClass(numIdx||1)+'">'+r.category_label+'</span></td></tr>';
+  }).join('') + (capped ? '<tr><td colspan="4"><div class="gs-more">Δείχνονται οι πρώτες 500 από '+rows.length+' — γράψε κάτι στην αναζήτηση ή επίλεξε ειδικότητα για να στενέψεις τα αποτελέσματα</div></td></tr>' : '');
+}
 
 function toggleDark(){
   var isDark=document.documentElement.hasAttribute('data-dark');
@@ -242,6 +291,7 @@ function toggleDark(){
 document.addEventListener('DOMContentLoaded', function(){
   renderInsTabs();
   renderSidebar('');
+  updateView();
 });
 </script>
 </body>
