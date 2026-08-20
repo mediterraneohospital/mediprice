@@ -51,6 +51,14 @@ header .hosp{font-size:12px;color:var(--mut);}
 .sb-count{font-size:11px;color:var(--mut);font-family:'DM Mono',monospace;background:var(--pill-bg);padding:1px 7px;border-radius:20px;}
 .sb-item.active .sb-count{background:var(--sur);color:var(--acc-txt);}
 .sb-item.spec-dim{opacity:.4;}
+.clear-search-btn{display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--pill-bg);border:none;color:var(--mut);cursor:pointer;width:20px;height:20px;border-radius:50%;align-items:center;justify-content:center;font-size:12px;}
+.clear-search-btn.show{display:flex;}
+.clear-search-btn:hover{background:var(--acc);color:#fff;}
+
+.active-filters{display:flex;gap:6px;flex-wrap:wrap;padding:0 24px 12px;flex-shrink:0;}
+.filter-pill{display:flex;align-items:center;gap:6px;background:var(--acc-bg);color:var(--acc-txt);border-radius:20px;padding:5px 8px 5px 12px;font-size:11.5px;font-weight:600;}
+.filter-pill button{background:none;border:none;color:var(--acc-txt);cursor:pointer;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;opacity:.75;}
+.filter-pill button:hover{opacity:1;background:rgba(0,0,0,.08);}
 
 .gs-drop{position:absolute;top:38px;left:10px;right:10px;background:var(--sur);border:1px solid var(--brd);border-radius:var(--r-sm);box-shadow:0 8px 24px rgba(0,0,0,.14);max-height:360px;overflow-y:auto;z-index:50;display:none;}
 .gs-drop.open{display:block;}
@@ -84,9 +92,12 @@ main{overflow:hidden;display:flex;flex-direction:column;}
 .cat-chip .n{opacity:.7;font-weight:500;margin-left:3px;}
 
 .table-wrap{flex:1;overflow:auto;}
-table{border-collapse:collapse;width:100%;font-size:12.8px;}
+table{border-collapse:collapse;width:auto;max-width:100%;font-size:12.8px;}
 th{background:var(--s2);color:var(--mut);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;padding:8px 14px;text-align:left;border-bottom:1px solid var(--brd);position:sticky;top:0;z-index:1;}
 th.code{width:70px;}th.cat{width:150px;}
+th.spec{width:190px;}
+th.desc{min-width:320px;max-width:640px;}
+td.desc{max-width:640px;}
 td{padding:8px 14px;border-bottom:1px solid var(--brd);vertical-align:top;}
 td.code{font-family:'DM Mono',monospace;color:var(--mut);font-size:11.5px;}
 tbody tr:hover{background:var(--s2);}
@@ -125,6 +136,7 @@ tbody tr:hover{background:var(--s2);}
 <div class="sb-search" style="position:relative;">
 <i class="ti ti-search"></i>
 <input id="procSearch" placeholder="Αναζήτηση πράξης..." oninput="onProcSearch(this.value)">
+<button id="clearSearchBtn" onclick="clearSearch()" class="clear-search-btn"><i class="ti ti-x"></i></button>
 </div>
 <div class="sb-list" id="sbList"></div>
 </div>
@@ -133,10 +145,11 @@ tbody tr:hover{background:var(--s2);}
 <div class="det-head">
 <div class="det-name" id="detName">Όλες οι ειδικότητες — MEDNET</div>
 </div>
+<div class="active-filters" id="activeFilters" style="display:none;"></div>
 <div class="cat-chips" id="catChips"></div>
 <div class="table-wrap">
 <table>
-<thead><tr><th class="code">Κωδικός</th><th>Περιγραφή</th><th style="width:170px;">Ειδικότητα</th><th class="cat">Κατηγορία</th></tr></thead>
+<thead><tr><th class="code">Κωδικός</th><th class="desc">Περιγραφή</th><th class="spec">Ειδικότητα</th><th class="cat">Κατηγορία</th></tr></thead>
 <tbody id="rowsBody"></tbody>
 </table>
 </div>
@@ -174,6 +187,15 @@ function selectInsurer(i){
 
 function onProcSearch(v){
   currentQuery = v;
+  document.getElementById('clearSearchBtn').classList.toggle('show', !!v);
+  updateView();
+}
+function clearSearch(){
+  currentQuery = '';
+  var input = document.getElementById('procSearch');
+  input.value = '';
+  document.getElementById('clearSearchBtn').classList.remove('show');
+  input.focus();
   updateView();
 }
 
@@ -208,9 +230,24 @@ function getFilteredRowsIgnoringSpecialty(){
 function updateView(){
   var label = (currentQuery ? 'Αποτελέσματα για "'+currentQuery+'"' : 'Όλες οι ειδικότητες') + (currentSpecialty ? ' · '+currentSpecialty : '');
   document.getElementById('detName').textContent = label + ' — ' + INSURERS[currentIns].label;
+  renderActiveFilters();
   renderSidebarBreakdown();
   renderChips();
   renderRows();
+}
+
+function renderActiveFilters(){
+  var host = document.getElementById('activeFilters');
+  var pills = [];
+  if(currentSpecialty){
+    pills.push('<div class="filter-pill"><i class="ti ti-stethoscope" style="font-size:12px;"></i> '+currentSpecialty+'<button onclick="toggleSpecialty(\''+currentSpecialty.replace(/'/g,"\\'")+'\')" title="Αφαίρεση φίλτρου"><i class="ti ti-x"></i></button></div>');
+  }
+  if(currentCat){
+    pills.push('<div class="filter-pill"><i class="ti ti-tag" style="font-size:12px;"></i> '+currentCat+'<button onclick="setCat(null)" title="Αφαίρεση φίλτρου"><i class="ti ti-x"></i></button></div>');
+  }
+  if(!pills.length){ host.style.display='none'; host.innerHTML=''; return; }
+  host.style.display='flex';
+  host.innerHTML = pills.join('');
 }
 
 function toggleSpecialty(name){
@@ -263,7 +300,7 @@ function renderRows(){
   var toRender = capped ? rows.slice(0, 500) : rows;
   body.innerHTML = toRender.map(function(r){
     var numIdx = CAT_ORDER.indexOf(r.category_label)+1;
-    return '<tr><td class="code">'+(r.code||'—')+'</td><td>'+highlightMark(r.description, nq)+'</td><td style="color:var(--mut);font-size:11.5px;">'+r.specialty+'</td><td><span class="cat-badge '+catClass(numIdx||1)+'">'+r.category_label+'</span></td></tr>';
+    return '<tr><td class="code">'+(r.code||'—')+'</td><td class="desc">'+highlightMark(r.description, nq)+'</td><td style="color:var(--mut);font-size:11.5px;">'+r.specialty+'</td><td><span class="cat-badge '+catClass(numIdx||1)+'">'+r.category_label+'</span></td></tr>';
   }).join('') + (capped ? '<tr><td colspan="4"><div class="gs-more">Δείχνονται οι πρώτες 500 από '+rows.length+' — γράψε κάτι στην αναζήτηση για να στενέψεις τα αποτελέσματα</div></td></tr>' : '');
 }
 
