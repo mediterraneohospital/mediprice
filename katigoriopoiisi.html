@@ -41,9 +41,13 @@ header .hosp{font-size:12px;color:var(--mut);}
 .ins-tab{flex:1;text-align:center;padding:8px 4px;border-radius:var(--r-sm) var(--r-sm) 0 0;font-size:11.5px;font-weight:700;color:var(--mut);cursor:pointer;background:var(--s2);border:1px solid var(--brd);border-bottom:none;}
 .ins-tab.active{background:var(--sur);color:var(--acc-txt);}
 .sb-search{padding:10px;border-bottom:1px solid var(--brd);}
-.sb-search input{width:100%;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);padding:8px 30px 8px 32px;font-size:12.5px;color:var(--txt);outline:none;font-family:inherit;}
-.sb-search i{position:absolute;left:22px;top:50%;transform:translateY(-50%);color:var(--mut);font-size:15px;pointer-events:none;}
-.sb-search input:focus{border-color:var(--acc);}
+.search-box{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);padding:0 10px;height:34px;}
+.search-box:focus-within{border-color:var(--acc);}
+.search-box i.ti-search{color:var(--mut);font-size:15px;flex-shrink:0;}
+.search-box input{flex:1;min-width:0;border:none;background:transparent;outline:none;font-size:12.5px;color:var(--txt);font-family:inherit;padding:0;height:100%;}
+.clear-search-btn{display:none;background:var(--pill-bg);border:none;color:var(--mut);cursor:pointer;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;font-size:11px;padding:0;flex-shrink:0;}
+.clear-search-btn.show{display:flex;}
+.clear-search-btn:hover{background:var(--acc);color:#fff;}
 .sb-list{overflow-y:auto;flex:1;padding:8px;}
 .sb-item{padding:9px 12px;border-radius:var(--r-sm);cursor:pointer;font-size:13px;color:var(--txt);margin-bottom:2px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
 .sb-item:hover{background:var(--s2);}
@@ -51,9 +55,6 @@ header .hosp{font-size:12px;color:var(--mut);}
 .sb-count{font-size:11px;color:var(--mut);font-family:'DM Mono',monospace;background:var(--pill-bg);padding:1px 7px;border-radius:20px;}
 .sb-item.active .sb-count{background:var(--sur);color:var(--acc-txt);}
 .sb-item.spec-dim{opacity:.4;}
-.clear-search-btn{display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--pill-bg);border:none;color:var(--mut);cursor:pointer;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;font-size:11px;padding:0;}
-.clear-search-btn.show{display:flex;}
-.clear-search-btn:hover{background:var(--acc);color:#fff;}
 
 .active-filters{display:flex;gap:6px;flex-wrap:wrap;padding:0 24px 12px;flex-shrink:0;}
 .filter-pill{display:flex;align-items:center;gap:6px;background:var(--acc-bg);color:var(--acc-txt);border-radius:20px;padding:5px 8px 5px 12px;font-size:11.5px;font-weight:600;}
@@ -134,7 +135,7 @@ tbody tr:hover{background:var(--s2);}
 <div class="sidebar">
 <div class="ins-tabs" id="insTabs"></div>
 <div class="sb-search">
-<div style="position:relative;">
+<div class="search-box">
 <i class="ti ti-search"></i>
 <input id="procSearch" placeholder="Αναζήτηση πράξης..." oninput="onProcSearch(this.value)">
 <button id="clearSearchBtn" onclick="clearSearch()" class="clear-search-btn"><i class="ti ti-x"></i></button>
