@@ -91,8 +91,8 @@ main{overflow-y:auto;display:flex;flex-direction:column;}
 .spec-card .sc-info{flex:1;}
 .spec-card .sc-label{font-size:13.5px;color:var(--txt);font-weight:500;margin-bottom:3px;}
 .spec-card .sc-note{font-size:12px;color:var(--mut);line-height:1.5;}
-.spec-card .sc-amount{font-family:'DM Mono',monospace;font-size:17px;font-weight:700;color:var(--acc-txt);white-space:nowrap;background:var(--acc-bg);border-radius:var(--r-sm);padding:6px 14px;}
-.spec-card .sc-amount.empty{color:var(--mut);background:var(--s2);font-size:13px;font-weight:500;}
+.spec-card .sc-amount{font-family:'DM Mono',monospace;font-size:13.5px;font-weight:600;color:var(--pill-txt);white-space:nowrap;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);padding:5px 12px;}
+.spec-card .sc-amount.empty{color:var(--mut);background:var(--s2);font-size:12.5px;font-weight:500;}
 
 .empty-note{padding:30px;text-align:center;color:var(--mut);font-size:12.5px;background:var(--sur);border:1px solid var(--brd);border-radius:14px;}
 
@@ -108,7 +108,7 @@ main{overflow-y:auto;display:flex;flex-direction:column;}
 .pk-rule{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--txt);padding:4px 0;}
 .pk-tag{font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;white-space:nowrap;}
 .pk-tag.zero{background:var(--grn-bg);color:var(--grn-txt);}
-.pk-tag.extra{background:var(--acc-bg);color:var(--acc-txt);}
+.pk-tag.extra{background:var(--pill-bg);color:var(--pill-txt);}
 .pk-tag.full{background:#fbe3e3;color:#c0392b;}
 [data-dark] .pk-tag.full{background:#3a1f1f;color:#f0908f;}
 .pk-tag.warn{background:var(--amb-bg);color:var(--amb-txt);}
@@ -320,7 +320,7 @@ function getPaketaKey(ins){
   return null;
 }
 
-var TAG_LABEL={zero:'✓ ΜΗΔΕΝ',extra:'+ EXTRA',full:'✗ ΚΑΝΟΝΙΚΑ',warn:'⚠ ΠΡΟΣΟΧΗ'};
+var TAG_LABEL={zero:'ΜΗΔΕΝ',extra:'EXTRA',full:'ΚΑΝΟΝΙΚΑ',warn:'ΠΡΟΣΟΧΗ'};
 
 function buildDetail(ins){
   var paketaKey=getPaketaKey(ins);
