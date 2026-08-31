@@ -174,7 +174,7 @@ var currentSpecialty = null; // click-filter on sidebar breakdown, not a search 
 
 var CAT_ORDER = ['ΠΟΛΥ ΜΙΚΡΕΣ','ΜΙΚΡΕΣ','ΜΕΣΑΙΕΣ','ΜΕΓΑΛΕΣ','ΒΑΡΕΙΕΣ','ΕΞΑΙΡΕΤΙΚΑ ΒΑΡΕΙΕΣ','ΕΙΔΙΚΕΣ'];
 function catClass(num){ return 'c'+num; }
-function norm(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
+function norm(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/ς/g,'σ'); }
 
 function renderInsTabs(){
   var host = document.getElementById('insTabs');
