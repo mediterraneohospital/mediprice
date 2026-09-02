@@ -251,7 +251,7 @@ th{position:relative;}
 <button id="undoBtn" onclick="undoEdit()" disabled style="height:32px;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);color:var(--txt);padding:0 10px;font-size:12px;cursor:pointer;">↩ Αναίρεση</button>
 <button onclick="openAddProcModal()" style="height:32px;background:#e6f7ec;border:1px solid #4caf7d;border-radius:var(--r-sm);color:#1f7a4d;padding:0 10px;font-size:12px;font-weight:600;cursor:pointer;">+ Προσθήκη επέμβασης</button>
 <button id="bulkModeBtn" onclick="toggleBulkMode()" style="height:32px;background:#fdf3da;border:1px solid #d9a441;border-radius:var(--r-sm);color:#8a5a0b;padding:0 10px;font-size:12px;font-weight:600;cursor:pointer;">Μαζική αλλαγή τιμών</button>
-<button onclick="saveAllEdits()" style="height:32px;background:var(--acc);border:1px solid var(--acc);border-radius:var(--r-sm);color:#fff;padding:0 10px;font-size:12px;cursor:pointer;">Αποθήκευση</button>
+<button id="saveBtn" onclick="saveAllEdits()" style="height:32px;background:var(--acc);border:1px solid var(--acc);border-radius:var(--r-sm);color:#fff;padding:0 10px;font-size:12px;cursor:pointer;">Αποθήκευση</button>
 </div>
 <button id="darkBtn" onclick="document.documentElement.toggleAttribute('data-dark')"><i class="ti ti-moon"></i></button>
 </header>
@@ -424,6 +424,21 @@ const VIEW_EDIT_CONFIGS = {
  'onp': {arr:()=>ONP, render:()=>renderOnp(), listSel:'#viewOnp', toggleFn:'toggleOnpCard', fields:[['room','Παραμονή'],['idiot','Ιδιώτης'],['eop','ΕΟΠΥΥ'],['exams','Εξετάσεις πακέτου']]}
 };
 
+const VIEW_TO_SYNCKEY = {
+  single:'ROWS', genchir:'GENCHIR', thorax:'THORAX', kardio:'KARDIO', cholif:'CHOLIF',
+  spine:'SPINE', uro:'URO', neuro:'NEURO', ponos:'PONOS', orl:'ORL', hlek:'HLEK',
+  pneumo:'PNEUMO', ortho:'ORTHO', bhmato:'BHMATO', onp:'ONP'
+};
+let DIRTY_KEYS = new Set();
+let LOADED_UPDATED_AT = {};
+const SPECIALTY_TO_SYNCKEY = {
+  'Αγγειοχειρουργική':'ROWS','Γενική Χειρουργική':'GENCHIR','Θωρακοχειρουργική':'THORAX',
+  'Καρδιοχειρουργική':'KARDIO','Χοληφόρα':'CHOLIF','Σπονδυλική Στήλη':'SPINE','Ουρολογική':'URO',
+  'Νευροχειρουργική':'NEURO','Πόνος':'PONOS','ΩΡΛ':'ORL','Ηλεκτροφυσιολογία':'HLEK',
+  'Πνευμονολογικό':'PNEUMO','Ορθοπεδική':'ORTHO','Βηματοδότες-Απινιδωτές':'BHMATO',
+  'Θεραπείες Πόνου με συσκευές':'PONOSYSK','ΟΝΠ':'ONP'
+};
+
 let AF_IDX=null;
 const AF_TIERS = {
   'Ιδιώτης': [['idiot3','ΒΑ3'],['idiot','ΒΑ'],['idiotA','Α']],
@@ -551,6 +566,16 @@ function pushUndo(){
   UNDO_STACK.push({view:CURRENT_VIEW, snap:JSON.parse(JSON.stringify(cfg.arr()))});
   if(UNDO_STACK.length>20)UNDO_STACK.shift();
   document.getElementById('undoBtn').disabled=false;
+  const syncKey=VIEW_TO_SYNCKEY[CURRENT_VIEW];
+  if(syncKey)DIRTY_KEYS.add(syncKey);
+  const saveBtn=document.getElementById('saveBtn');
+  if(saveBtn && saveBtn.dataset.saved==='1'){
+    saveBtn.dataset.saved='';
+    saveBtn.textContent='Αποθήκευση';
+    saveBtn.style.background='var(--acc)';
+    saveBtn.style.borderColor='var(--acc)';
+    saveBtn.style.color='#fff';
+  }
 }
 
 function undoEdit(){
@@ -673,6 +698,16 @@ function submitAddProc(){
   if(cfg.aa){
     arr.forEach((r,i)=>{r.aa=String(i+1);});
   }
+  const syncKey=SPECIALTY_TO_SYNCKEY[key];
+  if(syncKey)DIRTY_KEYS.add(syncKey);
+  const saveBtn=document.getElementById('saveBtn');
+  if(saveBtn && saveBtn.dataset.saved==='1'){
+    saveBtn.dataset.saved='';
+    saveBtn.textContent='Αποθήκευση';
+    saveBtn.style.background='var(--acc)';
+    saveBtn.style.borderColor='var(--acc)';
+    saveBtn.style.color='#fff';
+  }
   closeAddProcModal();
   cfg.render();
 }
@@ -752,23 +787,33 @@ function clearBulkSelection(){
 async function saveAllEdits(){
   const btn=event.target;
   const old=btn.innerHTML;
-  const oldBg=btn.style.background, oldBrd=btn.style.borderColor, oldColor=btn.style.color;
   btn.textContent='Αποθήκευση...';
   btn.disabled=true;
-  const ok = await saveAllToSupabase();
-  btn.textContent = ok ? '✓ Αποθηκεύτηκε' : '✕ Απέτυχε';
+  const result = await saveAllToSupabase();
+  if(result.nochange){
+    btn.textContent='Καμία αλλαγή';
+    btn.disabled=false;
+    setTimeout(()=>{if(btn.textContent==='Καμία αλλαγή')btn.innerHTML=old;},2000);
+    return;
+  }
+  if(result.conflict){
+    btn.disabled=false;
+    btn.innerHTML=old;
+    alert('Κάποιος άλλος αποθήκευσε πιο πρόσφατα αλλαγές σε: '+result.conflicts.join(', ')+'.\nΚάνε ανανέωση σελίδας (F5) πριν ξαναπροσπαθήσεις, ώστε να μη χαθούν οι δικές του αλλαγές.');
+    return;
+  }
+  const ok = result.ok;
+  btn.disabled=false;
   if(ok){
+    btn.textContent='✓ Αποθηκεύτηκε';
     btn.style.background='var(--grn)';
     btn.style.borderColor='var(--grn)';
     btn.style.color='#fff';
+    btn.dataset.saved='1';
+  }else{
+    btn.textContent='✕ Απέτυχε';
+    setTimeout(()=>{if(btn.dataset.saved!=='1')btn.innerHTML=old;},2500);
   }
-  btn.disabled=false;
-  setTimeout(()=>{
-    btn.innerHTML=old;
-    btn.style.background=oldBg;
-    btn.style.borderColor=oldBrd;
-    btn.style.color=oldColor;
-  },ok?4000:2500);
 }
 
 function fmt(n){return n==null?'—':n.toLocaleString('el-GR')+'€';}
@@ -3262,11 +3307,12 @@ function sbMutateInPlace(target, source){
 async function loadFromSupabase(){
   if(!sbClient)return;
   try{
-    const { data, error } = await sbClient.from('mediprice_v2_data').select('key,data');
+    const { data, error } = await sbClient.from('mediprice_v2_data').select('key,data,updated_at');
     if(error || !data || !data.length)return;
     data.forEach(row=>{
       if(SYNC_REGISTRY[row.key] !== undefined){
         sbMutateInPlace(SYNC_REGISTRY[row.key], row.data);
+        LOADED_UPDATED_AT[row.key]=row.updated_at;
       }
     });
   }catch(e){
@@ -3275,20 +3321,30 @@ async function loadFromSupabase(){
 }
 
 async function saveAllToSupabase(){
+  if(!DIRTY_KEYS.size)return {ok:true, nochange:true};
   try{
-    const rows = Object.keys(SYNC_REGISTRY).map(key=>({
-      key, data: SYNC_REGISTRY[key], updated_at: new Date().toISOString()
-    }));
+    const keys=[...DIRTY_KEYS];
+    const nowIso=new Date().toISOString();
+    const rows = keys.map(key=>({key, data: SYNC_REGISTRY[key], updated_at: nowIso}));
+    const lastKnown={};
+    keys.forEach(k=>{if(LOADED_UPDATED_AT[k])lastKnown[k]=LOADED_UPDATED_AT[k];});
     const resp = await fetch(SB_URL+'/functions/v1/save-mediprice-data', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({password: EDIT_PASS, rows})
+      body: JSON.stringify({password: EDIT_PASS, rows, lastKnown})
     });
     const result = await resp.json();
-    return resp.ok && result.success;
+    if(resp.status===409){
+      return {ok:false, conflict:true, conflicts:result.conflicts||[]};
+    }
+    if(resp.ok && result.success){
+      keys.forEach(k=>{DIRTY_KEYS.delete(k); LOADED_UPDATED_AT[k]=nowIso;});
+      return {ok:true, saved:keys};
+    }
+    return {ok:false};
   }catch(e){
     console.error('Supabase save failed', e);
-    return false;
+    return {ok:false};
   }
 }
 
