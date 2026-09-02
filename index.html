@@ -421,7 +421,13 @@ const VIEW_EDIT_CONFIGS = {
  'pneumo': {arr:()=>PNEUMO, render:()=>renderPneumo(), aa:true, listSel:'#viewPneumo', toggleFn:'togglePneumoCard', fields:[['room','Δωμάτιο'],['ken','ΚΕΝ'],['dur','Χειρ. χρόνος'],['anaisth','Αμοιβή αναισθ.'],['idiot','Ιδιώτης'],['eop','ΕΟΠΥΥ'],['notes','Παρατηρήσεις']]},
  'ortho': {arr:()=>ORTHO.rows, render:()=>renderOrtho(), aa:true, listSel:'#viewOrtho', toggleFn:'toggleOrthoCard', fields:[['ken','ΚΕΝ'],['hm','ΗΜ'],['idiot3','Ιδιώτης ΒΑ3'],['idiot','Ιδιώτης ΒΑ'],['eop3','ΕΟΠΥΥ ΒΑ3'],['eop','ΕΟΠΥΥ ΒΑ'],['extra','Extra'],['notes','Παρατηρήσεις']]},
  'bhmato': {arr:()=>BHMATO, render:()=>renderBhmato(), listSel:'#viewBhmato', toggleFn:'toggleBhmatoCard', fields:[['ken','ΚΕΝ'],['hm','Νοσηλεία'],['final_medtronic','Τελικός ΕΟΠΥΥ (MEDTRONIC)'],['final_boston','Τελικός ΕΟΠΥΥ (BOSTON)']]},
- 'onp': {arr:()=>ONP, render:()=>renderOnp(), listSel:'#viewOnp', toggleFn:'toggleOnpCard', fields:[['room','Παραμονή'],['idiot','Ιδιώτης'],['eop','ΕΟΠΥΥ'],['exams','Εξετάσεις πακέτου']]}
+ 'onp': {arr:()=>ONP, render:()=>renderOnp(), listSel:'#viewOnp', toggleFn:'toggleOnpCard', fields:[['room','Παραμονή'],['idiot','Ιδιώτης'],['eop','ΕΟΠΥΥ'],['exams','Εξετάσεις πακέτου']]},
+ 'gyn': {arr:()=>GYN, render:()=>renderGyn(), aa:true, listSel:'#viewGyn', toggleFn:'toggleGynCard', fields:[['ken','ΚΕΝ'],['dur','Διάρκεια'],['room','ΗΜ'],['odc_idiot_pro','Ιδιώτης ODC προ ΦΠΑ'],['odc_idiot_me','Ιδιώτης ODC με ΦΠΑ'],['odc_eop_pro','ΕΟΠΥΥ ODC προ ΦΠΑ'],['odc_eop_me','ΕΟΠΥΥ ODC με ΦΠΑ'],['ba_idiot_pro','Ιδιώτης ΒΑ προ ΦΠΑ'],['ba_idiot_me','Ιδιώτης ΒΑ με ΦΠΑ'],['ba_eop_pro','ΕΟΠΥΥ ΒΑ προ ΦΠΑ'],['ba_eop_me','ΕΟΠΥΥ ΒΑ με ΦΠΑ'],['extra','Extra'],['notes','Παρατηρήσεις']]},
+ 'epakt': {arr:()=>EPAKT, render:()=>renderEpakt(), listSel:'#viewEpakt', toggleFn:'toggleEpaktCard', fields:[['ken','ΚΕΝ'],['icd','ICD10'],['dur','Διάρκεια'],['room','Νοσηλεία'],['icu','ΜΑΠ/ΜΕΘ'],['odc','ODC'],['ba','ΒΑ'],['a','Α'],['lux','LUX'],['suite','SUITE'],['extra','Extra'],['notes','Παρατηρήσεις']]},
+ 'ofth': {arr:()=>OFTH.procs, render:()=>renderOfth(), listSel:'#viewOfth', toggleFn:'toggleOfthCard', fields:[['ken','ΚΕΝ'],['hm','ΗΜ'],['room','Δωμάτιο'],['time','Χειρ. χρόνος'],['idiot','Ιδιώτης'],['eop3','ΕΟΠΥΥ ΒΑ3'],['eop','ΕΟΠΥΥ'],['extra','Extra'],['notes','Παρατηρήσεις']]},
+ 'gastro': {arr:()=>GASTRO, render:()=>renderMulti()},
+ 'epkard': {arr:()=>EPKARD, render:()=>renderEpkard()},
+ 'mastos': {arr:()=>MASTOS, render:()=>renderMastos()}
 };
 
 const VIEW_TO_SYNCKEY = {
@@ -436,7 +442,7 @@ const SPECIALTY_TO_SYNCKEY = {
   'Καρδιοχειρουργική':'KARDIO','Χοληφόρα':'CHOLIF','Σπονδυλική Στήλη':'SPINE','Ουρολογική':'URO',
   'Νευροχειρουργική':'NEURO','Πόνος':'PONOS','ΩΡΛ':'ORL','Ηλεκτροφυσιολογία':'HLEK',
   'Πνευμονολογικό':'PNEUMO','Ορθοπεδική':'ORTHO','Βηματοδότες-Απινιδωτές':'BHMATO',
-  'Θεραπείες Πόνου με συσκευές':'PONOSYSK','ΟΝΠ':'ONP'
+  'Θεραπείες Πόνου με συσκευές':'PONOSYSK','ΟΝΠ':'ONP','Γυναικολογική':'GYN','Επεμβατική Ακτινολογία':'EPAKT','Οφθαλμολογία':'OFTH'
 };
 
 let AF_IDX=null;
@@ -477,6 +483,41 @@ function submitAddField(){
     const card=document.querySelectorAll(cfg.listSel+' .proc-card')[savedIdx];
     if(card)window[cfg.toggleFn](savedIdx,card);
   }
+}
+
+function markDirty(syncKey){
+  if(syncKey)DIRTY_KEYS.add(syncKey);
+  const saveBtn=document.getElementById('saveBtn');
+  if(saveBtn && saveBtn.dataset.saved==='1'){
+    saveBtn.dataset.saved='';
+    saveBtn.textContent='Αποθήκευση';
+    saveBtn.style.background='var(--acc)';
+    saveBtn.style.borderColor='var(--acc)';
+    saveBtn.style.color='#fff';
+  }
+}
+function saveGroupedField(getRowFn,field,el,isNumeric,syncKey){
+  const r=getRowFn();
+  const newValRaw = isNumeric ? null : el.textContent.trim();
+  if(isNumeric){
+    const raw=el.textContent.replace(/[^\d.,-]/g,'').replace(',','.');
+    const num=parseFloat(raw);
+    if(!isNaN(num)){
+      if(num===r[field])return;
+      pushUndo();
+      r[field]=num;
+      el.textContent=fmt(num);
+    }else{
+      el.textContent=fmt(r[field]);
+      return;
+    }
+  }else{
+    if(newValRaw===String(r[field]||''))return;
+    pushUndo();
+    r[field]=newValRaw;
+  }
+  r.date=new Date().toLocaleDateString('el-GR');
+  markDirty(syncKey);
 }
 
 function genSaveField(idx,field,el,isNumeric){
@@ -578,12 +619,50 @@ function pushUndo(){
   }
 }
 
+function findCardByCallPrefix(root, prefix){
+  const cards = root.querySelectorAll('.proc-card');
+  for(const c of cards){
+    const oc = c.getAttribute('onclick')||'';
+    if(oc.includes(prefix))return c;
+  }
+  return null;
+}
+
 function undoEdit(){
   if(!UNDO_STACK.length)return;
   const {view,snap}=UNDO_STACK.pop();
   const cfg=VIEW_EDIT_CONFIGS[view];
   if(!cfg){if(!UNDO_STACK.length)document.getElementById('undoBtn').disabled=true;return;}
   const arr=cfg.arr();
+  if(!cfg.listSel){
+    // capture currently open card(s) (could be nested: outer group + inner row) before restoring
+    const activeEls=[...document.querySelectorAll('.proc-card.active')];
+    const captured=activeEls.map(c=>{
+      const oc=c.getAttribute('onclick')||'';
+      const m=oc.match(/(toggle\w+)\(([^)]*),\s*this\)/);
+      if(!m)return null;
+      return {func:m[1], argsStr:m[2]};
+    }).filter(Boolean);
+    sbMutateInPlace(arr, snap);
+    cfg.render();
+    let lastDet=null;
+    captured.forEach(p=>{
+      const prefix=p.func+'('+p.argsStr+',';
+      const card=findCardByCallPrefix(document, prefix);
+      if(card){
+        const argNums=p.argsStr.split(',').map(s=>parseInt(s.trim(),10));
+        window[p.func](...argNums, card);
+        const det=card.nextElementSibling;
+        if(det && det.classList.contains('card-detail'))lastDet=det;
+      }
+    });
+    if(lastDet){
+      lastDet.classList.add('undo-flash');
+      setTimeout(()=>lastDet.classList.remove('undo-flash'),900);
+    }
+    if(!UNDO_STACK.length)document.getElementById('undoBtn').disabled=true;
+    return;
+  }
   const listSel = cfg.listSel || '#cardList';
   const toggleFn = cfg.toggleFn || 'toggleCardDetail';
   const openIdxs=[];
@@ -1404,7 +1483,7 @@ function renderOfth(){
     +'</div></div></div>';
   let cardsHtml='<div class="card-list">';
   OFTH.procs.forEach((r,idx)=>{
-    cardsHtml+='<div class="proc-card" onclick="toggleOfthCard('+idx+',this)"><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
+    cardsHtml+='<div class="proc-card" onclick="toggleOfthCard('+idx+',this)"><span class="pc-desc"'+(EDIT_MODE?' contenteditable="true" onclick="event.stopPropagation()"':'')+' onblur="genSaveDesc('+idx+',this)">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   cardsHtml+='<div class="proc-card" onclick="toggleOfthRefCard(\'lenses\',this)"><span class="pc-desc">📋 Κατάλογος ενδοφθάλμιων φακών</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   cardsHtml+='<div class="proc-card" onclick="toggleOfthRefCard(\'extra_materials\',this)"><span class="pc-desc">📋 Υλικά εκτός πακέτου</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
@@ -1422,23 +1501,25 @@ function toggleOfthCard(idx,card){
   const r=OFTH.procs[idx];
   const det=document.createElement('div');
   det.className='card-detail';
+  const ce=EDIT_MODE?' contenteditable="true"':'';
+  const stop=ce?' onclick="event.stopPropagation()"':'';
   let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
-  html+=btnRow(null);
+  html+=btnRow('genDeleteProc('+idx+')');
   html+='<table class="dt-table"><tbody>';
-  if(r.ken)html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val">'+r.ken+'</td></tr>';
-  if(r.hm)html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val">'+r.hm+'</td></tr>';
-  if(r.room)html+='<tr><td class="dt-label">Δωμάτιο</td><td class="dt-val">'+r.room+'</td></tr>';
-  if(r.time)html+='<tr><td class="dt-label">Χειρ. χρόνος</td><td class="dt-val">'+r.time+'</td></tr>';
-  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης</td><td class="dt-val">'+(typeof r.idiot==='string'?r.idiot:fmt(r.idiot))+'</td></tr>';
+  if(r.ken)html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+r.ken+'</td></tr>';
+  if(r.hm)html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'hm\',this,false)">'+r.hm+'</td></tr>';
+  if(r.room)html+='<tr><td class="dt-label">Δωμάτιο</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'room\',this,false)">'+r.room+'</td></tr>';
+  if(r.time)html+='<tr><td class="dt-label">Χειρ. χρόνος</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'time\',this,false)">'+r.time+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'idiot\',this,true)">'+(typeof r.idiot==='string'?r.idiot:fmt(r.idiot))+'</td></tr>';
   if(r.eop3!=null){
-    html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ3 (τρίκλινο)</td><td class="dt-val">'+fmt(r.eop3)+'</td></tr>';
-    html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ (δίκλινο)</td><td class="dt-val">'+fmt(r.eop)+'</td></tr>';
+    html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ3 (τρίκλινο)</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop3\',this,true)">'+fmt(r.eop3)+'</td></tr>';
+    html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ (δίκλινο)</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+fmt(r.eop)+'</td></tr>';
   }else{
-    html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ</td><td class="dt-val">'+(r.eop!=null?fmt(r.eop):'—')+'</td></tr>';
+    html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'eop\',this,true)">'+(r.eop!=null?fmt(r.eop):'—')+'</td></tr>';
   }
-  html+='<tr><td class="dt-label">Extra</td><td class="dt-val">'+(r.extra||'—')+'</td></tr>';
-  if(r.notes)html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val">'+r.notes+'</td></tr>';
-  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'notes\',this,false)">'+(r.notes||'—')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
   html+='</tbody></table></div>';
   det.innerHTML=html;
   card.after(det);
@@ -1792,7 +1873,9 @@ function toggleMastosGroupCard(gi,card){
   let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;">';
   html+='<div class="card-list" style="padding:0;">';
   g.rows.forEach((r,ri)=>{
-    html+='<div class="proc-card" onclick="event.stopPropagation();toggleMastosCard('+gi+','+ri+',this)"><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
+    const ce=EDIT_MODE?' contenteditable="true"':'';
+    const stop=ce?' onclick="event.stopPropagation()"':'';
+    html+='<div class="proc-card" onclick="event.stopPropagation();toggleMastosCard('+gi+','+ri+',this)"><span class="pc-desc"'+ce+stop+' onblur="saveGroupedField(()=>MASTOS.groups['+gi+'].rows['+ri+'],\'desc\',this,false,\'MASTOS\')">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   html+='</div>';
   html+='</div>';
@@ -1808,26 +1891,30 @@ function toggleMastosCard(gi,ri,card){
   card.parentElement.querySelectorAll('.proc-card').forEach(x=>x.classList.remove('active'));
   card.classList.add('active');
   const r=MASTOS.groups[gi].rows[ri];
+  const getRow='()=>MASTOS.groups['+gi+'].rows['+ri+']';
   const det=document.createElement('div');
   det.className='card-detail';
+  const ce=EDIT_MODE?' contenteditable="true"':'';
+  const stop=ce?' onclick="event.stopPropagation()"':'';
   let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
   html+=btnRow(null);
   html+='<table class="dt-table"><tbody>';
-  if(r.ken)html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val">'+r.ken+'</td></tr>';
-  if(r.hm)html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val">'+r.hm+'</td></tr>';
+  if(r.ken)html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'ken\',this,false,\'MASTOS\')">'+r.ken+'</td></tr>';
+  if(r.hm)html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'hm\',this,false,\'MASTOS\')">'+r.hm+'</td></tr>';
   if(r.tiers){
-    r.tiers.forEach(t=>{
-      html+='<tr class="dt-price idiot"><td class="dt-label">'+t.label+' Ιδιώτης</td><td class="dt-val">'+fmt(t.idiot)+'</td></tr>';
-      html+='<tr class="dt-price eop"><td class="dt-label">'+t.label+' ΕΟΠΥΥ</td><td class="dt-val">'+fmt(t.eop)+'</td></tr>';
+    r.tiers.forEach((t,ti)=>{
+      const getTier='()=>MASTOS.groups['+gi+'].rows['+ri+'].tiers['+ti+']';
+      html+='<tr class="dt-price idiot"><td class="dt-label">'+t.label+' Ιδιώτης</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getTier+',\'idiot\',this,true,\'MASTOS\')">'+fmt(t.idiot)+'</td></tr>';
+      html+='<tr class="dt-price eop"><td class="dt-label">'+t.label+' ΕΟΠΥΥ</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getTier+',\'eop\',this,true,\'MASTOS\')">'+fmt(t.eop)+'</td></tr>';
     });
   }else if(r.price!=null){
-    html+='<tr class="dt-price idiot"><td class="dt-label">Τιμή</td><td class="dt-val">'+r.price+'</td></tr>';
+    html+='<tr class="dt-price idiot"><td class="dt-label">Τιμή</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'price\',this,true,\'MASTOS\')">'+r.price+'</td></tr>';
   }else{
-    html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης</td><td class="dt-val">'+fmt(r.idiot)+'</td></tr>';
-    html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ</td><td class="dt-val">'+fmt(r.eop)+'</td></tr>';
+    html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'idiot\',this,true,\'MASTOS\')">'+fmt(r.idiot)+'</td></tr>';
+    html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'eop\',this,true,\'MASTOS\')">'+fmt(r.eop)+'</td></tr>';
   }
-  if(r.extra)html+='<tr><td class="dt-label">Extra</td><td class="dt-val">'+r.extra+'</td></tr>';
-  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val">'+(r.notes||'—')+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'extra\',this,false,\'MASTOS\')">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'notes\',this,false,\'MASTOS\')">'+(r.notes||'—')+'</td></tr>';
   html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
   html+='</tbody></table></div>';
   det.innerHTML=html;
@@ -2169,12 +2256,16 @@ function renderEpkard(){
   let html=instrHtml;
   html+='<div class="section-title" style="margin-top:20px;">Καθετηριασμοί, Αγγειοπλαστικές, TAVI & Συγκλείσεις</div><div class="card-list">';
   EPKARD.group1.forEach((r,idx)=>{
-    html+='<div class="proc-card" onclick="toggleEpkardCard(1,'+idx+',this)"><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
+    const ce=EDIT_MODE?' contenteditable="true"':'';
+    const stop=ce?' onclick="event.stopPropagation()"':'';
+    html+='<div class="proc-card" onclick="toggleEpkardCard(1,'+idx+',this)"><span class="pc-desc"'+ce+stop+' onblur="saveGroupedField(()=>EPKARD.group1['+idx+'],\'desc\',this,false,\'EPKARD\')">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   html+='</div>';
   html+='<div class="section-title" style="margin-top:20px;">Σύγκλειση PFO</div><div class="card-list">';
   EPKARD.group2.forEach((r,idx)=>{
-    html+='<div class="proc-card" onclick="toggleEpkardCard(2,'+idx+',this)"><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
+    const ce=EDIT_MODE?' contenteditable="true"':'';
+    const stop=ce?' onclick="event.stopPropagation()"':'';
+    html+='<div class="proc-card" onclick="toggleEpkardCard(2,'+idx+',this)"><span class="pc-desc"'+ce+stop+' onblur="saveGroupedField(()=>EPKARD.group2['+idx+'],\'desc\',this,false,\'EPKARD\')">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   html+='</div>';
   wrap.innerHTML=html;
@@ -2187,20 +2278,24 @@ function toggleEpkardCard(grp,idx,card){
   document.querySelectorAll('.proc-card').forEach(x=>x.classList.remove('active'));
   card.classList.add('active');
   const r = grp===1 ? EPKARD.group1[idx] : EPKARD.group2[idx];
+  const arrRef = grp===1 ? 'EPKARD.group1' : 'EPKARD.group2';
+  const getRow = '()=>'+arrRef+'['+idx+']';
   const det=document.createElement('div');
   det.className='card-detail';
+  const ce=EDIT_MODE?' contenteditable="true"':'';
+  const stop=ce?' onclick="event.stopPropagation()"':'';
   let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
   html+=btnRow(null);
   html+='<table class="dt-table"><tbody>';
-  if(r.ken)html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val">'+r.ken+'</td></tr>';
-  if(r.dur)html+='<tr><td class="dt-label">Διάρκεια</td><td class="dt-val">'+r.dur+' ώρ.</td></tr>';
-  if(r.room)html+='<tr><td class="dt-label">Νοσηλεία</td><td class="dt-val">'+r.room+'</td></tr>';
-  if(r.icu)html+='<tr><td class="dt-label">ΜΑΠ/ΜΕΘ</td><td class="dt-val">'+r.icu+'</td></tr>';
-  if(r.idiot!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ3</td><td class="dt-val">'+fmt(r.idiot)+'</td></tr>';
-  if(r.eop!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ3</td><td class="dt-val">'+fmt(r.eop)+'</td></tr>';
-  if(r.materials)html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Υλικά ιδιώτη</td><td class="dt-val">'+r.materials+'</td></tr>';
-  html+='<tr><td class="dt-label">Extra</td><td class="dt-val">'+(r.extra||'—')+'</td></tr>';
-  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Σχόλια</td><td class="dt-val">'+(r.notes||'—')+'</td></tr>';
+  if(r.ken)html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'ken\',this,false,\'EPKARD\')">'+r.ken+'</td></tr>';
+  if(r.dur)html+='<tr><td class="dt-label">Διάρκεια</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'dur\',this,false,\'EPKARD\')">'+r.dur+' ώρ.</td></tr>';
+  if(r.room)html+='<tr><td class="dt-label">Νοσηλεία</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'room\',this,false,\'EPKARD\')">'+r.room+'</td></tr>';
+  if(r.icu)html+='<tr><td class="dt-label">ΜΑΠ/ΜΕΘ</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'icu\',this,false,\'EPKARD\')">'+r.icu+'</td></tr>';
+  if(r.idiot!=null)html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'idiot\',this,true,\'EPKARD\')">'+fmt(r.idiot)+'</td></tr>';
+  if(r.eop!=null)html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ ΒΑ3</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'eop\',this,true,\'EPKARD\')">'+fmt(r.eop)+'</td></tr>';
+  if(r.materials)html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Υλικά ιδιώτη</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'materials\',this,false,\'EPKARD\')">'+r.materials+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'extra\',this,false,\'EPKARD\')">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Σχόλια</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'notes\',this,false,\'EPKARD\')">'+(r.notes||'—')+'</td></tr>';
   if(r.date)html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
   html+='</tbody></table></div>';
   det.innerHTML=html;
@@ -2248,7 +2343,7 @@ function renderEpakt(){
       html+='<div class="subtable-block"><h4>'+r.upo+'</h4><div class="card-list" style="padding:0;" id="epakt-cards-'+idx+'">';
       lastUpo=r.upo;
     }
-    html+='<div class="proc-card" onclick="toggleEpaktCard('+idx+',this)"><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
+    html+='<div class="proc-card" onclick="toggleEpaktCard('+idx+',this)"><span class="pc-desc"'+(EDIT_MODE?' contenteditable="true" onclick="event.stopPropagation()"':'')+' onblur="genSaveDesc('+idx+',this)">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
     const nextR=EPAKT[idx+1];
     if(!nextR || nextR.upo!==r.upo){
       html+='</div></div>';
@@ -2266,25 +2361,27 @@ function toggleEpaktCard(idx,card){
   const r=EPAKT[idx];
   const det=document.createElement('div');
   det.className='card-detail';
+  const ce=EDIT_MODE?' contenteditable="true"':'';
+  const stop=ce?' onclick="event.stopPropagation()"':'';
   let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
-  html+=btnRow(null);
+  html+=btnRow('genDeleteProc('+idx+')');
   html+='<table class="dt-table"><tbody>';
-  html+='<tr><td class="dt-label">ΚΕΝ/Π.Δ.</td><td class="dt-val">'+r.ken+'</td></tr>';
-  if(r.icd)html+='<tr><td class="dt-label">ICD10</td><td class="dt-val">'+r.icd+'</td></tr>';
-  if(r.dur)html+='<tr><td class="dt-label">Διάρκεια</td><td class="dt-val">'+r.dur+' ώρ.</td></tr>';
-  if(r.room)html+='<tr><td class="dt-label">Νοσηλεία</td><td class="dt-val">'+r.room+'</td></tr>';
-  if(r.icu)html+='<tr><td class="dt-label">ΜΑΠ/ΜΕΘ</td><td class="dt-val">'+r.icu+'</td></tr>';
+  html+='<tr><td class="dt-label">ΚΕΝ/Π.Δ.</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+r.ken+'</td></tr>';
+  if(r.icd)html+='<tr><td class="dt-label">ICD10</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'icd\',this,false)">'+r.icd+'</td></tr>';
+  if(r.dur)html+='<tr><td class="dt-label">Διάρκεια</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'dur\',this,false)">'+r.dur+' ώρ.</td></tr>';
+  if(r.room)html+='<tr><td class="dt-label">Νοσηλεία</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'room\',this,false)">'+r.room+'</td></tr>';
+  if(r.icu)html+='<tr><td class="dt-label">ΜΑΠ/ΜΕΘ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'icu\',this,false)">'+r.icu+'</td></tr>';
   if(r.odc!=null){
-    html+='<tr class="dt-price idiot"><td class="dt-label">ODC</td><td class="dt-val">'+fmt(r.odc)+'</td></tr>';
+    html+='<tr class="dt-price idiot"><td class="dt-label">ODC</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'odc\',this,true)">'+fmt(r.odc)+'</td></tr>';
   }else{
-    html+='<tr class="dt-price idiot"><td class="dt-label">ΒΑ</td><td class="dt-val">'+fmt(r.ba)+'</td></tr>';
-    html+='<tr class="dt-price idiot"><td class="dt-label">Α</td><td class="dt-val">'+fmt(r.a)+'</td></tr>';
-    html+='<tr class="dt-price eop"><td class="dt-label">LUX</td><td class="dt-val">'+fmt(r.lux)+'</td></tr>';
-    html+='<tr class="dt-price eop"><td class="dt-label">SUITE</td><td class="dt-val">'+fmt(r.suite)+'</td></tr>';
+    html+='<tr class="dt-price idiot"><td class="dt-label">ΒΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ba\',this,true)">'+fmt(r.ba)+'</td></tr>';
+    html+='<tr class="dt-price idiot"><td class="dt-label">Α</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'a\',this,true)">'+fmt(r.a)+'</td></tr>';
+    html+='<tr class="dt-price eop"><td class="dt-label">LUX</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'lux\',this,true)">'+fmt(r.lux)+'</td></tr>';
+    html+='<tr class="dt-price eop"><td class="dt-label">SUITE</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'suite\',this,true)">'+fmt(r.suite)+'</td></tr>';
   }
-  html+='<tr><td class="dt-label">Extra</td><td class="dt-val">'+(r.extra||'—')+'</td></tr>';
-  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val">'+(r.notes||'—')+'</td></tr>';
-  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'notes\',this,false)">'+(r.notes||'—')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
   html+='</tbody></table></div>';
   html+='</div>';
   det.innerHTML=html;
@@ -2316,7 +2413,9 @@ function renderGyn(){
     +'</div></div></div>';
   let cardsHtml='<div class="card-list">';
   GYN.forEach((r,idx)=>{
-    cardsHtml+='<div class="proc-card" onclick="toggleGynCard('+idx+',this)"><span class="pc-aa">'+r.aa+'</span><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
+    const ce=EDIT_MODE?' contenteditable="true"':'';
+    const stop=ce?' onclick="event.stopPropagation()"':'';
+    cardsHtml+='<div class="proc-card" onclick="toggleGynCard('+idx+',this)"><span class="pc-aa">'+r.aa+'</span><span class="pc-desc"'+ce+stop+' onblur="genSaveDesc('+idx+',this)">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   cardsHtml+='</div>';
   wrap.innerHTML=instrHtml+cardsHtml;
@@ -2334,22 +2433,28 @@ function toggleGynCard(idx,card){
   const idiotPro = isOdc ? r.odc_idiot_pro : r.ba_idiot_pro;
   const eopMe = isOdc ? r.odc_eop_me : r.ba_eop_me;
   const eopPro = isOdc ? r.odc_eop_pro : r.ba_eop_pro;
+  const idiotProField = isOdc?'odc_idiot_pro':'ba_idiot_pro';
+  const idiotMeField = isOdc?'odc_idiot_me':'ba_idiot_me';
+  const eopProField = isOdc?'odc_eop_pro':'ba_eop_pro';
+  const eopMeField = isOdc?'odc_eop_me':'ba_eop_me';
   const roomLabel = isOdc ? 'ODC' : 'ΒΑ';
   const det=document.createElement('div');
   det.className='card-detail';
+  const ce=EDIT_MODE?' contenteditable="true"':'';
+  const stop=ce?' onclick="event.stopPropagation()"':'';
   let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
-  html+=btnRow(null);
+  html+=btnRow('genDeleteProc('+idx+')');
   html+='<table class="dt-table"><tbody>';
-  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val">'+r.ken+'</td></tr>';
-  if(r.dur)html+='<tr><td class="dt-label">Διάρκεια</td><td class="dt-val">'+r.dur+' ώρ.</td></tr>';
-  if(r.room)html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val">'+r.room+'</td></tr>';
-  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης '+roomLabel+' προ ΦΠΑ</td><td class="dt-val">'+fmt(idiotPro)+'</td></tr>';
-  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης '+roomLabel+' με ΦΠΑ</td><td class="dt-val">'+fmt(idiotMe)+'</td></tr>';
-  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ '+roomLabel+' προ ΦΠΑ</td><td class="dt-val">'+fmt(eopPro)+'</td></tr>';
-  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ '+roomLabel+' με ΦΠΑ</td><td class="dt-val">'+fmt(eopMe)+'</td></tr>';
-  html+='<tr><td class="dt-label">Extra</td><td class="dt-val">'+(r.extra||'—')+'</td></tr>';
-  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val">'+(r.notes||'—')+'</td></tr>';
-  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'ken\',this,false)">'+r.ken+'</td></tr>';
+  if(r.dur)html+='<tr><td class="dt-label">Διάρκεια</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'dur\',this,false)">'+r.dur+' ώρ.</td></tr>';
+  if(r.room)html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'room\',this,false)">'+r.room+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης '+roomLabel+' προ ΦΠΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\''+idiotProField+'\',this,true)">'+fmt(idiotPro)+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης '+roomLabel+' με ΦΠΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\''+idiotMeField+'\',this,true)">'+fmt(idiotMe)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ '+roomLabel+' προ ΦΠΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\''+eopProField+'\',this,true)">'+fmt(eopPro)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ '+roomLabel+' με ΦΠΑ</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\''+eopMeField+'\',this,true)">'+fmt(eopMe)+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'extra\',this,false)">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val"'+ce+stop+' onblur="genSaveField('+idx+',\'notes\',this,false)">'+(r.notes||'—')+'</td></tr>';
+  html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val" id="genDate-'+idx+'">'+r.date+'</td></tr>';
   html+='</tbody></table></div>';
   html+='</div>';
   det.innerHTML=html;
@@ -2637,7 +2742,9 @@ function toggleGastroGroupCard(gi,card){
   let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;">';
   html+='<div class="card-list" style="padding:0;">';
   g.rows.forEach((r,ri)=>{
-    html+='<div class="proc-card" onclick="event.stopPropagation();toggleGastroCard('+gi+','+ri+',this)"><span class="pc-desc">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
+    const ce=EDIT_MODE?' contenteditable="true"':'';
+    const stop=ce?' onclick="event.stopPropagation()"':'';
+    html+='<div class="proc-card" onclick="event.stopPropagation();toggleGastroCard('+gi+','+ri+',this)"><span class="pc-desc"'+ce+stop+' onblur="saveGroupedField(()=>GASTRO.groups['+gi+'].rows['+ri+'],\'desc\',this,false,\'GASTRO\')">'+r.desc+'</span><i class="ti ti-chevron-right pc-chevron"></i></div>';
   });
   html+='</div>';
   html+='</div>';
@@ -2653,19 +2760,22 @@ function toggleGastroCard(gi,ri,card){
   card.parentElement.querySelectorAll('.proc-card').forEach(x=>x.classList.remove('active'));
   card.classList.add('active');
   const r=GASTRO.groups[gi].rows[ri];
+  const getRow='()=>GASTRO.groups['+gi+'].rows['+ri+']';
   const det=document.createElement('div');
   det.className='card-detail';
+  const ce=EDIT_MODE?' contenteditable="true"':'';
+  const stop=ce?' onclick="event.stopPropagation()"':'';
   let html='<div class="detail-wrap" style="flex-direction:column;align-items:stretch;padding:14px 20px;">';
   html+=btnRow(null);
   html+='<table class="dt-table"><tbody>';
-  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val">'+r.ken+'</td></tr>';
-  if(r.hm)html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val">'+r.hm+'</td></tr>';
-  if(r.time)html+='<tr><td class="dt-label">Χρόνος</td><td class="dt-val">'+r.time+'</td></tr>';
-  if(r.room)html+='<tr><td class="dt-label">Δωμάτιο</td><td class="dt-val">'+r.room+'</td></tr>';
-  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης</td><td class="dt-val">'+fmt(r.idiot)+'</td></tr>';
-  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ</td><td class="dt-val">'+fmt(r.eopyy)+'</td></tr>';
-  html+='<tr><td class="dt-label">Extra</td><td class="dt-val">'+(r.extra||'—')+'</td></tr>';
-  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val">'+(r.notes||'—')+'</td></tr>';
+  html+='<tr><td class="dt-label">ΚΕΝ</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'ken\',this,false,\'GASTRO\')">'+r.ken+'</td></tr>';
+  if(r.hm)html+='<tr><td class="dt-label">ΗΜ</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'hm\',this,false,\'GASTRO\')">'+r.hm+'</td></tr>';
+  if(r.time)html+='<tr><td class="dt-label">Χρόνος</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'time\',this,false,\'GASTRO\')">'+r.time+'</td></tr>';
+  if(r.room)html+='<tr><td class="dt-label">Δωμάτιο</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'room\',this,false,\'GASTRO\')">'+r.room+'</td></tr>';
+  html+='<tr class="dt-price idiot"><td class="dt-label">Ιδιώτης</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'idiot\',this,true,\'GASTRO\')">'+fmt(r.idiot)+'</td></tr>';
+  html+='<tr class="dt-price eop"><td class="dt-label">ΕΟΠΥΥ</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'eopyy\',this,true,\'GASTRO\')">'+fmt(r.eopyy)+'</td></tr>';
+  html+='<tr><td class="dt-label">Extra</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'extra\',this,false,\'GASTRO\')">'+(r.extra||'—')+'</td></tr>';
+  html+='<tr class="dt-full"><td class="dt-label" style="vertical-align:top;">Παρατηρήσεις</td><td class="dt-val"'+ce+stop+' onblur="saveGroupedField('+getRow+',\'notes\',this,false,\'GASTRO\')">'+(r.notes||'—')+'</td></tr>';
   html+='<tr><td class="dt-label">Ημ. αλλαγής</td><td class="dt-val">'+r.date+'</td></tr>';
   html+='</tbody></table></div>';
   html+='</div>';
