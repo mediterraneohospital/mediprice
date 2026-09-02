@@ -244,8 +244,8 @@ th{position:relative;}
 <input id="gsInput" placeholder="Αναζήτηση πράξης σε όλες τις ειδικότητες..." oninput="globalSearch(this.value)" onfocus="globalSearch(this.value)">
 <div class="gs-drop" id="gsDrop"></div>
 </div>
-<a href="plafond.html" style="margin-left:8px;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);color:var(--txt);padding:0 12px;height:32px;cursor:pointer;font-size:12.5px;display:flex;align-items:center;gap:6px;text-decoration:none;"><i class="ti ti-file-invoice"></i> Plafond</a>
-<a href="katigoriopoiisi.html" style="margin-left:6px;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);color:var(--txt);padding:0 12px;height:32px;cursor:pointer;font-size:12.5px;display:flex;align-items:center;gap:6px;text-decoration:none;"><i class="ti ti-list-details"></i> Κατηγοριοποίηση</a>
+<a href="plafond.html" id="plafondLink" style="margin-left:8px;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);color:var(--txt);padding:0 12px;height:32px;cursor:pointer;font-size:12.5px;display:flex;align-items:center;gap:6px;text-decoration:none;"><i class="ti ti-file-invoice"></i> Plafond</a>
+<a href="katigoriopoiisi.html" id="katLink" style="margin-left:6px;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);color:var(--txt);padding:0 12px;height:32px;cursor:pointer;font-size:12.5px;display:flex;align-items:center;gap:6px;text-decoration:none;"><i class="ti ti-list-details"></i> Κατηγοριοποίηση</a>
 <button id="editBtn" onclick="toggleEdit()" style="margin-left:8px;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);color:var(--txt);padding:0 12px;height:32px;cursor:pointer;font-size:12.5px;display:flex;align-items:center;gap:6px;"><i class="ti ti-pencil"></i> Επεξεργασία</button>
 <div id="editBar" style="display:none;align-items:center;gap:6px;margin-left:6px;">
 <button id="undoBtn" onclick="undoEdit()" disabled style="height:32px;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);color:var(--txt);padding:0 10px;font-size:12px;cursor:pointer;">↩ Αναίρεση</button>
@@ -521,12 +521,16 @@ function toggleEdit(){
     document.getElementById('editBtn').style.background='var(--acc)';
     document.getElementById('editBtn').style.color='#fff';
     document.getElementById('editBar').style.display='flex';
+    document.getElementById('plafondLink').style.display='none';
+    document.getElementById('katLink').style.display='none';
   }else{
     EDIT_MODE=false;
     document.getElementById('editBtn').innerHTML='<i class="ti ti-pencil"></i> Επεξεργασία';
     document.getElementById('editBtn').style.background='var(--s2)';
     document.getElementById('editBtn').style.color='var(--txt)';
     document.getElementById('editBar').style.display='none';
+    document.getElementById('plafondLink').style.display='flex';
+    document.getElementById('katLink').style.display='flex';
     if(BULK_MODE){
       BULK_MODE=false;
       document.getElementById('bulkModeBtn').style.background='#fdf3da';
@@ -748,12 +752,23 @@ function clearBulkSelection(){
 async function saveAllEdits(){
   const btn=event.target;
   const old=btn.innerHTML;
+  const oldBg=btn.style.background, oldBrd=btn.style.borderColor, oldColor=btn.style.color;
   btn.textContent='Αποθήκευση...';
   btn.disabled=true;
   const ok = await saveAllToSupabase();
   btn.textContent = ok ? '✓ Αποθηκεύτηκε' : '✕ Απέτυχε';
+  if(ok){
+    btn.style.background='var(--grn)';
+    btn.style.borderColor='var(--grn)';
+    btn.style.color='#fff';
+  }
   btn.disabled=false;
-  setTimeout(()=>{btn.innerHTML=old;},1800);
+  setTimeout(()=>{
+    btn.innerHTML=old;
+    btn.style.background=oldBg;
+    btn.style.borderColor=oldBrd;
+    btn.style.color=oldColor;
+  },ok?4000:2500);
 }
 
 function fmt(n){return n==null?'—':n.toLocaleString('el-GR')+'€';}
