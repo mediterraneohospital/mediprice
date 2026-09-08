@@ -97,7 +97,7 @@ main{overflow:hidden;display:flex;flex-direction:column;}
 .table-wrap{flex:1;overflow:auto;}
 table{border-collapse:collapse;width:auto;max-width:100%;font-size:12.8px;}
 th{background:var(--s2);color:var(--mut);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;padding:8px 14px;text-align:left;border-bottom:1px solid var(--brd);position:sticky;top:0;z-index:1;}
-th.code{width:70px;}th.cat{width:150px;}
+th.code{width:70px;}th.cat{width:150px;}th.fee{width:80px;text-align:center;}
 th.spec{width:190px;}
 th.desc{min-width:320px;max-width:640px;}
 td.desc{max-width:640px;}
@@ -123,6 +123,20 @@ tbody tr:hover{background:var(--s2);}
   header .hosp{display:none;}
   .det-searchbox{width:100%;margin-left:0;}
 }
+
+td.fee{text-align:center;}
+.fee-chip{background:var(--grn-bg);color:var(--grn-txt);border:1px solid transparent;border-radius:14px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.fee-chip:hover{border-color:var(--grn);}
+.fee-chip.none{background:var(--pill-bg);color:var(--pill-txt);cursor:default;}
+.fee-pop-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;display:flex;align-items:center;justify-content:center;}
+.fee-pop{background:var(--sur);border:1px solid var(--brd);border-radius:var(--r);padding:18px 20px;min-width:280px;max-width:360px;box-shadow:0 12px 40px rgba(0,0,0,.25);}
+.fee-pop h4{margin:0 0 10px;font-size:13.5px;color:var(--txt);}
+.fee-pop .fee-row{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--brd);font-size:12.5px;gap:12px;}
+.fee-pop .fee-row:last-child{border-bottom:none;}
+.fee-pop .fee-lbl{color:var(--mut);flex-shrink:0;}
+.fee-pop .fee-val{font-weight:700;color:var(--txt);text-align:right;}
+.fee-pop .fee-val small{display:block;font-weight:500;color:var(--mut);font-size:10.5px;}
+.fee-pop .fee-close{margin-top:12px;width:100%;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);padding:7px;cursor:pointer;color:var(--txt);font-family:inherit;font-size:12px;}
 </style>
 </head>
 <body>
@@ -154,7 +168,7 @@ tbody tr:hover{background:var(--s2);}
 <div class="cat-chips" id="catChips"></div>
 <div class="table-wrap">
 <table>
-<thead><tr><th class="code">Κωδικός</th><th class="desc">Περιγραφή</th><th class="spec">Ειδικότητα</th><th class="cat">Κατηγορία</th></tr></thead>
+<thead><tr><th class="code">Κωδικός</th><th class="desc">Περιγραφή</th><th class="spec">Ειδικότητα</th><th class="cat">Κατηγορία</th><th class="fee">Αμοιβές</th></tr></thead>
 <tbody id="rowsBody"></tbody>
 </table>
 </div>
@@ -310,17 +324,78 @@ function highlightMark(text, nq){
   return text.slice(0,idx) + '<mark>' + text.slice(idx, idx+nq.length) + '</mark>' + text.slice(idx+nq.length);
 }
 
+function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function getFeesFor(r){
+  if(typeof FEES_ETHNIKI === 'undefined') return null;
+  if(r.specialty === 'ΜΙΚΡΟΧΕΙΡΟΥΡΓΙΚΗ'){
+    var amt = FEES_ETHNIKI.microsurgery[r.code];
+    if(amt===undefined || amt===null) return null;
+    return {surgeon: amt, assistant: null, anesth: null};
+  }
+  var s = FEES_ETHNIKI.surgeon[r.specialty];
+  var surgeonFee = s ? s[r.category_label] : undefined;
+  var assistFee = FEES_ETHNIKI.assistant[r.category_label];
+  // Κάποιες παραλλαγές αναισθησίας ισχύουν ΜΟΝΟ για συγκεκριμένη ειδικότητα
+  // (π.χ. «ΟΦΘΑΛΜΟΛΟΓΙΚΑ» δεν είναι τεχνική αναισθησίας — είναι ειδική τιμή μόνο για οφθαλμολογικές πράξεις)
+  var SPECIALTY_ONLY_VARIANTS = {'ΟΦΘΑΛΜΟΛΟΓΙΚΑ':'ΟΦΘΑΛΜΟΛΟΓΙΚΕΣ'};
+  var rawAnesth = FEES_ETHNIKI.anesthesiologist[r.category_label];
+  var anesthOpts = null;
+  if(rawAnesth){
+    anesthOpts = {};
+    for(var k in rawAnesth){
+      var restrictedTo = SPECIALTY_ONLY_VARIANTS[k];
+      if(restrictedTo && r.specialty !== restrictedTo) continue;
+      anesthOpts[k] = rawAnesth[k];
+    }
+    if(Object.keys(anesthOpts).length===0) anesthOpts = null;
+  }
+  if((surgeonFee===undefined||surgeonFee===null||surgeonFee===0) && !assistFee && !anesthOpts) return null;
+  return {surgeon: surgeonFee, assistant: assistFee, anesth: anesthOpts};
+}
+function fmtEur(v){ return (v===undefined||v===null) ? '—' : ('€'+v.toLocaleString('el-GR',{minimumFractionDigits:2,maximumFractionDigits:2})); }
+function showFeePopover(idx, rowsRef){
+  var r = rowsRef[idx];
+  var f = getFeesFor(r);
+  if(!f) return;
+  var rowsHtml = '';
+  rowsHtml += '<div class="fee-row"><span class="fee-lbl"><i class="ti ti-scalpel" style="font-size:13px;margin-right:5px;"></i>Χειρουργός</span><span class="fee-val">'+fmtEur(f.surgeon)+'</span></div>';
+  if(f.assistant!==null && f.assistant!==undefined){
+    rowsHtml += '<div class="fee-row"><span class="fee-lbl"><i class="ti ti-user-plus" style="font-size:13px;margin-right:5px;"></i>Βοηθός</span><span class="fee-val">'+fmtEur(f.assistant)+'</span></div>';
+  }
+  if(f.anesth){
+    var parts = Object.keys(f.anesth).map(function(k){
+      if(!k) return fmtEur(f.anesth[k]);
+      return k.charAt(0)+k.slice(1).toLowerCase()+': '+fmtEur(f.anesth[k]);
+    });
+    rowsHtml += '<div class="fee-row"><span class="fee-lbl"><i class="ti ti-mask" style="font-size:13px;margin-right:5px;"></i>Αναισθησιολόγος</span><span class="fee-val">'+parts.join('<br>')+'</span></div>';
+  }
+  var host = document.createElement('div');
+  host.className='fee-pop-backdrop';
+  host.onclick=function(e){ if(e.target===host) host.remove(); };
+  host.innerHTML = '<div class="fee-pop"><h4>'+escapeHtml(r.description)+'</h4>'+rowsHtml+'<button class="fee-close" onclick="this.closest(\'.fee-pop-backdrop\').remove()">Κλείσιμο</button></div>';
+  document.body.appendChild(host);
+}
+var _lastRenderedRows = [];
 function renderRows(){
   var rows = getFilteredRows();
+  _lastRenderedRows = rows;
   var nq = norm(currentQuery);
   var body = document.getElementById('rowsBody');
-  if(!rows.length){ body.innerHTML = '<tr><td colspan="4"><div class="empty-note">Δεν βρέθηκαν πράξεις.</div></td></tr>'; return; }
+  var isEthniki = INSURERS[currentIns].key === 'ETHNIKI';
+  if(!rows.length){ body.innerHTML = '<tr><td colspan="5"><div class="empty-note">Δεν βρέθηκαν πράξεις.</div></td></tr>'; return; }
   var capped = rows.length > 500 && !nq && !currentCat && !currentSpecialty;
   var toRender = capped ? rows.slice(0, 500) : rows;
-  body.innerHTML = toRender.map(function(r){
+  body.innerHTML = toRender.map(function(r,i){
     var numIdx = CAT_ORDER.indexOf(r.category_label)+1;
-    return '<tr><td class="code">'+(r.code||'—')+'</td><td class="desc">'+highlightMark(r.description, nq)+'</td><td style="color:var(--mut);font-size:11.5px;">'+r.specialty+'</td><td><span class="cat-badge '+catClass(numIdx||1)+'">'+r.category_label+'</span></td></tr>';
-  }).join('') + (capped ? '<tr><td colspan="4"><div class="gs-more">Δείχνονται οι πρώτες 500 από '+rows.length+' — γράψε κάτι στην αναζήτηση για να στενέψεις τα αποτελέσματα</div></td></tr>' : '');
+    var feeCell = '<td class="fee"></td>';
+    if(isEthniki){
+      var f = getFeesFor(r);
+      feeCell = f ? '<td class="fee"><button class="fee-chip" onclick="showFeePopover('+i+', _lastRenderedRows)">€ Δες</button></td>' : '<td class="fee"><span class="fee-chip none">—</span></td>';
+    } else {
+      feeCell = '<td class="fee"><span class="fee-chip none" title="Οι αμοιβές είναι διαθέσιμες μόνο για ΕΘΝΙΚΗ">—</span></td>';
+    }
+    return '<tr><td class="code">'+(r.code||'—')+'</td><td class="desc">'+highlightMark(r.description, nq)+'</td><td style="color:var(--mut);font-size:11.5px;">'+r.specialty+'</td><td><span class="cat-badge '+catClass(numIdx||1)+'">'+r.category_label+'</span></td>'+feeCell+'</tr>';
+  }).join('') + (capped ? '<tr><td colspan="5"><div class="gs-more">Δείχνονται οι πρώτες 500 από '+rows.length+' — γράψε κάτι στην αναζήτηση για να στενέψεις τα αποτελέσματα</div></td></tr>' : '');
 }
 
 function toggleDark(){
