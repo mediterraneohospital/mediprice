@@ -211,7 +211,7 @@ function getFilteredRows(){
   return data.filter(function(r){
     if(currentSpecialty && r.specialty!==currentSpecialty) return false;
     if(currentCat && r.category_label!==currentCat) return false;
-    if(nq && norm(r.description).indexOf(nq)<0) return false;
+    if(nq && norm(r.description).indexOf(nq)<0 && norm(r.code).indexOf(nq)<0) return false;
     return true;
   });
 }
@@ -220,7 +220,7 @@ function getFilteredRowsIgnoringCat(){
   var nq = norm(currentQuery);
   return data.filter(function(r){
     if(currentSpecialty && r.specialty!==currentSpecialty) return false;
-    if(nq && norm(r.description).indexOf(nq)<0) return false;
+    if(nq && norm(r.description).indexOf(nq)<0 && norm(r.code).indexOf(nq)<0) return false;
     return true;
   });
 }
@@ -228,7 +228,7 @@ function getFilteredRowsIgnoringSpecialty(){
   var data = INSURERS[currentIns].data;
   var nq = norm(currentQuery);
   return data.filter(function(r){
-    if(nq && norm(r.description).indexOf(nq)<0) return false;
+    if(nq && norm(r.description).indexOf(nq)<0 && norm(r.code).indexOf(nq)<0) return false;
     return true;
   });
 }
