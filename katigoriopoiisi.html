@@ -136,6 +136,9 @@ td.fee{text-align:center;}
 .fee-pop .fee-lbl{color:var(--mut);flex-shrink:0;}
 .fee-pop .fee-val{font-weight:700;color:var(--txt);text-align:right;}
 .fee-pop .fee-val small{display:block;font-weight:500;color:var(--mut);font-size:10.5px;}
+.fee-pop .fee-note{margin-top:10px;padding:10px 11px;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);}
+.fee-pop .fee-note-title{font-size:11px;font-weight:700;color:var(--mut);margin-bottom:6px;}
+.fee-pop .fee-note-text{font-size:11.5px;line-height:1.5;color:var(--txt);white-space:pre-wrap;}
 .fee-pop .fee-close{margin-top:12px;width:100%;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);padding:7px;cursor:pointer;color:var(--txt);font-family:inherit;font-size:12px;}
 </style>
 </head>
@@ -327,6 +330,11 @@ function highlightMark(text, nq){
 function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function getFeesFor(r){
   if(typeof FEES_ETHNIKI === 'undefined') return null;
+  if(r.specialty === 'ΕΠΕΜΒΑΤΙΚΕΣ ΚΑΡΔΙΟΛΟΓΙΚΕΣ ΠΡΑΞΕΙΣ'){
+    var item = FEES_ETHNIKI.interventional_cardiology && FEES_ETHNIKI.interventional_cardiology[r.description];
+    if(!item) return null;
+    return {surgeon:item.fee, assistant:null, anesth:null, doctorLabel:'Αμοιβή Ιατρού', note:item.note||null};
+  }
   if(r.specialty === 'ΜΙΚΡΟΧΕΙΡΟΥΡΓΙΚΗ'){
     var amt = FEES_ETHNIKI.microsurgery[r.code];
     if(amt===undefined || amt===null) return null;
@@ -363,7 +371,8 @@ function showFeePopover(idx, rowsRef){
   var f = getFeesFor(r);
   if(!f) return;
   var rowsHtml = '';
-  rowsHtml += '<div class="fee-row"><span class="fee-lbl"><i class="ti ti-scalpel" style="font-size:13px;margin-right:5px;"></i>Χειρουργός</span><span class="fee-val">'+fmtEur(f.surgeon)+'</span></div>';
+  var doctorLabel = f.doctorLabel || 'Χειρουργός';
+  rowsHtml += '<div class="fee-row"><span class="fee-lbl"><i class="ti ti-scalpel" style="font-size:13px;margin-right:5px;"></i>'+escapeHtml(doctorLabel)+'</span><span class="fee-val">'+fmtEur(f.surgeon)+'</span></div>';
   if(f.assistant!==null && f.assistant!==undefined){
     rowsHtml += '<div class="fee-row"><span class="fee-lbl"><i class="ti ti-user-plus" style="font-size:13px;margin-right:5px;"></i>Βοηθός</span><span class="fee-val">'+fmtEur(f.assistant)+'</span></div>';
   }
@@ -373,6 +382,9 @@ function showFeePopover(idx, rowsRef){
       return k.charAt(0)+k.slice(1).toLowerCase()+': '+fmtEur(f.anesth[k]);
     });
     rowsHtml += '<div class="fee-row"><span class="fee-lbl"><i class="ti ti-mask" style="font-size:13px;margin-right:5px;"></i>Αναισθησιολόγος</span><span class="fee-val">'+parts.join('<br>')+'</span></div>';
+  }
+  if(f.note){
+    rowsHtml += '<div class="fee-note"><div class="fee-note-title"><i class="ti ti-notes" style="font-size:13px;margin-right:5px;"></i>Παρατήρηση / Συμφωνία</div><div class="fee-note-text">'+escapeHtml(f.note)+'</div></div>';
   }
   var host = document.createElement('div');
   host.className='fee-pop-backdrop';
@@ -402,7 +414,8 @@ function renderRows(){
     } else {
       feeCell = '<td class="fee"><span class="fee-chip none" title="Οι αμοιβές είναι διαθέσιμες μόνο για ΕΘΝΙΚΗ">—</span></td>';
     }
-    return '<tr><td class="code">'+(r.code||'—')+'</td><td class="desc">'+highlightMark(r.description, nq)+'</td><td style="color:var(--mut);font-size:11.5px;">'+r.specialty+'</td><td><span class="cat-badge '+catClass(numIdx||1)+'">'+r.category_label+'</span></td>'+feeCell+'</tr>';
+    var catCell = r.category_label ? '<td><span class="cat-badge '+catClass(numIdx||1)+'">'+r.category_label+'</span></td>' : '<td></td>';
+    return '<tr><td class="code">'+(r.code||'')+'</td><td class="desc">'+highlightMark(r.description, nq)+'</td><td style="color:var(--mut);font-size:11.5px;">'+r.specialty+'</td>'+catCell+feeCell+'</tr>';
   }).join('') + (capped ? '<tr><td colspan="5"><div class="gs-more">Δείχνονται οι πρώτες 500 από '+rows.length+' — γράψε κάτι στην αναζήτηση για να στενέψεις τα αποτελέσματα</div></td></tr>' : '');
 }
 
