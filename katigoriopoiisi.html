@@ -222,15 +222,26 @@ function clearSearch(){
   updateView();
 }
 
+function sortRowsBySpecialtyPreserveOrder(rows){
+  // Αλφαβητική σειρά ειδικοτήτων (Α→Ω), χωρίς να αλλάζει η αρχική σειρά
+  // των πράξεων μέσα στην ίδια ειδικότητα.
+  return rows.map(function(r, i){ return {row:r, originalIndex:i}; })
+    .sort(function(a, b){
+      var cmp = (a.row.specialty||'').localeCompare((b.row.specialty||''), 'el-GR', {sensitivity:'base'});
+      return cmp || (a.originalIndex - b.originalIndex);
+    })
+    .map(function(x){ return x.row; });
+}
 function getFilteredRows(){
   var data = INSURERS[currentIns].data;
   var nq = norm(currentQuery);
-  return data.filter(function(r){
+  var rows = data.filter(function(r){
     if(currentSpecialty && r.specialty!==currentSpecialty) return false;
     if(currentCat && r.category_label!==currentCat) return false;
     if(nq && norm(r.description).indexOf(nq)<0 && norm(r.code).indexOf(nq)<0) return false;
     return true;
   });
+  return sortRowsBySpecialtyPreserveOrder(rows);
 }
 function getFilteredRowsIgnoringCat(){
   var data = INSURERS[currentIns].data;
@@ -295,7 +306,7 @@ function renderSidebarBreakdown(){
   var rows = getFilteredRowsIgnoringSpecialty();
   var map = {};
   rows.forEach(function(r){ if(r.specialty) map[r.specialty] = (map[r.specialty]||0)+1; });
-  var specs = Object.keys(map).sort(function(a,b){ return map[b]-map[a] || a.localeCompare(b,'el'); });
+  var specs = Object.keys(map).sort(function(a,b){ return a.localeCompare(b,'el-GR',{sensitivity:'base'}); });
   var list = document.getElementById('sbList');
   if(!specs.length){ list.innerHTML = '<div class="sb-item" style="opacity:.5;cursor:default;">Καμία πράξη δεν βρέθηκε.</div>'; return; }
   list.innerHTML = specs.map(function(name){
@@ -332,6 +343,21 @@ function getFeesFor(r){
   if(typeof FEES_ETHNIKI === 'undefined') return null;
   if(r.specialty === 'ΕΠΕΜΒΑΤΙΚΕΣ ΚΑΡΔΙΟΛΟΓΙΚΕΣ ΠΡΑΞΕΙΣ'){
     var item = FEES_ETHNIKI.interventional_cardiology && FEES_ETHNIKI.interventional_cardiology[r.description];
+    if(!item) return null;
+    return {surgeon:item.fee, assistant:null, anesth:null, doctorLabel:'Αμοιβή Ιατρού', note:item.note||null};
+  }
+  if(r.specialty === 'ΕΠΕΜΒΑΤΙΚΕΣ ΠΡΑΞΕΙΣ'){
+    var item = FEES_ETHNIKI.medical_procedures && FEES_ETHNIKI.medical_procedures[r.fee_key || r.description];
+    if(!item) return null;
+    return {surgeon:item.fee, feeText:item.fee_text||null, assistant:null, anesth:null, doctorLabel:'Αμοιβή Ιατρού', note:item.note||null};
+  }
+  if(r.specialty === 'ΑΝΑΙΣΘΗΣΙΟΛΟΓΙΚΕΣ ΠΡΑΞΕΙΣ'){
+    var item = FEES_ETHNIKI.anesthesiology_procedures && FEES_ETHNIKI.anesthesiology_procedures[r.fee_key || r.description];
+    if(!item) return null;
+    return {surgeon:null, assistant:null, anesth:{'':item.fee}, hideDoctor:true, note:item.note||null};
+  }
+  if(r.specialty === 'ΓΑΣΤΡΕΝΤΕΡΟΛΟΓΙΚΕΣ ΠΡΑΞΕΙΣ'){
+    var item = FEES_ETHNIKI.gastroenterology_procedures && FEES_ETHNIKI.gastroenterology_procedures[r.fee_key || r.description];
     if(!item) return null;
     return {surgeon:item.fee, assistant:null, anesth:null, doctorLabel:'Αμοιβή Ιατρού', note:item.note||null};
   }
@@ -372,7 +398,9 @@ function showFeePopover(idx, rowsRef){
   if(!f) return;
   var rowsHtml = '';
   var doctorLabel = f.doctorLabel || 'Χειρουργός';
-  rowsHtml += '<div class="fee-row"><span class="fee-lbl"><i class="ti ti-scalpel" style="font-size:13px;margin-right:5px;"></i>'+escapeHtml(doctorLabel)+'</span><span class="fee-val">'+fmtEur(f.surgeon)+'</span></div>';
+  if(!f.hideDoctor){
+    rowsHtml += '<div class="fee-row"><span class="fee-lbl"><i class="ti ti-scalpel" style="font-size:13px;margin-right:5px;"></i>'+escapeHtml(doctorLabel)+'</span><span class="fee-val">'+(f.feeText ? escapeHtml(f.feeText) : fmtEur(f.surgeon))+'</span></div>';
+  }
   if(f.assistant!==null && f.assistant!==undefined){
     rowsHtml += '<div class="fee-row"><span class="fee-lbl"><i class="ti ti-user-plus" style="font-size:13px;margin-right:5px;"></i>Βοηθός</span><span class="fee-val">'+fmtEur(f.assistant)+'</span></div>';
   }
