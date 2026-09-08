@@ -353,6 +353,11 @@ function getFeesFor(r){
   return {surgeon: surgeonFee, assistant: assistFee, anesth: anesthOpts};
 }
 function fmtEur(v){ return (v===undefined||v===null) ? '—' : ('€'+v.toLocaleString('el-GR',{minimumFractionDigits:2,maximumFractionDigits:2})); }
+function closeFeePopover(host){
+  if(!host) return;
+  if(host._onEsc) document.removeEventListener('keydown', host._onEsc);
+  host.remove();
+}
 function showFeePopover(idx, rowsRef){
   var r = rowsRef[idx];
   var f = getFeesFor(r);
@@ -371,8 +376,11 @@ function showFeePopover(idx, rowsRef){
   }
   var host = document.createElement('div');
   host.className='fee-pop-backdrop';
-  host.onclick=function(e){ if(e.target===host) host.remove(); };
-  host.innerHTML = '<div class="fee-pop"><h4>'+escapeHtml(r.description)+'</h4>'+rowsHtml+'<button class="fee-close" onclick="this.closest(\'.fee-pop-backdrop\').remove()">Κλείσιμο</button></div>';
+  host.onclick=function(e){ if(e.target===host) closeFeePopover(host); };
+  var onEsc = function(e){ if(e.key==='Escape') closeFeePopover(host); };
+  document.addEventListener('keydown', onEsc);
+  host._onEsc = onEsc;
+  host.innerHTML = '<div class="fee-pop"><h4>'+escapeHtml(r.description)+'</h4>'+rowsHtml+'<button class="fee-close" onclick="closeFeePopover(this.closest(\'.fee-pop-backdrop\'))">Κλείσιμο</button></div>';
   document.body.appendChild(host);
 }
 var _lastRenderedRows = [];
