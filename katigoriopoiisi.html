@@ -140,6 +140,109 @@ td.fee{text-align:center;}
 .fee-pop .fee-note-title{font-size:11px;font-weight:700;color:var(--mut);margin-bottom:6px;}
 .fee-pop .fee-note-text{font-size:11.5px;line-height:1.5;color:var(--txt);white-space:pre-wrap;}
 .fee-pop .fee-close{margin-top:12px;width:100%;background:var(--s2);border:1px solid var(--brd);border-radius:var(--r-sm);padding:7px;cursor:pointer;color:var(--txt);font-family:inherit;font-size:12px;}
+
+/* ΕΘΝΙΚΗ — Υπολογιστής Παρακολούθησης / Συμπαρακολούθησης */
+.follow-calc-launch{
+  display:none;align-items:center;gap:7px;margin-left:8px;
+  background:var(--acc);color:#fff;border:1px solid var(--acc);border-radius:20px;
+  padding:7px 13px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;
+  white-space:nowrap;
+}
+.follow-calc-launch:hover{filter:brightness(.96);}
+.follow-calc-launch.show{display:flex;}
+
+.follow-modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:300;
+  display:flex;align-items:center;justify-content:center;padding:18px;
+}
+.follow-modal{
+  width:min(760px,96vw);max-height:92vh;overflow:auto;
+  background:var(--sur);border:1px solid var(--brd);border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.30);
+}
+.follow-modal-head{
+  display:flex;align-items:flex-start;gap:12px;padding:20px 22px 15px;
+  border-bottom:1px solid var(--brd);
+}
+.follow-modal-title{font-size:17px;font-weight:800;margin:0 0 4px;}
+.follow-modal-sub{font-size:11.5px;color:var(--mut);line-height:1.45;}
+.follow-modal-x{
+  margin-left:auto;width:30px;height:30px;border-radius:50%;border:1px solid var(--brd);
+  background:var(--s2);color:var(--txt);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.follow-modal-body{padding:18px 22px 22px;}
+.follow-visit-box{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:9px 12px;margin-bottom:14px;border:1px solid var(--brd);
+  background:var(--s2);border-radius:9px;
+}
+.follow-visit-box .lbl{font-size:11px;font-weight:800;color:var(--txt);}
+.follow-visit-box .val{font-size:15px;font-weight:850;color:var(--txt);white-space:nowrap;}
+.follow-seg{
+  display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:4px;background:var(--s2);
+  border:1px solid var(--brd);border-radius:10px;margin-bottom:16px;
+}
+.follow-seg button{
+  border:0;border-radius:7px;padding:9px 10px;background:transparent;color:var(--mut);
+  font-family:inherit;font-size:11.5px;font-weight:800;cursor:pointer;
+}
+.follow-seg button.active{background:var(--sur);color:var(--acc-txt);box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.follow-input-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.follow-field label{display:block;font-size:11px;font-weight:800;color:var(--txt);margin-bottom:6px;}
+.follow-field input{
+  width:100%;height:40px;background:var(--sur);border:1px solid var(--brd);
+  border-radius:9px;color:var(--txt);font:inherit;padding:0 12px;outline:none;
+}
+.follow-field input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(59,111,224,.10);}
+.follow-hint{font-size:10.5px;color:var(--mut);margin-top:5px;}
+.follow-error{
+  margin-top:12px;padding:9px 10px;border-radius:8px;background:#fff0f0;
+  border:1px solid #f0cccc;color:#a73636;font-size:11px;display:none;
+}
+[data-dark] .follow-error{background:#3a2023;border-color:#63343a;color:#f2a7ad;}
+.follow-result{
+  margin-top:16px;padding:15px;border-radius:12px;background:var(--grn-bg);
+  border:1px solid #cfe5d9;
+}
+.follow-result.hidden{display:none;}
+.follow-result-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:12px;}
+.follow-result-label{font-size:11px;font-weight:800;color:var(--grn-txt);margin-bottom:3px;}
+.follow-total{font-size:27px;font-weight:900;color:var(--grn-txt);}
+.follow-days{font-size:10.5px;color:var(--mut);text-align:right;line-height:1.4;}
+.follow-breakdown{
+  width:100%;max-width:none;border-collapse:collapse;background:var(--sur);border-radius:9px;overflow:hidden;
+}
+.follow-breakdown th,.follow-breakdown td{
+  position:static;background:transparent;padding:8px 9px;border-bottom:1px solid var(--brd);
+  font-size:10.5px;text-transform:none;letter-spacing:0;color:var(--txt);
+}
+.follow-breakdown th{font-weight:800;color:var(--mut);background:var(--s2);}
+.follow-breakdown td:last-child,.follow-breakdown th:last-child{text-align:right;}
+.follow-breakdown tr:last-child td{border-bottom:0;}
+.follow-rates{margin-top:17px;padding-top:15px;border-top:1px solid var(--brd);}
+.follow-rates-title{font-size:11.5px;font-weight:800;margin-bottom:9px;}
+.follow-rate-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.follow-rate-box{padding:10px 11px;border:1px solid var(--brd);border-radius:9px;background:var(--s2);}
+.follow-rate-box strong{display:block;font-size:10.5px;margin-bottom:5px;}
+.follow-rate-row{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-size:10px;color:var(--mut);}
+.follow-rate-row b{color:var(--txt);font-weight:700;white-space:nowrap;}
+.follow-footnote{font-size:10px;color:var(--mut);margin-top:9px;line-height:1.45;}
+.follow-actions{display:flex;justify-content:flex-end;margin-top:13px;}
+.follow-clear{
+  display:inline-flex;align-items:center;gap:6px;border:1px solid var(--brd);
+  background:var(--s2);color:var(--mut);border-radius:8px;padding:7px 10px;
+  font-family:inherit;font-size:10.5px;font-weight:750;cursor:pointer;
+}
+.follow-clear:hover{color:var(--txt);background:var(--sur);}
+
+@media(max-width:650px){
+  .follow-input-grid,.follow-rate-grid{grid-template-columns:1fr;}
+  .follow-result-top{align-items:flex-start;flex-direction:column;}
+  .follow-days{text-align:left;}
+  .follow-calc-launch{margin-left:0;}
+}
+
 </style>
 </head>
 <body>
@@ -166,6 +269,7 @@ td.fee{text-align:center;}
 <div class="detail" id="detail">
 <div class="det-head">
 <div class="det-name" id="detName">Όλες οι ειδικότητες — MEDNET</div>
+<button id="followCalcLaunch" class="follow-calc-launch" onclick="openFollowCalculator()"><i class="ti ti-calculator"></i> Υπολογιστής παρακολούθησης</button>
 </div>
 <div class="active-filters" id="activeFilters" style="display:none;"></div>
 <div class="cat-chips" id="catChips"></div>
@@ -264,6 +368,8 @@ function getFilteredRowsIgnoringSpecialty(){
 function updateView(){
   var label = (currentQuery ? 'Αποτελέσματα για "'+currentQuery+'"' : 'Όλες οι ειδικότητες') + (currentSpecialty ? ' · '+currentSpecialty : '');
   document.getElementById('detName').textContent = label + ' — ' + INSURERS[currentIns].label;
+  var calcBtn = document.getElementById('followCalcLaunch');
+  if(calcBtn) calcBtn.classList.toggle('show', INSURERS[currentIns].key === 'ETHNIKI');
   renderActiveFilters();
   renderSidebarBreakdown();
   renderChips();
@@ -445,6 +551,163 @@ function renderRows(){
     var catCell = r.category_label ? '<td><span class="cat-badge '+catClass(numIdx||1)+'">'+r.category_label+'</span></td>' : '<td></td>';
     return '<tr><td class="code">'+(r.code||'')+'</td><td class="desc">'+highlightMark(r.description, nq)+'</td><td style="color:var(--mut);font-size:11.5px;">'+r.specialty+'</td>'+catCell+feeCell+'</tr>';
   }).join('') + (capped ? '<tr><td colspan="5"><div class="gs-more">Δείχνονται οι πρώτες 500 από '+rows.length+' — γράψε κάτι στην αναζήτηση για να στενέψεις τα αποτελέσματα</div></td></tr>' : '');
+}
+
+
+var FOLLOW_CALC_FEES = {
+  follow:{flat2:181,d3_5:90,d6_20:68,d21:46,label:'Παρακολούθηση'},
+  co:{flat2:226,d3_5:112,d6_20:82,d21:59,label:'Συμπαρακολούθηση'}
+};
+var followCalcMode = 'follow';
+
+function followCalcEuro(v){
+  return v.toLocaleString('el-GR',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function followCalcOverlap(start,end,bandStart,bandEndExclusive){
+  var a=Math.max(start,bandStart), b=Math.min(end,bandEndExclusive);
+  return Math.max(0,b-a);
+}
+function closeFollowCalculator(host){
+  host = host || document.getElementById('followCalcBackdrop');
+  if(!host) return;
+  if(host._onEsc) document.removeEventListener('keydown',host._onEsc);
+  host.remove();
+}
+function setFollowCalcMode(mode){
+  followCalcMode = mode;
+  var a=document.getElementById('followModeBtn'), b=document.getElementById('coModeBtn');
+  if(a) a.classList.toggle('active',mode==='follow');
+  if(b) b.classList.toggle('active',mode==='co');
+  calculateFollowFee();
+}
+function calculateFollowFee(){
+  var startEl=document.getElementById('followStartDay');
+  var endEl=document.getElementById('followEndDay');
+  var result=document.getElementById('followCalcResult');
+  var error=document.getElementById('followCalcError');
+  if(!startEl||!endEl||!result||!error) return;
+
+  error.style.display='none';
+  result.classList.add('hidden');
+
+  var start=Number(startEl.value), end=Number(endEl.value);
+  if(!Number.isInteger(start)||!Number.isInteger(end)||start<0||end<0){
+    error.textContent='Βάλε έγκυρες ακέραιες ημέρες νοσηλείας.';
+    error.style.display='block'; return;
+  }
+  if(start===0 && end===0) return;
+  if(start<1 || end<1){
+    error.textContent='Για να γίνει υπολογισμός, συμπλήρωσε ημέρα έναρξης και ημέρα λήξης.';
+    error.style.display='block'; return;
+  }
+  if(end<=start){
+    error.textContent='Η ημέρα λήξης πρέπει να είναι μεγαλύτερη από την ημέρα έναρξης.';
+    error.style.display='block'; return;
+  }
+
+  var f=FOLLOW_CALC_FEES[followCalcMode], rows=[], total=0;
+  var early=followCalcOverlap(start,end,1,3);
+  if(early>0){
+    total+=f.flat2;
+    rows.push({band:'1η–2η ημέρα',calc:'Ενιαία αμοιβή',amount:f.flat2});
+  }
+  var d35=followCalcOverlap(start,end,3,6);
+  if(d35>0){
+    var a35=d35*f.d3_5; total+=a35;
+    rows.push({band:'3η–5η ημέρα',calc:d35+' '+(d35===1?'ημέρα':'ημέρες')+' × '+followCalcEuro(f.d3_5),amount:a35});
+  }
+  var d620=followCalcOverlap(start,end,6,21);
+  if(d620>0){
+    var a620=d620*f.d6_20; total+=a620;
+    rows.push({band:'6η–20ή ημέρα',calc:d620+' '+(d620===1?'ημέρα':'ημέρες')+' × '+followCalcEuro(f.d6_20),amount:a620});
+  }
+  var d21=Math.max(0,end-Math.max(start,21));
+  if(d21>0){
+    var a21=d21*f.d21; total+=a21;
+    rows.push({band:'21η ημέρα και άνω',calc:d21+' '+(d21===1?'ημέρα':'ημέρες')+' × '+followCalcEuro(f.d21),amount:a21});
+  }
+
+  document.getElementById('followCalcResultLabel').textContent=f.label;
+  document.getElementById('followCalcTotal').textContent=followCalcEuro(total);
+  document.getElementById('followCalcDays').innerHTML='Από <b>'+start+'η</b> έως <b>'+end+'η</b> ημέρα<br><b>'+(end-start)+'</b> χρεώσιμες ημέρες';
+  document.getElementById('followCalcBreakdown').innerHTML=rows.map(function(r){
+    return '<tr><td>'+r.band+'</td><td>'+r.calc+'</td><td><b>'+followCalcEuro(r.amount)+'</b></td></tr>';
+  }).join('');
+  result.classList.remove('hidden');
+}
+function clearFollowCalculator(){
+  var start=document.getElementById('followStartDay');
+  var end=document.getElementById('followEndDay');
+  if(start) start.value='0';
+  if(end) end.value='0';
+  followCalcMode='follow';
+  var b1=document.getElementById('followModeBtn');
+  var b2=document.getElementById('coModeBtn');
+  if(b1) b1.classList.add('active');
+  if(b2) b2.classList.remove('active');
+  var err=document.getElementById('followCalcError');
+  var res=document.getElementById('followCalcResult');
+  if(err){ err.style.display='none'; err.textContent=''; }
+  if(res) res.classList.add('hidden');
+}
+function openFollowCalculator(){
+  if(INSURERS[currentIns].key!=='ETHNIKI') return;
+  var existing=document.getElementById('followCalcBackdrop');
+  if(existing) existing.remove();
+
+  followCalcMode='follow';
+  var host=document.createElement('div');
+  host.id='followCalcBackdrop';
+  host.className='follow-modal-backdrop';
+  var onEsc=function(e){ if(e.key==='Escape') closeFollowCalculator(host); };
+  document.addEventListener('keydown',onEsc); host._onEsc=onEsc;
+
+  host.innerHTML =
+    '<div class="follow-modal">'+
+      '<div class="follow-modal-head">'+
+        '<div><div class="follow-modal-title">Υπολογιστής αμοιβής παρακολούθησης</div>'+
+        '<div class="follow-modal-sub">ΕΘΝΙΚΗ — Αυτόματος υπολογισμός βάσει ημέρας νοσηλείας. Η ημέρα λήξης/εξόδου δεν χρεώνεται.</div></div>'+
+        '<button class="follow-modal-x" onclick="closeFollowCalculator(this.closest(&quot;.follow-modal-backdrop&quot;))" title="Κλείσιμο"><i class="ti ti-x"></i></button>'+
+      '</div>'+
+      '<div class="follow-modal-body">'+
+        '<div class="follow-visit-box">'+
+          '<div class="lbl"><i class="ti ti-stethoscope" style="margin-right:6px;"></i>Αμοιβή Ιατρικής Επίσκεψης</div>'+
+          '<div class="val">50,00 €</div>'+
+        '</div>'+
+        '<div class="follow-seg">'+
+          '<button id="followModeBtn" class="active" onclick="setFollowCalcMode(&quot;follow&quot;)">Παρακολούθηση</button>'+
+          '<button id="coModeBtn" onclick="setFollowCalcMode(&quot;co&quot;)">Συμπαρακολούθηση</button>'+
+        '</div>'+
+        '<div class="follow-actions" style="margin-top:-6px;margin-bottom:8px;"><button type="button" class="follow-clear" onclick="clearFollowCalculator()"><i class="ti ti-eraser"></i>Καθαρισμός</button></div>'+
+        '<div class="follow-input-grid">'+
+          '<div class="follow-field"><label>Έναρξη παρακολούθησης</label><input id="followStartDay" type="number" min="0" step="1" value="0" oninput="calculateFollowFee()"><div class="follow-hint">0 = δεν έχει οριστεί ακόμη ημέρα έναρξης</div></div>'+
+          '<div class="follow-field"><label>Λήξη / ημέρα εξόδου</label><input id="followEndDay" type="number" min="0" step="1" value="0" oninput="calculateFollowFee()"><div class="follow-hint">Η ημέρα λήξης/εξόδου δεν χρεώνεται</div></div>'+
+        '</div>'+
+        '<div id="followCalcError" class="follow-error"></div>'+
+        '<div id="followCalcResult" class="follow-result hidden">'+
+          '<div class="follow-result-top"><div><div id="followCalcResultLabel" class="follow-result-label">Παρακολούθηση</div><div id="followCalcTotal" class="follow-total">0,00 €</div></div><div id="followCalcDays" class="follow-days"></div></div>'+
+          '<table class="follow-breakdown"><thead><tr><th>Διάστημα</th><th>Υπολογισμός</th><th>Ποσό</th></tr></thead><tbody id="followCalcBreakdown"></tbody></table>'+
+        '</div>'+
+        '<div class="follow-rates">'+
+          '<div class="follow-rates-title">Τιμές πίνακα</div>'+
+          '<div class="follow-rate-grid">'+
+            '<div class="follow-rate-box"><strong>Παρακολούθηση</strong>'+
+              '<div class="follow-rate-row"><span>Έως 2 ημέρες</span><b>181 € συνολικά</b></div>'+
+              '<div class="follow-rate-row"><span>3η–5η ημέρα</span><b>90 €/ημέρα</b></div>'+
+              '<div class="follow-rate-row"><span>6η–20ή ημέρα</span><b>68 €/ημέρα</b></div>'+
+              '<div class="follow-rate-row"><span>21η ημέρα και άνω</span><b>46 €/ημέρα</b></div></div>'+
+            '<div class="follow-rate-box"><strong>Συμπαρακολούθηση</strong>'+
+              '<div class="follow-rate-row"><span>Έως 2 ημέρες</span><b>226 € συνολικά</b></div>'+
+              '<div class="follow-rate-row"><span>3η–5η ημέρα</span><b>112 €/ημέρα</b></div>'+
+              '<div class="follow-rate-row"><span>6η–20ή ημέρα</span><b>82 €/ημέρα</b></div>'+
+              '<div class="follow-rate-row"><span>21η ημέρα και άνω</span><b>59 €/ημέρα</b></div></div>'+
+          '</div>'+
+          '<div class="follow-footnote">Η 1η–2η ημέρα λειτουργεί ως ενιαία αμοιβή, όχι ως ποσό ανά ημέρα. Από την 3η ημέρα και μετά γίνεται ημερήσιος υπολογισμός ανά ζώνη.</div>'+
+        '</div>'+
+
+      '</div>'+
+    '</div>';
+  document.body.appendChild(host);
 }
 
 function toggleDark(){
