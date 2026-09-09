@@ -153,10 +153,10 @@ td.fee{text-align:center;}
 
 .follow-modal-backdrop{
   position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:300;
-  display:flex;align-items:center;justify-content:center;padding:18px;
+  display:flex;align-items:center;justify-content:center;padding:10px;overflow:auto;
 }
 .follow-modal{
-  width:min(760px,96vw);max-height:92vh;overflow:auto;
+  width:min(760px,96vw);overflow:hidden;
   background:var(--sur);border:1px solid var(--brd);border-radius:16px;
   box-shadow:0 20px 60px rgba(0,0,0,.30);
 }
@@ -203,9 +203,14 @@ td.fee{text-align:center;}
 [data-dark] .follow-error{background:#3a2023;border-color:#63343a;color:#f2a7ad;}
 .follow-result{
   margin-top:16px;padding:15px;border-radius:12px;background:var(--grn-bg);
-  border:1px solid #cfe5d9;
+  border:1px solid #cfe5d9;height:212px;overflow:hidden;
 }
-.follow-result.hidden{display:none;}
+.follow-result.hidden{display:block;}
+.follow-result-placeholder{
+  height:180px;display:flex;align-items:center;justify-content:center;
+  text-align:center;color:var(--mut);font-size:11.5px;line-height:1.5;padding:18px;
+}
+.follow-result-content{display:none;}
 .follow-result-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:12px;}
 .follow-result-label{font-size:11px;font-weight:800;color:var(--grn-txt);margin-bottom:3px;}
 .follow-total{font-size:27px;font-weight:900;color:var(--grn-txt);}
@@ -241,6 +246,31 @@ td.fee{text-align:center;}
   .follow-result-top{align-items:flex-start;flex-direction:column;}
   .follow-days{text-align:left;}
   .follow-calc-launch{margin-left:0;}
+}
+
+
+.follow-breakdown-wrap{
+  border-radius:9px;
+  overflow:hidden;
+  background:var(--sur);
+}
+.follow-breakdown-head{
+  margin:0;
+  table-layout:fixed;
+}
+.follow-breakdown-head th{
+  background:var(--s2);
+  border-bottom:1px solid var(--brd);
+}
+.follow-breakdown-scroll{
+  max-height:96px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scrollbar-gutter:stable;
+}
+.follow-breakdown-body{
+  margin:0;
+  table-layout:fixed;
 }
 
 </style>
@@ -588,21 +618,22 @@ function calculateFollowFee(){
   if(!startEl||!endEl||!result||!error) return;
 
   error.style.display='none';
-  result.classList.add('hidden');
+  result.classList.remove('hidden');
+  var placeholder=document.getElementById('followCalcPlaceholder');
+  var content=document.getElementById('followCalcContent');
+  if(placeholder){ placeholder.style.display='flex'; placeholder.textContent='Συμπληρώστε ημέρες για να εμφανιστεί ο υπολογισμός.'; }
+  if(content) content.style.display='none';
 
   var start=Number(startEl.value), end=Number(endEl.value);
   if(!Number.isInteger(start)||!Number.isInteger(end)||start<0||end<0){
-    error.textContent='Βάλε έγκυρες ακέραιες ημέρες νοσηλείας.';
-    error.style.display='block'; return;
+    if(placeholder) placeholder.textContent='Βάλε έγκυρες ακέραιες ημέρες νοσηλείας.'; return;
   }
   if(start===0 && end===0) return;
   if(start<1 || end<1){
-    error.textContent='Για να γίνει υπολογισμός, συμπλήρωσε ημέρα έναρξης και ημέρα λήξης.';
-    error.style.display='block'; return;
+    if(placeholder) placeholder.textContent='Συμπλήρωσε ημέρα έναρξης και ημέρα λήξης.'; return;
   }
   if(end<=start){
-    error.textContent='Η ημέρα λήξης πρέπει να είναι μεγαλύτερη από την ημέρα έναρξης.';
-    error.style.display='block'; return;
+    if(placeholder) placeholder.textContent='Η ημέρα λήξης πρέπει να είναι μεγαλύτερη από την ημέρα έναρξης.'; return;
   }
 
   var f=FOLLOW_CALC_FEES[followCalcMode], rows=[], total=0;
@@ -633,6 +664,8 @@ function calculateFollowFee(){
   document.getElementById('followCalcBreakdown').innerHTML=rows.map(function(r){
     return '<tr><td>'+r.band+'</td><td>'+r.calc+'</td><td><b>'+followCalcEuro(r.amount)+'</b></td></tr>';
   }).join('');
+  if(placeholder) placeholder.style.display='none';
+  if(content) content.style.display='block';
   result.classList.remove('hidden');
 }
 function clearFollowCalculator(){
@@ -647,8 +680,12 @@ function clearFollowCalculator(){
   if(b2) b2.classList.remove('active');
   var err=document.getElementById('followCalcError');
   var res=document.getElementById('followCalcResult');
+  var ph=document.getElementById('followCalcPlaceholder');
+  var content=document.getElementById('followCalcContent');
   if(err){ err.style.display='none'; err.textContent=''; }
-  if(res) res.classList.add('hidden');
+  if(res) res.classList.remove('hidden');
+  if(ph){ ph.style.display='flex'; ph.textContent='Συμπληρώστε ημέρες για να εμφανιστεί ο υπολογισμός.'; }
+  if(content) content.style.display='none';
 }
 function openFollowCalculator(){
   if(INSURERS[currentIns].key!=='ETHNIKI') return;
@@ -684,9 +721,15 @@ function openFollowCalculator(){
           '<div class="follow-field"><label>Λήξη / ημέρα εξόδου</label><input id="followEndDay" type="number" min="0" step="1" value="0" oninput="calculateFollowFee()"><div class="follow-hint">Η ημέρα λήξης/εξόδου δεν χρεώνεται</div></div>'+
         '</div>'+
         '<div id="followCalcError" class="follow-error"></div>'+
-        '<div id="followCalcResult" class="follow-result hidden">'+
-          '<div class="follow-result-top"><div><div id="followCalcResultLabel" class="follow-result-label">Παρακολούθηση</div><div id="followCalcTotal" class="follow-total">0,00 €</div></div><div id="followCalcDays" class="follow-days"></div></div>'+
-          '<table class="follow-breakdown"><thead><tr><th>Διάστημα</th><th>Υπολογισμός</th><th>Ποσό</th></tr></thead><tbody id="followCalcBreakdown"></tbody></table>'+
+        '<div id="followCalcResult" class="follow-result">'+
+          '<div id="followCalcPlaceholder" class="follow-result-placeholder">Συμπληρώστε ημέρες για να εμφανιστεί ο υπολογισμός.</div>'+
+          '<div id="followCalcContent" class="follow-result-content">'+
+            '<div class="follow-result-top"><div><div id="followCalcResultLabel" class="follow-result-label">Παρακολούθηση</div><div id="followCalcTotal" class="follow-total">0,00 €</div></div><div id="followCalcDays" class="follow-days"></div></div>'+
+            '<div class="follow-breakdown-wrap">'+
+              '<table class="follow-breakdown follow-breakdown-head"><colgroup><col style="width:35%"><col style="width:45%"><col style="width:20%"></colgroup><thead><tr><th>Διάστημα</th><th>Υπολογισμός</th><th>Ποσό</th></tr></thead></table>'+
+              '<div class="follow-breakdown-scroll"><table class="follow-breakdown follow-breakdown-body"><colgroup><col style="width:35%"><col style="width:45%"><col style="width:20%"></colgroup><tbody id="followCalcBreakdown"></tbody></table></div>'+
+            '</div>'+
+          '</div>'+
         '</div>'+
         '<div class="follow-rates">'+
           '<div class="follow-rates-title">Τιμές πίνακα</div>'+
