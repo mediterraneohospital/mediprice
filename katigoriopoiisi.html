@@ -273,6 +273,40 @@ td.fee{text-align:center;}
   table-layout:fixed;
 }
 
+
+/* Excel export */
+.export-wrap{position:relative;}
+.export-btn{
+  display:flex;align-items:center;gap:7px;
+  background:var(--grn-bg);color:var(--grn-txt);border:1px solid #cfe5d9;
+  border-radius:20px;padding:7px 12px;font-size:11.5px;font-weight:750;
+  cursor:pointer;font-family:inherit;white-space:nowrap;
+}
+.export-btn:hover{border-color:var(--grn);}
+.export-menu{
+  display:none;position:absolute;right:0;top:38px;z-index:80;
+  width:270px;background:var(--sur);border:1px solid var(--brd);border-radius:11px;
+  box-shadow:0 10px 28px rgba(0,0,0,.16);padding:6px;
+}
+.export-menu.open{display:block;}
+.export-menu button{
+  width:100%;display:flex;align-items:flex-start;gap:9px;text-align:left;
+  border:0;background:transparent;color:var(--txt);border-radius:8px;
+  padding:9px 10px;cursor:pointer;font-family:inherit;
+}
+.export-menu button:hover:not(:disabled){background:var(--s2);}
+.export-menu button:disabled{opacity:.42;cursor:not-allowed;}
+.export-menu i{font-size:15px;margin-top:1px;color:var(--grn-txt);}
+.export-menu .em-main{font-size:11.5px;font-weight:750;line-height:1.25;}
+.export-menu .em-sub{font-size:10px;color:var(--mut);margin-top:3px;line-height:1.35;}
+.export-toast{
+  position:fixed;right:18px;bottom:18px;z-index:500;
+  background:var(--txt);color:var(--sur);padding:9px 13px;border-radius:9px;
+  font-size:11.5px;font-weight:650;box-shadow:0 8px 24px rgba(0,0,0,.18);
+  opacity:0;transform:translateY(8px);pointer-events:none;transition:.18s ease;
+}
+.export-toast.show{opacity:1;transform:translateY(0);}
+
 </style>
 </head>
 <body>
@@ -300,6 +334,17 @@ td.fee{text-align:center;}
 <div class="det-head">
 <div class="det-name" id="detName">Όλες οι ειδικότητες — MEDNET</div>
 <button id="followCalcLaunch" class="follow-calc-launch" onclick="openFollowCalculator()"><i class="ti ti-calculator"></i> Υπολογιστής παρακολούθησης</button>
+<div class="export-wrap" id="exportWrap">
+  <button class="export-btn" onclick="toggleExportMenu(event)"><i class="ti ti-file-spreadsheet"></i> Εξαγωγή Excel <i class="ti ti-chevron-down" style="font-size:12px;"></i></button>
+  <div class="export-menu" id="exportMenu">
+    <button id="exportSpecialtyBtn" onclick="exportSelectedSpecialtyExcel()">
+      <i class="ti ti-stethoscope"></i><span><div class="em-main">Επιλεγμένη ειδικότητα</div><div class="em-sub" id="exportSpecialtySub">Επίλεξε πρώτα ειδικότητα</div></span>
+    </button>
+    <button onclick="exportWholeInsurerExcel()">
+      <i class="ti ti-files"></i><span><div class="em-main">Όλη η ασφαλιστική</div><div class="em-sub">Ξεχωριστό φύλλο Excel για κάθε ειδικότητα</div></span>
+    </button>
+  </div>
+</div>
 </div>
 <div class="active-filters" id="activeFilters" style="display:none;"></div>
 <div class="cat-chips" id="catChips"></div>
@@ -314,6 +359,7 @@ td.fee{text-align:center;}
 </div>
 
 <script src="kat_data.js"></script>
+<script src="vendor/exceljs.min.js"></script>
 <script>
 var INSURERS = [
   {key:'MEDNET', label:'MEDNET', data: (typeof KAT_MEDNET!=='undefined'?KAT_MEDNET:[])},
@@ -400,6 +446,7 @@ function updateView(){
   document.getElementById('detName').textContent = label + ' — ' + INSURERS[currentIns].label;
   var calcBtn = document.getElementById('followCalcLaunch');
   if(calcBtn) calcBtn.classList.toggle('show', INSURERS[currentIns].key === 'ETHNIKI');
+  updateExportMenuState();
   renderActiveFilters();
   renderSidebarBreakdown();
   renderChips();
@@ -584,6 +631,204 @@ function renderRows(){
 }
 
 
+
+/* ============================================================
+   EXCEL EXPORT — ExcelJS 4.4.0, bundled for offline use.
+   The library owns all XLSX XML, relationships and ZIP serialization.
+   ============================================================ */
+
+function toggleExportMenu(e){
+  if(e) e.stopPropagation();
+  var m=document.getElementById('exportMenu');
+  if(m) m.classList.toggle('open');
+}
+function closeExportMenu(){
+  var m=document.getElementById('exportMenu');
+  if(m) m.classList.remove('open');
+}
+document.addEventListener('click',function(e){
+  var w=document.getElementById('exportWrap');
+  if(w && !w.contains(e.target)) closeExportMenu();
+});
+function updateExportMenuState(){
+  var b=document.getElementById('exportSpecialtyBtn');
+  var s=document.getElementById('exportSpecialtySub');
+  if(b) b.disabled=!currentSpecialty;
+  if(s) s.textContent=currentSpecialty ? currentSpecialty : 'Επίλεξε πρώτα ειδικότητα';
+}
+function showExportToast(msg){
+  var t=document.getElementById('exportToast');
+  if(!t) return;
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(t._tm);
+  t._tm=setTimeout(function(){t.classList.remove('show');},2200);
+}
+function excelSanitizeFilePart(s){
+  return (s||'').replace(/[\\/:*?"<>|]+/g,'-').replace(/\s+/g,'_').replace(/^_+|_+$/g,'') || 'export';
+}
+function excelSafeSheetBase(s){
+  var x=String(s||'Φύλλο').replace(/[\\/?:*\[\]\x00-\x1f]/g,' ').replace(/\s+/g,' ').trim();
+  x=Array.from(x).join('').slice(0,31).replace(/^'+|'+$/g,'');
+  if(x.toLowerCase()==='history') x='History_';
+  return x||'Φύλλο';
+}
+function excelUniqueSheetName(name,used){
+  var base=excelSafeSheetBase(name), out=base, n=2;
+  while(used[out.toLowerCase()]){
+    var suffix=' ('+n+')';
+    n++;
+    out=base.slice(0,31-suffix.length)+suffix;
+  }
+  used[out.toLowerCase()]=true;
+  return out;
+}
+function excelFeeData(r){
+  if(INSURERS[currentIns].key!=='ETHNIKI') return null;
+  var f=getFeesFor(r);
+  if(!f) return {doctor:'',assistant:'',anesth:'',note:''};
+
+  var doctor='';
+  if(!f.hideDoctor){
+    if(f.feeText) doctor=f.feeText;
+    else if(f.surgeon!==undefined && f.surgeon!==null) doctor={value:f.surgeon,currency:true};
+  }
+
+  var assistant='';
+  if(f.assistant!==undefined && f.assistant!==null) assistant={value:f.assistant,currency:true};
+
+  var anesth='';
+  if(f.anesth){
+    var keys=Object.keys(f.anesth);
+    if(keys.length===1 && keys[0]===''){
+      anesth={value:f.anesth[''],currency:true};
+    }else{
+      anesth=keys.map(function(k){
+        var label=k || 'Αναισθησιολόγος';
+        var v=f.anesth[k];
+        return label+': '+Number(v).toLocaleString('el-GR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+      }).join(' | ');
+    }
+  }
+
+  return {doctor:doctor,assistant:assistant,anesth:anesth,note:f.note||''};
+}
+function excelRowsForSpecialty(spec){
+  return sortRowsBySpecialtyPreserveOrder(
+    INSURERS[currentIns].data.filter(function(r){return r.specialty===spec;})
+  );
+}
+function excelColumns(){
+  var cols=[
+    {header:'Κωδικός',width:16},
+    {header:'Περιγραφή',width:72},
+    {header:'Ειδικότητα',width:34},
+    {header:'Κατηγορία / Βαρύτητα',width:25}
+  ];
+  if(INSURERS[currentIns].key==='ETHNIKI'){
+    cols.push(
+      {header:'Αμοιβή Ιατρού / Χειρουργού',width:27},
+      {header:'Αμοιβή Βοηθού',width:20},
+      {header:'Αμοιβή Αναισθησιολόγου',width:38},
+      {header:'Παρατήρηση / Συμφωνία',width:65}
+    );
+  }
+  return cols;
+}
+function excelDataRows(rows){
+  var isEthniki=INSURERS[currentIns].key==='ETHNIKI';
+  return rows.map(function(r){
+    var a=[r.code||'',r.description||'',r.specialty||'',r.category_label||''];
+    if(isEthniki){
+      var f=excelFeeData(r)||{};
+      a.push(f.doctor||'',f.assistant||'',f.anesth||'',f.note||'');
+    }
+    return a;
+  });
+}
+
+async function excelBuildXlsx(sheets){
+  if(typeof ExcelJS==='undefined') throw new Error('Λείπει το vendor/exceljs.min.js. Αποσυμπίεσε ολόκληρο το πακέτο.');
+  if(!sheets.length) throw new Error('Δεν υπάρχουν ειδικότητες για εξαγωγή.');
+  var workbook=new ExcelJS.Workbook(), used=Object.create(null);
+  workbook.creator='MediPrice';
+  workbook.created=new Date();
+  sheets.forEach(function(sheet){
+    var ws=workbook.addWorksheet(excelUniqueSheetName(sheet.name,used),{
+      views:[{state:'frozen',ySplit:1}]
+    });
+    ws.columns=sheet.columns.map(function(c){return {header:c.header,width:c.width};});
+    sheet.rows.forEach(function(values){
+      var row=ws.addRow(values.map(function(v){
+        if(v && typeof v==='object' && v.currency){
+          var number=Number(v.value);
+          return Number.isFinite(number)?number:'';
+        }
+        return v==null?'':v;
+      }));
+      row.eachCell(function(cell,col){
+        cell.font={name:'Calibri',size:11};
+        cell.alignment={vertical:'top',wrapText:true};
+        var original=values[col-1];
+        if(original && original.currency) cell.numFmt='"€" #,##0.00';
+      });
+    });
+    var header=ws.getRow(1);
+    header.height=32;
+    header.eachCell(function(cell){
+      cell.font={name:'Calibri',size:11,bold:true,color:{argb:'FFFFFFFF'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1F4E78'}};
+      cell.alignment={vertical:'middle',wrapText:true};
+    });
+    ws.autoFilter={from:{row:1,column:1},to:{row:ws.rowCount,column:sheet.columns.length}};
+  });
+  return new Blob([await workbook.xlsx.writeBuffer()],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+var excelExportBusy=false;
+async function excelRunExport(sheets,file,message){
+  if(excelExportBusy) return;
+  excelExportBusy=true;
+  showExportToast('Δημιουργία Excel…');
+  try{
+    excelDownload(await excelBuildXlsx(sheets),file);
+    showExportToast(message);
+  }catch(error){
+    console.error('Excel export failed',error);
+    showExportToast('Αποτυχία εξαγωγής Excel.');
+    alert(error.message||'Η εξαγωγή Excel απέτυχε.');
+  }finally{
+    excelExportBusy=false;
+  }
+}
+function excelDownload(blob,filename){
+  var a=document.createElement('a');
+  var url=URL.createObjectURL(blob);
+  a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(url);},1500);
+}
+function exportSelectedSpecialtyExcel(){
+  if(!currentSpecialty){showExportToast('Επίλεξε πρώτα ειδικότητα.');return;}
+  closeExportMenu();
+  var rows=excelRowsForSpecialty(currentSpecialty);
+  var sheets=[{name:currentSpecialty,columns:excelColumns(),rows:excelDataRows(rows)}];
+  var file=excelSanitizeFilePart(INSURERS[currentIns].label)+'_'+excelSanitizeFilePart(currentSpecialty)+'.xlsx';
+  return excelRunExport(sheets,file,'Το Excel της ειδικότητας δημιουργήθηκε.');
+}
+function exportWholeInsurerExcel(){
+  closeExportMenu();
+  var data=INSURERS[currentIns].data;
+  var specs={};
+  data.forEach(function(r){if(r.specialty) specs[r.specialty]=true;});
+  var names=Object.keys(specs).sort(function(a,b){return a.localeCompare(b,'el-GR',{sensitivity:'base'});});
+  var columns=excelColumns();
+  var sheets=names.map(function(name){
+    return {name:name,columns:columns,rows:excelDataRows(excelRowsForSpecialty(name))};
+  });
+  var file=excelSanitizeFilePart(INSURERS[currentIns].label)+'_ΟΛΕΣ_ΟΙ_ΕΙΔΙΚΟΤΗΤΕΣ.xlsx';
+  return excelRunExport(sheets,file,'Δημιουργήθηκε Excel με '+names.length+' φύλλα.');
+}
+
 var FOLLOW_CALC_FEES = {
   follow:{flat2:181,d3_5:90,d6_20:68,d21:46,label:'Παρακολούθηση'},
   co:{flat2:226,d3_5:112,d6_20:82,d21:59,label:'Συμπαρακολούθηση'}
@@ -767,5 +1012,6 @@ document.addEventListener('DOMContentLoaded', function(){
   updateView();
 });
 </script>
+<div class="export-toast" id="exportToast"></div>
 </body>
 </html>
