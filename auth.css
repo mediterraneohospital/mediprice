@@ -1,0 +1,53 @@
+/* MediPrice — login shell styling */
+:root{
+  --bg:#faf8f5;--sur:#ffffff;--s2:#f3efe8;--brd:#e8e1d5;--txt:#1b2130;--mut:#7c8494;
+  --acc:#3b6fe0;--acc-bg:#eef0e6;--acc-txt:#1e4fbf;--err:#dc4c4c;--err-bg:#fdeded;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#161a26;--sur:#1f2432;--s2:#262c3d;--brd:#333b52;--txt:#e7eaf3;--mut:#8b93aa;--acc:#6d93f0;--acc-bg:#1c2c4d;--acc-txt:#9db8f7;--err-bg:#3a1f24;}
+}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--txt);}
+#mp-auth-root{height:100%;display:flex;flex-direction:column;}
+
+/* Login / setup screen */
+.mp-login-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:20px;}
+.mp-login-card{background:var(--sur);border:1px solid var(--brd);border-radius:14px;padding:32px;width:100%;max-width:360px;box-shadow:0 8px 30px rgba(0,0,0,.08);}
+.mp-login-card h1{font-size:18px;margin:0 0 4px;}
+.mp-login-card p.mp-sub{color:var(--mut);font-size:13px;margin:0 0 20px;}
+.mp-field{margin-bottom:14px;}
+.mp-field label{display:block;font-size:12.5px;color:var(--mut);margin-bottom:5px;}
+.mp-field input{width:100%;padding:9px 11px;border:1px solid var(--brd);border-radius:8px;background:var(--s2);color:var(--txt);font-size:13.5px;font-family:inherit;}
+.mp-field input:focus{outline:none;border-color:var(--acc);}
+.mp-btn{width:100%;padding:10px;border:none;border-radius:8px;background:var(--acc);color:#fff;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;}
+.mp-btn:hover{opacity:.92;}
+.mp-btn:disabled{opacity:.5;cursor:default;}
+.mp-btn-link{background:none;border:none;color:var(--acc);font-size:12.5px;cursor:pointer;padding:0;margin-top:10px;font-family:inherit;}
+.mp-msg-err{background:var(--err-bg);color:var(--err);border-radius:8px;padding:9px 11px;font-size:12.5px;margin-bottom:14px;}
+.mp-msg-ok{background:var(--acc-bg);color:var(--acc-txt);border-radius:8px;padding:9px 11px;font-size:12.5px;margin-bottom:14px;}
+
+/* Account bar */
+#mp-account-bar{display:flex;align-items:center;gap:10px;background:var(--sur);border-bottom:1px solid var(--brd);padding:8px 16px;font-size:12.5px;color:var(--mut);}
+#mp-account-bar .mp-email{color:var(--txt);font-weight:600;}
+#mp-account-bar .mp-role{background:var(--acc-bg);color:var(--acc-txt);border-radius:10px;padding:1px 9px;font-size:11px;}
+#mp-account-bar .mp-spacer{flex:1;}
+#mp-account-bar button{background:var(--s2);border:1px solid var(--brd);color:var(--txt);border-radius:6px;padding:5px 11px;font-size:12px;cursor:pointer;font-family:inherit;}
+#mp-account-bar button:hover{border-color:var(--acc);}
+
+#mp-app-frame{flex:1;width:100%;border:none;}
+
+/* Admin panel modal */
+.mp-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:1000;}
+.mp-modal{background:var(--sur);border-radius:12px;max-width:640px;width:100%;padding:24px;}
+.mp-modal h2{margin:0 0 16px;font-size:16px;}
+.mp-modal-close{float:right;background:none;border:none;font-size:18px;cursor:pointer;color:var(--mut);}
+.mp-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:16px;}
+.mp-table th,.mp-table td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--brd);}
+.mp-table select{font-family:inherit;font-size:12px;padding:3px;border-radius:5px;border:1px solid var(--brd);background:var(--s2);color:var(--txt);}
+.mp-inline-form{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--brd);}
+.mp-inline-form .mp-field{margin-bottom:0;flex:1;min-width:140px;}
+.mp-inline-form .mp-btn{width:auto;padding:9px 16px;}
+.mp-link-box{background:var(--s2);border:1px solid var(--brd);border-radius:8px;padding:10px;font-size:11.5px;word-break:break-all;margin-top:10px;}
+.mp-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.mp-tabs button{background:var(--s2);border:1px solid var(--brd);border-radius:7px;padding:6px 12px;font-size:12px;cursor:pointer;color:var(--txt);font-family:inherit;}
+.mp-tabs button.active{background:var(--acc);color:#fff;border-color:var(--acc);}
