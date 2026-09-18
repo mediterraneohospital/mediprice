@@ -48,7 +48,8 @@ html,body{height:100%;margin:0;font-family:'Inter',system-ui,sans-serif;backgrou
 .mp-table th,.mp-table td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--brd);}
 .mp-table select{font-family:inherit;font-size:12px;padding:3px;border-radius:5px;border:1px solid var(--brd);background:var(--s2);color:var(--txt);}
 .mp-inline-form{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--brd);}
-.mp-inline-form .mp-field{margin-bottom:0;flex:1;min-width:140px;}
+.mp-inline-form .mp-field{margin-bottom:0;flex:2;min-width:260px;}
+.mp-inline-form .mp-field:has(select){flex:1;min-width:140px;}
 .mp-inline-form .mp-btn{width:auto;padding:9px 16px;}
 .mp-link-box{background:var(--s2);border:1px solid var(--brd);border-radius:8px;padding:10px;font-size:11.5px;word-break:break-all;margin-top:10px;}
 .mp-tabs{display:flex;gap:6px;margin-bottom:14px;}
