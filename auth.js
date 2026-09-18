@@ -319,7 +319,9 @@
 
   function openUsersModal(){
     var body = el('div', {}, [ el('p', { text: 'Φόρτωση…' }) ]);
-    var backdrop = modal('Χρήστες', body);
+    var linkBox = el('div'); // μόνιμο — δεν σβήνεται όταν ανανεώνεται η λίστα χρηστών
+    var container = el('div', {}, [ body, linkBox ]);
+    var backdrop = modal('Χρήστες', container);
 
     function refresh(){
       body.innerHTML = '';
@@ -349,11 +351,20 @@
               refresh();
             });
           });
+          var deleteBtn = el('button', { type: 'button', text: 'Διαγραφή' });
+          deleteBtn.addEventListener('click', function(){
+            if (!window.confirm('Οριστική διαγραφή του ' + m.email + '; Δεν αναιρείται — θα χρειαστεί νέα πρόσκληση αν ξαναχρειαστεί πρόσβαση.')) return;
+            deleteBtn.disabled = true;
+            callAdmin({ action: 'delete', user_id: m.user_id }).then(function(r2){
+              if (r2.status !== 200) { alert((r2.body && r2.body.error) || 'Δεν έγινε η διαγραφή.'); deleteBtn.disabled = false; return; }
+              refresh();
+            });
+          });
           var tr = el('tr', {}, [
             el('td', { text: m.email }),
             el('td', {}, [ roleSel ]),
             el('td', {}, [ activeSel ]),
-            el('td', {}, [ saveBtn ])
+            el('td', {}, [ saveBtn, deleteBtn ])
           ]);
           table.appendChild(tr);
         });
@@ -362,7 +373,6 @@
         var newEmail = el('input', { type: 'email', placeholder: 'email@mediterraneohospital.gr' });
         var newRole = el('select', {}, ['reader', 'editor', 'admin'].map(function(r){ return el('option', { value: r, text: roleLabel(r) }); }));
         var inviteBtn = el('button', { class: 'mp-btn', type: 'button', text: 'Δημιουργία πρόσβασης' });
-        var linkBox = el('div');
         inviteBtn.addEventListener('click', function(){
           if (!newEmail.value.trim()) return;
           inviteBtn.disabled = true; inviteBtn.textContent = 'Δημιουργία...';
