@@ -370,7 +370,8 @@
         });
         body.appendChild(table);
 
-        var newEmail = el('input', { type: 'text', inputmode: 'email', spellcheck: 'false', placeholder: 'π.χ. giorgos@mediterraneohospital.gr', autocomplete: 'off', autocorrect: 'off', autocapitalize: 'off', name: 'x' });
+        var newEmail = el('input', { type: 'text', inputmode: 'email', spellcheck: 'false', placeholder: 'π.χ. giorgos@mediterraneohospital.gr', autocomplete: 'off', autocorrect: 'off', autocapitalize: 'off', name: 'x', readonly: 'readonly' });
+        newEmail.addEventListener('focus', function(){ newEmail.removeAttribute('readonly'); });
         var newRole = el('select', {}, ['reader', 'editor', 'admin'].map(function(r){ return el('option', { value: r, text: roleLabel(r) }); }));
         var inviteBtn = el('button', { class: 'mp-btn', type: 'button', text: 'Δημιουργία πρόσβασης' });
         inviteBtn.addEventListener('click', function(){
@@ -455,7 +456,7 @@
           el('td', {}, [ detailsBtn ])
         ]);
         table.appendChild(tr);
-        var detailRow = el('tr', {}, [ el('td', { colspan: '5' }) ]);
+        var detailRow = el('tr', {}, [ el('td', { colspan: '5', class: 'mp-detail-cell' }) ]);
         detailRow.style.display = 'none';
         table.appendChild(detailRow);
         var opened = false;
