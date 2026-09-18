@@ -291,22 +291,80 @@
     refresh();
   }
 
+  // Ανθρώπινα αναγνώσιμο diff ανάμεσα σε δύο τιμές (πριν/μετά).
+  // Υποστηρίζει: array αντικειμένων με πεδίο 'aa' (γραμμές πίνακα), απλά αντικείμενα, ή οτιδήποτε άλλο (σύγκριση ως σύνολο).
+  var FIELD_LABELS = { idiot: 'Ιδιώτης', idiot3: 'Ιδιώτης (2ο σχήμα)', eop: 'ΕΟΠΥΥ', eop3: 'ΕΟΠΥΥ (2ο σχήμα)', eop_cheap: 'ΕΟΠΥΥ (φθηνό)', eop_expensive: 'ΕΟΠΥΥ (ακριβό)', dur: 'Διάρκεια', ken: 'ΚΕΝ', date: 'Ημερομηνία', room: 'Αίθουσα/Θέση', extra: 'Σημείωση κάλυψης', notes: 'Παρατηρήσεις', icu: 'ΜΕΘ', desc: 'Περιγραφή' };
+  function fieldLabel(k){ return FIELD_LABELS[k] || k; }
+  function fmtVal(v){ if (v === null || v === undefined || v === '') return '—'; return String(v); }
+
+  function diffRows(before, after){
+    var lines = [];
+    if (Array.isArray(before) && Array.isArray(after) && before.every(function(r){ return r && typeof r === 'object' && 'aa' in r; })) {
+      var beforeByAa = {}; before.forEach(function(r){ beforeByAa[r.aa] = r; });
+      var afterByAa = {}; after.forEach(function(r){ afterByAa[r.aa] = r; });
+      Object.keys(afterByAa).forEach(function(aa){
+        var b = beforeByAa[aa], a = afterByAa[aa];
+        var label = (a && a.desc) || (b && b.desc) || ('γραμμή ' + aa);
+        if (!b) { lines.push({ kind: 'add', text: 'Νέα γραμμή: «' + label + '»' }); return; }
+        var changed = [];
+        Object.keys(a).forEach(function(k){
+          if (JSON.stringify(a[k]) !== JSON.stringify(b[k])) changed.push(fieldLabel(k) + ': ' + fmtVal(b[k]) + ' → ' + fmtVal(a[k]));
+        });
+        if (changed.length) lines.push({ kind: 'change', text: '«' + label + '» — ' + changed.join(', ') });
+      });
+      Object.keys(beforeByAa).forEach(function(aa){
+        if (!afterByAa[aa]) lines.push({ kind: 'remove', text: 'Διαγράφηκε: «' + ((beforeByAa[aa] && beforeByAa[aa].desc) || ('γραμμή ' + aa)) + '»' });
+      });
+      return lines;
+    }
+    // Γενική περίπτωση: επίπεδη σύγκριση πεδίων αντικειμένου.
+    if (before && after && typeof before === 'object' && typeof after === 'object' && !Array.isArray(before)) {
+      var keys = {}; Object.keys(before).forEach(function(k){ keys[k] = 1; }); Object.keys(after).forEach(function(k){ keys[k] = 1; });
+      Object.keys(keys).forEach(function(k){
+        if (JSON.stringify(before[k]) !== JSON.stringify(after[k])) lines.push({ kind: 'change', text: fieldLabel(k) + ': ' + fmtVal(before[k]) + ' → ' + fmtVal(after[k]) });
+      });
+      return lines;
+    }
+    if (JSON.stringify(before) !== JSON.stringify(after)) lines.push({ kind: 'change', text: 'Η τιμή άλλαξε.' });
+    return lines;
+  }
+
   function openHistoryModal(){
     var body = el('div', {}, [ el('p', { text: 'Φόρτωση…' }) ]);
     modal('Ιστορικό αλλαγών', body);
-    sb.from('mp_audit').select('actor_email,action,target,occurred_at').order('occurred_at', { ascending: false }).limit(50).then(function(res){
+    sb.from('mp_audit').select('id,actor_email,action,target,before_value,after_value,occurred_at').order('occurred_at', { ascending: false }).limit(50).then(function(res){
       body.innerHTML = '';
       if (res.error) { body.appendChild(el('div', { class: 'mp-msg-err', text: 'Δεν ήταν δυνατή η φόρτωση.' })); return; }
       var table = el('table', { class: 'mp-table' });
-      table.appendChild(el('tr', {}, [ el('th', { text: 'Πότε' }), el('th', { text: 'Ποιος' }), el('th', { text: 'Ενέργεια' }), el('th', { text: 'Στόχος' }) ]));
+      table.appendChild(el('tr', {}, [ el('th', { text: 'Πότε' }), el('th', { text: 'Ποιος' }), el('th', { text: 'Ενέργεια' }), el('th', { text: 'Στόχος' }), el('th', {}) ]));
       (res.data || []).forEach(function(a){
         var when = new Date(a.occurred_at).toLocaleString('el-GR');
-        table.appendChild(el('tr', {}, [
+        var detailsBtn = el('button', { type: 'button', text: 'Λεπτομέρειες' });
+        var tr = el('tr', {}, [
           el('td', { text: when }),
           el('td', { text: a.actor_email || '' }),
           el('td', { text: a.action || '' }),
-          el('td', { text: a.target || '' })
-        ]));
+          el('td', { text: a.target || '' }),
+          el('td', {}, [ detailsBtn ])
+        ]);
+        table.appendChild(tr);
+        var detailRow = el('tr', {}, [ el('td', { colspan: '5' }) ]);
+        detailRow.style.display = 'none';
+        table.appendChild(detailRow);
+        var opened = false;
+        detailsBtn.addEventListener('click', function(){
+          opened = !opened;
+          detailRow.style.display = opened ? '' : 'none';
+          detailsBtn.textContent = opened ? 'Απόκρυψη' : 'Λεπτομέρειες';
+          if (opened && !detailRow.firstChild.childNodes.length) {
+            var diffs = diffRows(a.before_value, a.after_value);
+            var cell = detailRow.firstChild;
+            if (!diffs.length) { cell.appendChild(el('p', { text: 'Καμία ορατή διαφορά.' })); return; }
+            var list = el('ul');
+            diffs.forEach(function(d){ list.appendChild(el('li', { text: d.text })); });
+            cell.appendChild(list);
+          }
+        });
       });
       body.appendChild(table);
     });
