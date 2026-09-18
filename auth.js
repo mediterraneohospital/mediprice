@@ -370,7 +370,7 @@
         });
         body.appendChild(table);
 
-        var newEmail = el('input', { type: 'email', placeholder: 'email@mediterraneohospital.gr', autocomplete: 'off', name: 'mp-new-user-' + Date.now() });
+        var newEmail = el('input', { type: 'text', inputmode: 'email', spellcheck: 'false', placeholder: 'π.χ. giorgos@mediterraneohospital.gr', autocomplete: 'off', autocorrect: 'off', autocapitalize: 'off', name: 'x' });
         var newRole = el('select', {}, ['reader', 'editor', 'admin'].map(function(r){ return el('option', { value: r, text: roleLabel(r) }); }));
         var inviteBtn = el('button', { class: 'mp-btn', type: 'button', text: 'Δημιουργία πρόσβασης' });
         inviteBtn.addEventListener('click', function(){
