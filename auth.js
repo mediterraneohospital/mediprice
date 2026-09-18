@@ -13,6 +13,22 @@
   var root = document.getElementById('mp-auth-root');
   var recheckTimer = null;
   var currentMember = null; // {role,email}
+  var PAGES = ['index.html', 'plafond.html', 'katigoriopoiisi.html'];
+  var currentIframe = null;
+  var softNavBusy = false;
+
+  function pageNameFromHref(href){
+    if (!href) return null;
+    href = href.split('#')[0].split('?')[0];
+    if (href === '' || href === './' || href === '/' || /\/mediprice\/?$/.test(href)) return 'index.html';
+    var seg = href.split('/').pop();
+    return PAGES.indexOf(seg) !== -1 ? seg : null;
+  }
+
+  function pageNameFromPath(pathname){
+    var seg = (pathname || '').split('/').pop();
+    return PAGES.indexOf(seg) !== -1 ? seg : 'index.html';
+  }
 
   function el(tag, attrs, children){
     var e = document.createElement(tag);
@@ -133,10 +149,12 @@
       bar.appendChild(histBtn);
     }
     var logoutBtn = el('button', { type: 'button', text: 'Αποσύνδεση' });
-    logoutBtn.addEventListener('click', function(){ sb.auth.signOut().then(function(){ window.location.reload(); }); });
+    logoutBtn.addEventListener('click', function(){ try { sessionStorage.removeItem(MEMBERSHIP_CACHE_KEY); } catch (e) {} sb.auth.signOut().then(function(){ window.location.reload(); }); });
     bar.appendChild(logoutBtn);
 
     var iframe = el('iframe', { id: 'mp-app-frame' });
+    currentIframe = iframe;
+    iframe.addEventListener('load', function(){ attachSoftNav(iframe); });
     iframe.srcdoc = html;
 
     root.appendChild(bar);
@@ -158,6 +176,54 @@
     recheckTimer = setInterval(recheckMembership, 60000);
   }
 
+  // Πιάνει τα κλικ σε εσωτερικούς συνδέσμους (Plafond / Κατηγοριοποίηση / Αρχική) ΜΕΣΑ στο
+  // προστατευμένο περιεχόμενο και τα κάνει "αθόρυβη" αλλαγή αντί για πλήρη επαναφόρτωση σελίδας.
+  // Δεν αγγίζει καθόλου το ίδιο το περιεχόμενο· αν κάτι πάει στραβά, κάνει απλή πλοήγηση όπως πριν.
+  function attachSoftNav(iframe){
+    var doc;
+    try { doc = iframe.contentDocument; } catch (e) { return; }
+    if (!doc || doc.body === null) return;
+    doc.addEventListener('click', function(ev){
+      var a = ev.target && ev.target.closest ? ev.target.closest('a') : null;
+      if (!a) return;
+      var href = a.getAttribute('href');
+      var page = pageNameFromHref(href);
+      if (!page || page === window.MP_PAGE) return;
+      ev.preventDefault();
+      softNavigate(page);
+    }, true);
+  }
+
+  function softNavigate(page){
+    if (softNavBusy) return;
+    if (PAGES.indexOf(page) === -1) return;
+    softNavBusy = true;
+    sb.from('mp_app_assets').select('html').eq('name', page).single().then(function(a){
+      softNavBusy = false;
+      if (a.error || !a.data || !currentIframe) {
+        // Ασφαλές fallback: κανονική πλοήγηση, όπως λειτουργούσε πριν.
+        window.location.href = page;
+        return;
+      }
+      window.MP_PAGE = page;
+      try {
+        var newPath = window.location.pathname.replace(/[^\/]*$/, page === 'index.html' ? '' : page);
+        window.history.pushState({ mpPage: page }, '', newPath);
+      } catch (e) {}
+      currentIframe.srcdoc = a.data.html;
+    });
+  }
+
+  window.addEventListener('popstate', function(ev){
+    var page = (ev.state && ev.state.mpPage) || pageNameFromPath(window.location.pathname);
+    if (page === window.MP_PAGE || !currentIframe) return;
+    sb.from('mp_app_assets').select('html').eq('name', page).single().then(function(a){
+      if (a.error || !a.data) { window.location.reload(); return; }
+      window.MP_PAGE = page;
+      currentIframe.srcdoc = a.data.html;
+    });
+  });
+
   function roleLabel(r){
     if (r === 'admin') return 'Διαχειριστής';
     if (r === 'editor') return 'Συντάκτης';
@@ -169,19 +235,51 @@
       var user = res.data && res.data.user;
       if (!user) { if (window.MediAuth) window.MediAuth.fail(); return; }
       sb.from('mp_members').select('role,active,email').eq('user_id', user.id).maybeSingle().then(function(r){
-        if (r.error || !r.data || !r.data.active) { if (window.MediAuth) window.MediAuth.fail(); return; }
+        if (r.error || !r.data || !r.data.active) {
+          try { sessionStorage.removeItem(MEMBERSHIP_CACHE_KEY); } catch (e) {}
+          if (window.MediAuth) window.MediAuth.fail();
+          return;
+        }
         currentMember = { role: r.data.role, active: r.data.active, userId: user.id };
+        writeMembershipCache(user.id, r.data.role, r.data.active, r.data.email);
       });
     });
   }
 
   // ---------- Έλεγχος membership + φόρτωση προστατευμένου περιεχομένου ----------
+  var MEMBERSHIP_CACHE_KEY = 'mp_membership_cache_v1';
+  var MEMBERSHIP_CACHE_MS = 45000; // κρατάει τον έλεγχο πρόσβασης "ζεστό" για 45" ανάμεσα σε σελίδες
+
+  function readMembershipCache(userId){
+    try {
+      var raw = sessionStorage.getItem(MEMBERSHIP_CACHE_KEY);
+      if (!raw) return null;
+      var c = JSON.parse(raw);
+      if (c.userId !== userId || !c.active) return null;
+      if (Date.now() - c.ts > MEMBERSHIP_CACHE_MS) return null;
+      return c;
+    } catch (e) { return null; }
+  }
+  function writeMembershipCache(userId, role, active, email){
+    try { sessionStorage.setItem(MEMBERSHIP_CACHE_KEY, JSON.stringify({ userId: userId, role: role, active: active, email: email, ts: Date.now() })); } catch (e) {}
+  }
+
   function checkMembershipAndLoad(){
     sb.auth.getUser().then(function(res){
       var user = res.data && res.data.user;
       if (!user) { showLogin(); return; }
-      sb.from('mp_members').select('role,active,email').eq('user_id', user.id).maybeSingle().then(function(r){
+
+      var cached = readMembershipCache(user.id);
+      var membershipPromise = cached
+        ? Promise.resolve({ data: { role: cached.role, active: cached.active, email: cached.email }, error: null })
+        : sb.from('mp_members').select('role,active,email').eq('user_id', user.id).maybeSingle();
+      var assetPromise = sb.from('mp_app_assets').select('html').eq('name', window.MP_PAGE).single();
+
+      // Τρέχουν ταυτόχρονα· η RLS αρνείται από μόνη της το asset αν δεν είσαι ενεργό μέλος.
+      Promise.all([membershipPromise, assetPromise]).then(function(results){
+        var r = results[0], a = results[1];
         if (r.error || !r.data || !r.data.active) {
+          try { sessionStorage.removeItem(MEMBERSHIP_CACHE_KEY); } catch (e) {}
           sb.auth.signOut().then(function(){
             showLogin('Δεν έχετε ακόμη ενεργή πρόσβαση σε αυτή την εφαρμογή. Επικοινωνήστε με τον διαχειριστή.', true);
           });
@@ -189,10 +287,9 @@
         }
         var member = { role: r.data.role, active: r.data.active, userId: user.id };
         var email = r.data.email || user.email;
-        sb.from('mp_app_assets').select('html').eq('name', window.MP_PAGE).single().then(function(a){
-          if (a.error || !a.data) { showLogin('Δεν ήταν δυνατή η φόρτωση της εφαρμογής αυτή τη στιγμή. Δοκιμάστε ξανά σε λίγο.', true); return; }
-          showApp(a.data.html, member, email);
-        });
+        writeMembershipCache(user.id, member.role, member.active, email);
+        if (a.error || !a.data) { showLogin('Δεν ήταν δυνατή η φόρτωση της εφαρμογής αυτή τη στιγμή. Δοκιμάστε ξανά σε λίγο.', true); return; }
+        showApp(a.data.html, member, email);
       });
     });
   }
