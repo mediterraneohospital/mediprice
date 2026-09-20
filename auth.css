@@ -55,3 +55,31 @@ html,body{height:100%;margin:0;font-family:'Inter',system-ui,sans-serif;backgrou
 .mp-tabs{display:flex;gap:6px;margin-bottom:14px;}
 .mp-tabs button{background:var(--s2);border:1px solid var(--brd);border-radius:7px;padding:6px 12px;font-size:12px;cursor:pointer;color:var(--txt);font-family:inherit;}
 .mp-tabs button.active{background:var(--acc);color:#fff;border-color:var(--acc);}
+
+/* Keep account dialogs inside the viewport, including browser zoom. */
+.mp-modal-backdrop{padding:24px 16px;overflow:hidden;}
+.mp-modal{min-width:0;max-width:1100px;max-height:calc(100dvh - 48px);overflow:auto;overscroll-behavior:contain;}
+.mp-modal h2{overflow-wrap:anywhere;}
+.mp-modal:has(.mp-detail-cell) .mp-table{table-layout:fixed;}
+.mp-modal:has(.mp-detail-cell) .mp-table th,
+.mp-modal:has(.mp-detail-cell) .mp-table td{overflow-wrap:anywhere;vertical-align:top;}
+.mp-modal:has(.mp-detail-cell) .mp-table th:nth-child(1){width:15%;}
+.mp-modal:has(.mp-detail-cell) .mp-table th:nth-child(2){width:27%;}
+.mp-modal:has(.mp-detail-cell) .mp-table th:nth-child(3){width:15%;}
+.mp-modal:has(.mp-detail-cell) .mp-table th:nth-child(4){width:29%;}
+.mp-modal:has(.mp-detail-cell) .mp-table th:nth-child(5){width:14%;}
+.mp-modal:has(.mp-detail-cell) .mp-table button{max-width:100%;white-space:normal;overflow-wrap:anywhere;cursor:pointer;padding:6px 8px;}
+@media(max-width:600px){
+ .mp-modal-backdrop{padding:12px 8px;}
+ .mp-modal{padding:16px;max-height:calc(100dvh - 24px);}
+ .mp-modal:has(.mp-detail-cell) .mp-table tr:has(th){display:none;}
+ .mp-modal:has(.mp-detail-cell) .mp-table tr:has(td):not(:has(.mp-detail-cell)){display:grid;grid-template-columns:minmax(0,1fr);padding:10px 0;border-bottom:1px solid var(--brd);}
+ .mp-modal:has(.mp-detail-cell) .mp-table td:not(.mp-detail-cell){display:block;border:0;padding:4px 0;}
+ .mp-modal:has(.mp-detail-cell) .mp-table td:not(.mp-detail-cell)::before{display:block;font-weight:600;color:var(--mut);font-size:11px;}
+ .mp-modal:has(.mp-detail-cell) .mp-table td:nth-child(1):not(.mp-detail-cell)::before{content:"Πότε";}
+ .mp-modal:has(.mp-detail-cell) .mp-table td:nth-child(2)::before{content:"Ποιος";}
+ .mp-modal:has(.mp-detail-cell) .mp-table td:nth-child(3)::before{content:"Ενέργεια";}
+ .mp-modal:has(.mp-detail-cell) .mp-table td:nth-child(4)::before{content:"Στόχος";}
+ .mp-modal:has(.mp-detail-cell) .mp-detail-cell{padding:8px!important;}
+}
+
