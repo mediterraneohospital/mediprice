@@ -9,3 +9,5 @@
  const observer=new MutationObserver(function(){const bar=document.getElementById('mp-account-bar');if(bar&&!bar.querySelector('.mobile-account-menu')){const menu=document.createElement('button');menu.textContent='☰';menu.className='mobile-account-menu';menu.setAttribute('aria-label','Μενού λογαριασμού');menu.onclick=function(){const open=bar.classList.toggle('expanded');menu.setAttribute('aria-expanded',String(open));};bar.prepend(menu);}});observer.observe(document.getElementById('mp-auth-root'),{childList:true,subtree:true});
 })();
 
+
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/mediprice/mobile/sw.js',{scope:'/mediprice/mobile/'}).catch(function(error){console.warn('Mobile service worker registration failed',error);});});}
