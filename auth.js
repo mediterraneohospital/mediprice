@@ -160,7 +160,7 @@
           if(submitted.error) throw submitted.error;
           showLoading(); checkMembershipAndLoad();
         } else {
-          showLogin('Ελέγξτε το email σας για επιβεβαίωση. Η πρόσβαση θα δοθεί αφού εγκρίνει την αίτηση ο διαχειριστής. Αν έχετε ήδη λογαριασμό, συνδεθείτε κανονικά.',false);
+          showLogin('Συνδεθείτε με το email και τον κωδικό σας για να ελέγξετε την αίτηση. Η πρόσβαση θα δοθεί αφού την εγκρίνει ο διαχειριστής.',false);
         }
       } catch(error){
         msg.appendChild(el('div',{class:'mp-msg-err',text: error.code==='signup_disabled'
@@ -608,4 +608,5 @@
 
   init();
 })();
+
 
