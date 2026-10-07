@@ -1,5 +1,11 @@
 (function(){
  'use strict';
+ function quietSearchFields(){document.querySelectorAll('input:not([type]),input[type="text"],input[type="search"]').forEach(input=>{
+ input.setAttribute('autocomplete','off');input.setAttribute('autocorrect','off');input.setAttribute('autocapitalize','none');input.setAttribute('spellcheck','false');
+ });}
+ quietSearchFields();
+ new MutationObserver(quietSearchFields).observe(document.body,{childList:true,subtree:true});
+
  if(!document.getElementById('viewSingle')){
  const secondaryStyle=document.createElement('style');
  secondaryStyle.textContent=`
