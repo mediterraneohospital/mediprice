@@ -52,7 +52,7 @@
     var emailInput = el('input', { type: 'email', autocomplete: 'username', placeholder: 'you@mediterraneohospital.gr' });
     var passInput = el('input', { type: 'password', autocomplete: 'current-password', placeholder: '••••••••' });
     var btn = el('button', { class: 'mp-btn', type: 'submit', text: 'Σύνδεση' });
-    var forgotBtn = el('button', { class: 'mp-btn-link', type: 'button', text: 'Ξέχασα τον κωδικό μου' });
+
 
     var registerBtn = el('button', { class: 'mp-btn-link', type: 'button', text: 'Αίτηση εγγραφής' });
     registerBtn.addEventListener('click', showRegistration);
@@ -60,7 +60,7 @@
     var form = el('form', {}, [
       el('div', { class: 'mp-field' }, [ el('label', { text: 'Email' }), emailInput ]),
       el('div', { class: 'mp-field' }, [ el('label', { text: 'Κωδικός' }), passInput ]),
-      btn, forgotBtn, registerBtn
+      btn, registerBtn
     ]);
 
     form.addEventListener('submit', function(ev){
@@ -71,16 +71,6 @@
           if (res.error) { showLogin('Λάθος email ή κωδικός.', true); return; }
           showLoading();
           checkMembershipAndLoad();
-        });
-    });
-
-    forgotBtn.addEventListener('click', function(){
-      var email = emailInput.value.trim();
-      if (!email) { showLogin('Γράψτε πρώτα το email σας και μετά πατήστε ξανά «Ξέχασα τον κωδικό μου».', true); return; }
-      forgotBtn.disabled = true;
-      sb.auth.resetPasswordForEmail(email, { redirectTo: window.MP_CONFIG.siteUrl + '?setup=1' })
-        .then(function(){
-          showLogin('Αν ο λογαριασμός υπάρχει, θα λάβετε οδηγίες επαναφοράς. (Αν δεν έχει ρυθμιστεί αποστολή email, ζητήστε νέο σύνδεσμο από τον διαχειριστή.)', false);
         });
     });
 
