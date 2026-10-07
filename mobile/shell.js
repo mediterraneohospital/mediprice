@@ -42,3 +42,26 @@ if('serviceWorker' in navigator){window.addEventListener('load',function(){navig
  root.addEventListener('load',navigation,true);
  navigation();
 })();
+
+(function(){
+ const badge=document.createElement('div');badge.id='mobile-refresh-hint';badge.setAttribute('role','status');
+ badge.style.cssText='position:fixed;top:52px;left:50%;transform:translateX(-50%);z-index:2000;padding:10px 16px;border-radius:24px;background:var(--sur);color:var(--acc);box-shadow:0 3px 15px #0003;pointer-events:none;display:none;font:14px system-ui';
+ document.body.append(badge);
+ function bind(doc){
+ let start=null,ready=false;
+ function reset(){start=null;ready=false;badge.style.display='none';}
+ doc.addEventListener('touchstart',function(e){
+ reset();if(e.touches.length!==1||document.body.classList.contains('mobile-detail-open')||doc.querySelector('.gs-drop.open')||e.target.closest('input,select,textarea,button,a'))return;
+ let node=e.target,canPull=true;while(node&&node!==doc){if(node.nodeType===1&&node.scrollHeight>node.clientHeight+1&&node.scrollTop>1){canPull=false;break;}node=node.parentNode;}
+ if(canPull)start={x:e.touches[0].clientX,y:e.touches[0].clientY};
+ },{passive:true});
+ doc.addEventListener('touchmove',function(e){if(!start)return;if(e.touches.length!==1){reset();return;}const dx=e.touches[0].clientX-start.x,dy=e.touches[0].clientY-start.y;
+ if(Math.abs(dx)>40||dy<0){reset();return;}ready=dy>=100;badge.style.display=dy>25?'block':'none';badge.textContent=ready?'Άφησε για ανανέωση':'Τράβηξε για ανανέωση';
+ },{passive:true});
+ doc.addEventListener('touchend',function(){const reload=ready;reset();if(reload)window.location.reload();},{passive:true});
+ doc.addEventListener('touchcancel',reset,{passive:true});
+ }
+ function frameReady(e){if(e.target.id==='mp-app-frame'&&e.target.contentDocument)bind(e.target.contentDocument);}
+ document.getElementById('mp-auth-root').addEventListener('load',frameReady,true);
+ bind(document);
+})();
