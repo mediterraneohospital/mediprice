@@ -14,8 +14,8 @@
  #app>header{flex:0 0 auto;min-height:48px;height:auto;padding:8px 12px;gap:8px}
  header .hosp,header .back,header .sep{display:none}
  header .title{font-size:14px}#darkBtn{flex-shrink:0}
- #app>.sidebar{display:flex;flex-direction:column;flex:0 0 auto;height:190px;max-height:35%;min-height:100px;overflow:hidden;border-right:0;border-bottom:1px solid var(--brd)}
- .ins-tabs{display:flex;overflow-x:auto;flex:0 0 auto;padding:8px;gap:6px}
+ #app>.sidebar{display:flex;flex-direction:column;flex:0 0 auto;height:auto;max-height:none;min-height:0;overflow:visible;border-right:0;border-bottom:1px solid var(--brd)}
+ .ins-tabs,.sb-list,.sb-search{display:none!important}.mobile-choice{display:block;padding:8px 12px}.mobile-choice span{display:block;font-size:12px;color:var(--mut);margin-bottom:5px}.mobile-choice select{width:100%;min-height:44px;font:inherit;font-size:16px;padding:8px;border:1px solid var(--brd);border-radius:10px;background:var(--sur);color:var(--txt)}.placeholder{flex:0 0 auto;padding:30px 16px}.placeholder p{max-width:100%}
  .ins-tab{flex:0 0 auto;min-height:40px;padding:10px 14px;white-space:nowrap}
  .sb-search{flex:0 0 auto;padding:8px 12px}.sb-search input{font-size:16px}
  .sb-list{min-height:0;overflow-y:auto;overscroll-behavior:contain}
@@ -28,6 +28,25 @@
  .follow-modal-backdrop,.fee-pop-backdrop{overflow:auto}.follow-modal{max-height:100%;overflow:auto}
  `;
  document.head.append(secondaryStyle);
+
+ const sidebar=document.querySelector('#app>.sidebar');
+ function choice(label,selector){
+ const wrap=document.createElement('label');wrap.className='mobile-choice';const caption=document.createElement('span');caption.textContent=label;const select=document.createElement('select');select.setAttribute('aria-label',label);wrap.append(caption,select);sidebar.append(wrap);
+ let signature='';
+ function sync(){
+ const items=[...document.querySelectorAll(selector)];const labels=items.map(item=>{const copy=item.cloneNode(true);copy.querySelectorAll('.sb-count,.sb-type').forEach(n=>n.remove());return copy.textContent.trim();});
+ const next=JSON.stringify(labels);if(next!==signature){signature=next;select.replaceChildren();const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Επίλεξε '+label.toLowerCase();select.append(placeholder);labels.forEach((text,i)=>{const option=document.createElement('option');option.value=String(i);option.textContent=text;select.append(option);});}
+ const active=items.findIndex(item=>item.classList.contains('active'));select.value=active<0?'':String(active);
+ }
+ select.onchange=()=>{if(select.value==='')return;document.querySelectorAll(selector)[Number(select.value)]?.click();document.querySelector('main').scrollTop=0;sync();};
+ sync();return sync;
+ }
+ const tabs=document.querySelector('.ins-tabs');const syncIns=tabs?choice('Ασφαλιστική εταιρεία','.ins-tabs .ins-tab'):null;
+ const syncList=choice(tabs?'Ειδικότητα':'Ασφαλιστική εταιρεία','#sbList .sb-item');
+ const watch=new MutationObserver(()=>{syncIns?.();syncList();});
+ const list=document.getElementById('sbList');if(list)watch.observe(list,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});if(tabs)watch.observe(tabs,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+ document.querySelectorAll('.placeholder p').forEach(p=>{p.textContent=tabs?'Επίλεξε ασφαλιστική και ειδικότητα από τα μενού παραπάνω.':'Επίλεξε ασφαλιστική εταιρεία από το μενού παραπάνω για να δεις τα plafond και τα πακέτα.';});
+
  return;
  }
 
