@@ -1,6 +1,6 @@
 (function(){
  'use strict';
- if(!document.getElementById('gsInput')){
+ if(!document.getElementById('viewSingle')){
  const secondaryStyle=document.createElement('style');
  secondaryStyle.textContent=`
  html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none}
