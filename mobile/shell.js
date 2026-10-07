@@ -17,7 +17,7 @@ if('serviceWorker' in navigator){window.addEventListener('load',function(){navig
  css.textContent=`
  html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
  body{position:fixed;inset:0}
- #mp-auth-root{height:var(--mobile-height,100dvh)!important;min-height:0;overflow:hidden}
+ #mp-auth-root{height:100svh!important;min-height:0;overflow:hidden}
  #mp-account-bar{flex:0 0 auto}
  #mp-app-frame{display:block;flex:1 1 0%;height:0;min-height:0;min-width:0}
  .mp-login-wrap{min-height:0;overflow:auto}
@@ -27,8 +27,6 @@ if('serviceWorker' in navigator){window.addEventListener('load',function(){navig
  .mobile-detail-open #mobile-shell-nav{display:none}
  `;
  document.head.append(css);
- function size(){document.documentElement.style.setProperty('--mobile-height',(window.visualViewport?window.visualViewport.height:window.innerHeight)+'px');window.scrollTo(0,0);}
- size();window.addEventListener('resize',size);window.visualViewport?.addEventListener('resize',size);
  const root=document.getElementById('mp-auth-root');
  function navigation(){
  const frame=document.getElementById('mp-app-frame');let nav=document.getElementById('mobile-shell-nav');
