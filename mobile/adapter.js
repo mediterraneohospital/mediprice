@@ -1,5 +1,30 @@
 (function(){
  'use strict';
+ if(!document.getElementById('gsInput')){
+ const secondaryStyle=document.createElement('style');
+ secondaryStyle.textContent=`
+ html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none}
+ #app{display:flex;flex-direction:column;height:100%;min-height:0}
+ #app>header{flex:0 0 auto;min-height:48px;height:auto;padding:8px 12px;gap:8px}
+ header .hosp,header .back,header .sep{display:none}
+ header .title{font-size:14px}#darkBtn{flex-shrink:0}
+ #app>.sidebar{display:flex;flex-direction:column;flex:0 0 auto;height:190px;max-height:35%;min-height:100px;overflow:hidden;border-right:0;border-bottom:1px solid var(--brd)}
+ .ins-tabs{display:flex;overflow-x:auto;flex:0 0 auto;padding:8px;gap:6px}
+ .ins-tab{flex:0 0 auto;min-height:40px;padding:10px 14px;white-space:nowrap}
+ .sb-search{flex:0 0 auto;padding:8px 12px}.sb-search input{font-size:16px}
+ .sb-list{min-height:0;overflow-y:auto;overscroll-behavior:contain}
+ main{flex:1 1 0;min-height:0;overflow:auto;overscroll-behavior:contain}
+ .detail{padding:12px;min-height:0}.det-head{padding:12px}.det-name{font-size:18px}
+ .det-searchbox{width:100%;margin-left:0}.det-searchbox input{font-size:16px}
+ .table-wrap{overflow:auto;min-height:0}.cat-chips,.active-filters{padding:10px 12px}
+ .spec-card{padding:12px;gap:8px;flex-wrap:wrap}.sc-info{min-width:0;flex-basis:65%}
+ .tabs{overflow-x:auto}.tab{white-space:nowrap;flex-shrink:0}
+ .follow-modal-backdrop,.fee-pop-backdrop{overflow:auto}.follow-modal{max-height:100%;overflow:auto}
+ `;
+ document.head.append(secondaryStyle);
+ return;
+ }
+
  const style=document.createElement('style');
  style.textContent=`
  html,body{height:100%;overflow:hidden;font-size:15px} #app{display:flex;flex-direction:column;height:100%;min-height:0;overscroll-behavior:none}
