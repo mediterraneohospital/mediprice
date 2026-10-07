@@ -105,4 +105,4 @@ html,body{height:100%;margin:0;font-family:'Inter',system-ui,sans-serif;backgrou
 
 /* Separate registration from password recovery on the login form. */
 .mp-login-card form > .mp-btn-link{display:block;width:100%;text-align:center;line-height:1.5;}
-.mp-login-card form > .mp-btn-link + .mp-btn-link{margin-top:16px;padding:10px 12px;border:1px solid var(--acc);border-radius:8px;background:var(--acc-bg);font-size:13.5px;font-weight:600;}
+.mp-login-card form > .mp-btn-link{margin-top:16px;padding:10px 12px;border:1px solid var(--acc);border-radius:8px;background:var(--acc-bg);font-size:13.5px;font-weight:600;}
