@@ -1,0 +1,26 @@
+{
+  "name": "MediPrice mobile",
+  "short_name": "MediPrice",
+  "description": "Τιμοκατάλογος Mediterraneo Hospital",
+  "id": "/mediprice/mobile/",
+  "start_url": "/mediprice/mobile/",
+  "scope": "/mediprice/mobile/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#202535",
+  "lang": "el",
+  "icons": [
+    {
+      "src": "../icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
