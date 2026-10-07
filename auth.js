@@ -485,30 +485,7 @@
         });
         body.appendChild(table);
 
-        var newEmail = el('input', { type: 'text', inputmode: 'email', spellcheck: 'false', placeholder: 'π.χ. giorgos@mediterraneohospital.gr', autocomplete: 'off', autocorrect: 'off', autocapitalize: 'off', name: 'x', readonly: 'readonly' });
-        newEmail.addEventListener('focus', function(){ newEmail.removeAttribute('readonly'); });
-        var newRole = el('select', {}, ['reader', 'editor', 'admin'].map(function(r){ return el('option', { value: r, text: roleLabel(r) }); }));
-        var inviteBtn = el('button', { class: 'mp-btn', type: 'button', text: 'Δημιουργία πρόσβασης' });
-        inviteBtn.addEventListener('click', function(){
-          if (!newEmail.value.trim()) return;
-          inviteBtn.disabled = true; inviteBtn.textContent = 'Δημιουργία...';
-          callAdmin({ action: 'invite', email: newEmail.value.trim(), role: newRole.value }).then(function(r2){
-            inviteBtn.disabled = false; inviteBtn.textContent = 'Δημιουργία πρόσβασης';
-            linkBox.innerHTML = '';
-            if (r2.status !== 200) { linkBox.appendChild(el('div', { class: 'mp-msg-err', text: (r2.body && r2.body.error) || 'Σφάλμα.' })); return; }
-            linkBox.appendChild(el('div', { class: 'mp-msg-ok', text: 'Δημιουργήθηκε. Στείλτε αυτόν τον σύνδεσμο στον χρήστη (ισχύει μία φορά):' }));
-            var box2 = el('div', { class: 'mp-link-box', text: r2.body.activation_link || '' });
-            linkBox.appendChild(box2);
-            newEmail.value = '';
-            refresh();
-          });
-        });
-        body.appendChild(el('div', { class: 'mp-inline-form' }, [
-          el('div', { class: 'mp-field' }, [ el('label', { text: 'Νέος χρήστης — email' }), newEmail ]),
-          el('div', { class: 'mp-field' }, [ el('label', { text: 'Ρόλος' }), newRole ]),
-          inviteBtn
-        ]));
-        body.appendChild(linkBox);
+
       });
     }
     refresh();
