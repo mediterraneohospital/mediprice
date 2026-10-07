@@ -5,7 +5,7 @@
 */
 (function(){
   'use strict';
-  function mobileHTML(html){return html.replace('results=results.slice(0,20);','').replace('</body>', '<script src="https://mediterraneohospital.github.io/mediprice/mobile/adapter.js?v=9"></scr'+'ipt></body>');}
+  function mobileHTML(html){return html.replace('results=results.slice(0,20);','').replace('</body>', '<script src="https://mediterraneohospital.github.io/mediprice/mobile/adapter.js?v=10"></scr'+'ipt></body>');}
 
 
   var sb = window.supabase.createClient(window.MP_CONFIG.url, window.MP_CONFIG.key, {
