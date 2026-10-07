@@ -54,10 +54,13 @@
     var btn = el('button', { class: 'mp-btn', type: 'submit', text: 'Σύνδεση' });
     var forgotBtn = el('button', { class: 'mp-btn-link', type: 'button', text: 'Ξέχασα τον κωδικό μου' });
 
+    var registerBtn = el('button', { class: 'mp-btn-link', type: 'button', text: 'Αίτηση εγγραφής' });
+    registerBtn.addEventListener('click', showRegistration);
+
     var form = el('form', {}, [
       el('div', { class: 'mp-field' }, [ el('label', { text: 'Email' }), emailInput ]),
       el('div', { class: 'mp-field' }, [ el('label', { text: 'Κωδικός' }), passInput ]),
-      btn, forgotBtn
+      btn, forgotBtn, registerBtn
     ]);
 
     form.addEventListener('submit', function(ev){
@@ -123,6 +126,82 @@
       msgBox, form
     ]);
     root.appendChild(el('div', { class: 'mp-login-wrap' }, [ card ]));
+  }
+
+  function showRegistration(){
+    clearRoot();
+    var name = el('input', { type: 'text', autocomplete: 'name', required: '', minlength: '2', maxlength: '120' });
+    var email = el('input', { type: 'email', autocomplete: 'email', required: '' });
+    var pass = el('input', { type: 'password', autocomplete: 'new-password', required: '', minlength: '8' });
+    var again = el('input', { type: 'password', autocomplete: 'new-password', required: '', minlength: '8' });
+    var msg = el('div', { 'aria-live': 'polite' });
+    var btn = el('button', { class: 'mp-btn', type: 'submit', text: 'Υποβολή αίτησης' });
+    var back = el('button', { class: 'mp-btn-link', type: 'button', text: 'Επιστροφή στη σύνδεση' });
+    back.addEventListener('click', function(){ showLogin(); });
+    var form = el('form', {}, [
+      el('div', { class: 'mp-field' }, [el('label', { text: 'Ονοματεπώνυμο' }), name]),
+      el('div', { class: 'mp-field' }, [el('label', { text: 'Email' }), email]),
+      el('div', { class: 'mp-field' }, [el('label', { text: 'Κωδικός — τουλάχιστον 8 χαρακτήρες' }), pass]),
+      el('div', { class: 'mp-field' }, [el('label', { text: 'Επιβεβαίωση κωδικού' }), again]), msg, btn, back
+    ]);
+    form.addEventListener('submit', async function(ev){
+      ev.preventDefault(); msg.innerHTML='';
+      if(name.value.trim().length<2 || pass.value.length<8 || pass.value!==again.value){
+        msg.appendChild(el('div', {class:'mp-msg-err',text:'Ελέγξτε το όνομα και ότι οι κωδικοί συμφωνούν.'})); return;
+      }
+      btn.disabled=true;
+      try {
+        var result=await sb.auth.signUp({ email:email.value.trim(), password:pass.value,
+          options:{ emailRedirectTo:window.MP_CONFIG.siteUrl,
+            data:{mp_registration:'mediprice',full_name:name.value.trim()} } });
+        if(result.error) throw result.error;
+        if(result.data.session){
+          var submitted=await sb.rpc('mp_submit_registration',{p_name:name.value.trim()});
+          if(submitted.error) throw submitted.error;
+          showLoading(); checkMembershipAndLoad();
+        } else {
+          showLogin('Ελέγξτε το email σας για επιβεβαίωση. Η πρόσβαση θα δοθεί αφού εγκρίνει την αίτηση ο διαχειριστής. Αν έχετε ήδη λογαριασμό, συνδεθείτε κανονικά.',false);
+        }
+      } catch(error){
+        msg.appendChild(el('div',{class:'mp-msg-err',text: error.code==='signup_disabled'
+          ? 'Η εγγραφή δεν έχει ενεργοποιηθεί ακόμη. Επικοινωνήστε με τον διαχειριστή.'
+          : (error.message || 'Η αίτηση δεν ολοκληρώθηκε. Δοκιμάστε ξανά.')}));
+        btn.disabled=false;
+      }
+    });
+    root.appendChild(el('div',{class:'mp-login-wrap'},[el('div',{class:'mp-login-card'},[
+      el('h1',{text:'Αίτηση εγγραφής'}),el('p',{class:'mp-sub',text:'Ο διαχειριστής θα εγκρίνει την πρόσβαση και θα ορίσει τα δικαιώματά σας.'}),form
+    ])]));
+  }
+
+  function showRegistrationStatus(user){
+    clearRoot();
+    var content=el('div');
+    var check=el('button',{class:'mp-btn',type:'button',text:'Έλεγχος έγκρισης'});
+    check.addEventListener('click',function(){showLoading();checkMembershipAndLoad();});
+    var logout=el('button',{class:'mp-btn-link',type:'button',text:'Αποσύνδεση'});
+    logout.addEventListener('click',function(){sb.auth.signOut().then(function(){showLogin();});});
+    root.appendChild(el('div',{class:'mp-login-wrap'},[el('div',{class:'mp-login-card'},[
+      el('h1',{text:'MediPrice'}),el('p',{class:'mp-sub',text:user.email}),content,check,logout
+    ])]));
+    sb.from('mp_registration_requests').select('status').eq('user_id',user.id).maybeSingle().then(function(r){
+      if(r.error){content.appendChild(el('div',{class:'mp-msg-err',text:'Δεν ήταν δυνατός ο έλεγχος της αίτησης. Δοκιμάστε ξανά.'}));return;}
+      if(r.data){
+        content.appendChild(el('div',{class:r.data.status==='rejected'?'mp-msg-err':'mp-msg-ok',
+          text:r.data.status==='rejected'?'Η αίτησή σας δεν εγκρίθηκε. Επικοινωνήστε με τον διαχειριστή.':'Η αίτησή σας βρίσκεται σε αναμονή έγκρισης.'}));
+      } else {
+        var name=el('input',{type:'text',required:'',minlength:'2',maxlength:'120',autocomplete:'name'});
+        name.value=(user.user_metadata && user.user_metadata.full_name)||'';
+        var submit=el('button',{class:'mp-btn',type:'submit',text:'Αίτηση πρόσβασης στο MediPrice'});
+        var form=el('form',{},[el('div',{class:'mp-field'},[el('label',{text:'Ονοματεπώνυμο'}),name]),submit]);
+        form.addEventListener('submit',function(ev){ev.preventDefault();submit.disabled=true;
+          sb.rpc('mp_submit_registration',{p_name:name.value.trim()}).then(function(result){
+            if(result.error){submit.disabled=false;alert(result.error.message);return;}showRegistrationStatus(user);
+          });
+        });
+        content.appendChild(form);
+      }
+    });
   }
 
   function showLoading(){
@@ -278,6 +357,7 @@
       // Τρέχουν ταυτόχρονα· η RLS αρνείται από μόνη της το asset αν δεν είσαι ενεργό μέλος.
       Promise.all([membershipPromise, assetPromise]).then(function(results){
         var r = results[0], a = results[1];
+        if (!r.error && !r.data) { showRegistrationStatus(user); return; }
         if (r.error || !r.data || !r.data.active) {
           try { sessionStorage.removeItem(MEMBERSHIP_CACHE_KEY); } catch (e) {}
           sb.auth.signOut().then(function(){
@@ -317,19 +397,54 @@
     return backdrop;
   }
 
+  function refreshRegistrationRequests(container){
+    container.innerHTML='';
+    container.appendChild(el('h3',{text:'Νέες αιτήσεις εγγραφής'}));
+    sb.from('mp_registration_requests').select('user_id,email,full_name,created_at').eq('status','pending').order('created_at').then(function(res){
+      if(res.error){container.appendChild(el('div',{class:'mp-msg-err',text:'Δεν φορτώθηκαν οι αιτήσεις. Ελέγξτε ότι έχει εγκατασταθεί το σύστημα εγγραφών.'}));return;}
+      if(!res.data.length){container.appendChild(el('p',{class:'mp-sub',text:'Δεν υπάρχουν αιτήσεις σε αναμονή.'}));return;}
+      res.data.forEach(function(r){
+        var role=el('select',{},['reader','editor','admin'].map(function(v){return el('option',{value:v,text:roleLabel(v)});}));
+        var approve=el('button',{class:'mp-btn',type:'button',text:'Έγκριση'});
+        var reject=el('button',{type:'button',text:'Απόρριψη'});
+        var msg=el('div',{'aria-live':'polite'});
+        async function review(yes){
+          if(!yes && !window.confirm('Απόρριψη αίτησης του '+r.email+';'))return;
+          if(yes && role.value==='admin' && !window.confirm('Θα δοθούν πλήρη δικαιώματα διαχειριστή στον '+r.email+'. Συνέχεια;'))return;
+          approve.disabled=reject.disabled=true;msg.innerHTML='';
+          try {
+            var result=await sb.rpc('mp_review_registration',{p_user:r.user_id,p_role:role.value,p_approve:yes});
+            if(result.error)throw result.error;
+            refreshRegistrationRequests(container);
+            // Refresh the existing member list after approval.
+            if(yes){var dialog=container.closest('.mp-modal-backdrop');if(dialog){dialog.remove();openUsersModal();}}
+          }catch(error){msg.appendChild(el('div',{class:'mp-msg-err',text:error.message||'Δεν ολοκληρώθηκε η ενέργεια.'}));approve.disabled=reject.disabled=false;}
+        }
+        approve.addEventListener('click',function(){review(true);});reject.addEventListener('click',function(){review(false);});
+        container.appendChild(el('div',{class:'mp-request-card'},[
+          el('strong',{text:r.full_name}),el('div',{text:r.email}),
+          el('p',{class:'mp-sub',text:new Date(r.created_at).toLocaleString('el-GR')}),
+          el('div',{class:'mp-request-actions'},[role,approve,reject]),msg
+        ]));
+      });
+    });
+  }
+
   function openUsersModal(){
     var body = el('div', {}, [ el('p', { text: 'Φόρτωση…' }) ]);
     var linkBox = el('div'); // μόνιμο — δεν σβήνεται όταν ανανεώνεται η λίστα χρηστών
-    var container = el('div', {}, [ body, linkBox ]);
+    var requests = el('div');
+    var container = el('div', {}, [ requests, body, linkBox ]);
     var backdrop = modal('Χρήστες', container);
 
     function refresh(){
       body.innerHTML = '';
       body.appendChild(el('p', { text: 'Φόρτωση…' }));
+      refreshRegistrationRequests(requests);
       callAdmin({ action: 'list' }).then(function(res){
         body.innerHTML = '';
         if (res.status !== 200) { body.appendChild(el('div', { class: 'mp-msg-err', text: (res.body && res.body.error) || 'Σφάλμα.' })); return; }
-        var table = el('table', { class: 'mp-table' });
+        var table = el('table', { class: 'mp-table mp-users-table' });
         var thead = el('tr', {}, [ el('th', { text: 'Email' }), el('th', { text: 'Ρόλος' }), el('th', { text: 'Ενεργός' }), el('th', {}) ]);
         table.appendChild(thead);
         (res.body.members || []).forEach(function(m){
@@ -493,3 +608,4 @@
 
   init();
 })();
+
