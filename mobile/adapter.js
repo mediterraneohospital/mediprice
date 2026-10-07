@@ -22,7 +22,15 @@
  main{flex:1 1 0;min-height:0;overflow:auto;overscroll-behavior:contain}
  .detail{padding:12px;min-height:0}.det-head{padding:12px}.det-name{font-size:18px}
  .det-searchbox{width:100%;margin-left:0}.det-searchbox input{font-size:16px}
- .table-wrap{overflow:auto;min-height:0}.cat-chips,.active-filters{padding:10px 12px}
+ .table-wrap{overflow-x:auto;overflow-y:visible;min-height:0;flex:none}.cat-chips,.active-filters{padding:8px 0}
+ main{display:block;padding:0 12px 20px}
+ main>.sidebar{display:flex;flex-direction:column;border-bottom:1px solid var(--brd)}
+ .detail{display:block;overflow:visible;padding:12px 0;flex:none}
+ .det-head{padding:8px 0}.det-name{font-size:16px}
+ .mobile-choice{padding:8px 0}
+ .cat-chips{gap:5px}
+ table{min-width:100%;margin:8px 0}td,th{padding:10px 12px}
+
  .spec-card{padding:12px;gap:8px;flex-wrap:wrap}.sc-info{min-width:0;flex-basis:65%}
  .tabs{overflow-x:auto}.tab{white-space:nowrap;flex-shrink:0}
  .follow-modal-backdrop,.fee-pop-backdrop{overflow:auto}.follow-modal{max-height:100%;overflow:auto}
@@ -30,6 +38,7 @@
  document.head.append(secondaryStyle);
 
  const sidebar=document.querySelector('#app>.sidebar');
+ document.querySelector('main').prepend(sidebar);
  function choice(label,selector){
  const wrap=document.createElement('label');wrap.className='mobile-choice';const caption=document.createElement('span');caption.textContent=label;const select=document.createElement('select');select.setAttribute('aria-label',label);wrap.append(caption,select);sidebar.append(wrap);
  let signature='';
