@@ -1,11 +1,27 @@
 (function(){
  let detailFrame=null;
+ function open(frame){
+ if(detailFrame)return;
+ detailFrame=frame;
+ document.body.classList.add('mobile-detail-open');
+ try{if(!history.state?.mpMobileDetail)history.pushState(Object.assign({},history.state,{mpMobileDetail:true,mpPage:window.MP_PAGE||'index.html'}),'',location.href);}catch(error){console.warn('Detail history unavailable',error);}
+ }
+ function close(useHistory){
+ const frame=detailFrame;detailFrame=null;
+ document.body.classList.remove('mobile-detail-open');
+ if(frame)frame.contentWindow.postMessage({type:'mp-mobile-back'},location.origin);
+ if(useHistory&&history.state?.mpMobileDetail){history.back();}
+ }
+ window.MediMobileNavigation={
+ open:function(frame){if(frame===document.getElementById('mp-app-frame'))open(frame);},
+ close:function(){close(true);}
+ };
  window.addEventListener('message',function(e){
- const frame=document.getElementById('mp-app-frame');if(!frame||e.source!==frame.contentWindow)return;
- if(e.data?.type==='mp-mobile-open'&&!detailFrame){detailFrame=frame;history.pushState({mpMobileDetail:true},'',location.href);document.body.classList.add('mobile-detail-open');}
- if(e.data?.type==='mp-mobile-close'&&detailFrame)history.back();
+ const frame=document.getElementById('mp-app-frame');if(!frame||e.source!==frame.contentWindow||e.origin!==location.origin)return;
+ if(e.data?.type==='mp-mobile-open')open(frame);
+ if(e.data?.type==='mp-mobile-close')close(true);
  });
- window.addEventListener('popstate',function(){if(detailFrame){detailFrame.contentWindow.postMessage({type:'mp-mobile-back'},'*');detailFrame=null;document.body.classList.remove('mobile-detail-open');}});
+ window.addEventListener('popstate',function(){if(detailFrame)close(false);});
  const observer=new MutationObserver(function(){const bar=document.getElementById('mp-account-bar');if(bar&&!bar.querySelector('.mobile-account-menu')){const menu=document.createElement('button');menu.textContent='☰';menu.className='mobile-account-menu';menu.setAttribute('aria-label','Μενού λογαριασμού');menu.onclick=function(){const open=bar.classList.toggle('expanded');menu.setAttribute('aria-expanded',String(open));};bar.prepend(menu);}});observer.observe(document.getElementById('mp-auth-root'),{childList:true,subtree:true});
 })();
 
