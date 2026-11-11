@@ -11,6 +11,10 @@
     try { return localStorage.getItem(storageKey) === 'yes'; } catch (error) { return false; }
   }
   function standalone() { return display.matches || navigator.standalone === true; }
+  function appleDevice() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
   function markInstalled() {
     installed = true;
     try { localStorage.setItem(storageKey, 'yes'); } catch (error) {}
@@ -26,11 +30,7 @@
     var title = document.createElement('h2');
     title.textContent = 'Εγκατάσταση MediPrice';
     var text = document.createElement('p');
-    var apple = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    text.textContent = apple
-      ? 'Στο Safari πάτησε Κοινοποίηση και μετά «Προσθήκη στην οθόνη Αφετηρίας».'
-      : 'Άνοιξε το μενού του browser και επίλεξε «Εγκατάσταση εφαρμογής» ή «Προσθήκη στην αρχική οθόνη». Αν δεν υπάρχει η επιλογή, άνοιξε το MediPrice στον Chrome.';
+    text.textContent = 'Στο Safari πάτησε Κοινοποίηση και μετά «Προσθήκη στην οθόνη Αφετηρίας».';
     var close = document.createElement('button');
     close.type = 'button'; close.textContent = 'Κλείσιμο';
     close.onclick = function () { dialog.close(); dialog.remove(); };
@@ -41,24 +41,31 @@
   }
   async function install() {
     var pending = promptEvent;
-    if (!pending) { help(); return; }
+    if (!pending) { if (appleDevice()) help(); return; }
     promptEvent = null;
+    mount();
     try {
       await pending.prompt();
       var result = await pending.userChoice;
       if (result.outcome === 'accepted') markInstalled();
-    } catch (error) { help(); }
+    } catch (error) { console.warn('MediPrice installation was not started:', error); }
   }
   function mount() {
-    if (installed || standalone() || (!promptEvent && readInstalled())) return;
+    if (installed || standalone() || (!promptEvent && (readInstalled() || !appleDevice()))) {
+      if (control) { control.remove(); control = null; }
+      return;
+    }
     var host = document.getElementById('mp-account-bar') || document.querySelector('.mp-login-card');
     if (!host) return;
     if (!control) {
       control = document.createElement('span'); control.className = 'mp-pwa-install';
       var button = document.createElement('button');
-      button.type = 'button'; button.textContent = 'Εγκατάσταση εφαρμογής';
+      button.type = 'button';
       button.onclick = install; control.appendChild(button);
     }
+    var button = control.querySelector('button');
+    var label = promptEvent ? 'Εγκατάσταση εφαρμογής' : 'Προσθήκη στην Αφετηρία — οδηγίες';
+    if (button.textContent !== label) button.textContent = label;
     if (control.parentElement !== host) host.appendChild(control);
   }
   window.addEventListener('beforeinstallprompt', function (event) {
