@@ -61,35 +61,39 @@ main {min-height:0; min-width:0;}
 .multi-wrap {min-width:0;}
 .multi-wrap>.section-title,.multi-wrap>.subtable-block,.multi-wrap>div>.section-title,.multi-wrap>div>.subtable-block {padding-left:22px; padding-right:22px;}
 .proc-card {
-  max-width:none; min-height:48px; background:var(--sur); border:1px solid var(--brd);
-  border-radius:8px; margin-bottom:8px; padding:12px 16px; gap:12px;
+  max-width:920px; min-height:40px; background:var(--sur); border:1px solid var(--brd);
+  border-radius:8px; margin-bottom:6px; padding:9px 12px; gap:9px;
   box-shadow:0 1px 2px #18345305; filter:none;
 }
 .proc-card:hover {background:var(--s2); border-color:var(--acc); box-shadow:0 2px 7px #1834530c;}
 .proc-card .pc-desc {font-size:13.5px; line-height:1.55; font-weight:500; overflow-wrap:anywhere;}
 .proc-card .pc-aa {color:var(--mut); font-size:11px;}
+.proc-card .pc-chevron {order:-2; width:14px; height:16px; display:inline-flex; align-items:center; justify-content:center; margin:0;}
+.proc-card .pc-aa {order:-1;}
+/* A CSS chevron stays visible even before the external icon font loads. */
+.proc-card .pc-chevron::before {content:""; display:block; width:6px; height:6px; border-right:1.7px solid currentColor; border-top:1.7px solid currentColor; transform:rotate(45deg);}
 .proc-card.active {background:var(--acc-bg); border-color:var(--acc); border-radius:8px 8px 0 0; margin-bottom:0; filter:none; box-shadow:inset 3px 0 var(--acc);}
 .card-detail {
-  max-width:none; background:var(--sur); border:1px solid var(--brd); border-top:0;
+  max-width:920px; background:var(--sur); border:1px solid var(--brd); border-top:0;
   border-radius:0 0 8px 8px; margin:0 0 14px; min-width:0;
   box-shadow:0 4px 10px #18345306;
 }
-.card-detail .detail-wrap {padding:16px 20px; gap:18px 24px; min-width:0;}
+.card-detail .detail-wrap {padding:12px 16px!important; gap:12px 18px; min-width:0;}
 .detail-col {min-width:0;}
 .detail-col.detail-wide {max-width:none;}
 .detail-text,.foot-box {line-height:1.7; overflow-wrap:anywhere; white-space:pre-line;}
 .dt-table {font-size:13px; width:100%;}
-.dt-table td {padding:9px 12px; line-height:1.6; overflow-wrap:anywhere;}
+.dt-table td {padding:6px 9px; line-height:1.5; overflow-wrap:anywhere;}
 .dt-table .dt-label {color:var(--mut); font-size:12px;}
 .dt-table .dt-val {font-weight:500; font-variant-numeric:tabular-nums; white-space:pre-line;}
 .dt-table tr+tr td {border-top:1px solid var(--brd);}
-.dt-table tr.dt-price td {padding:10px 12px; background:var(--s2);}
+.dt-table tr.dt-price td {padding:7px 9px; background:var(--s2);}
 .dt-table tr.dt-price .dt-label {font-size:12.5px;}
 .dt-table tr.dt-price .dt-val {font-size:16px; font-weight:650;}
 .dt-table .dt-full td {vertical-align:top; padding-top:14px; padding-bottom:14px;}
 .dt-table .dt-full .dt-val {text-align:left; font-weight:400;}
 /* Detail records are label/value rows, separate from the reference tables. */
-.dt-table>tbody {display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:24px;}
+.dt-table>tbody {display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:18px;}
 .dt-table>tbody>tr {display:grid; grid-template-columns:minmax(100px,.85fr) minmax(0,1fr); min-width:0;}
 .dt-table>tbody>tr>td {display:block; min-width:0;}
 .dt-table>tbody>tr.dt-full {grid-column:1/-1; grid-template-columns:minmax(0,1fr); padding:8px 0;}
@@ -99,6 +103,7 @@ main {min-height:0; min-width:0;}
 .dt-table tr.dt-price.price-changed td {background:var(--grn-bg);}
 [contenteditable=true]:focus {outline:2px solid var(--acc); outline-offset:2px; background:var(--acc-bg); border-radius:3px;}
 .instr-bar {margin:16px 22px 0; border-radius:8px; background:var(--sur); border-color:var(--brd);}
+.instr-bar {max-width:920px;}
 .instr-head {font-weight:600; line-height:1.55;}
 .instr-body {line-height:1.7;}
 .room-chip {border-radius:6px;}
@@ -113,6 +118,7 @@ main {min-height:0; min-width:0;}
 .tabs {gap:6px; border-bottom:1px solid var(--brd);}
 .tab {border-radius:7px 7px 0 0; padding:11px 16px;}
 .spec-card {border-radius:8px; background:var(--sur); padding:15px 18px; border:1px solid var(--brd); gap:20px;}
+.detail {max-width:1036px;}
 .sc-info {min-width:0;}
 .sc-label {font-weight:600; line-height:1.5;}
 .sc-note {font-size:12px; line-height:1.7; color:var(--mut); white-space:pre-line;}
