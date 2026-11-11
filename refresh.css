@@ -175,3 +175,12 @@ main {min-height:0; min-width:0;}
 @media(prefers-reduced-motion:reduce) {*,*::before,*::after {scroll-behavior:auto!important;transition:none!important;animation:none!important;}}
 
 @media(max-width:700px) {#app>header .gsearch {max-width:none;}}
+
+/* Search starts at the same left edge as the procedure cards. */
+.mp-search-bar {flex:0 0 auto; padding:14px 22px 0; position:relative; z-index:70;}
+.mp-search-bar .gsearch {width:100%; max-width:640px;}
+.mp-search-bar .gsearch input {min-height:38px;}
+.mp-mobile-shell #app>header .mp-navigation {display:none;}
+.mp-mobile-shell .mobile-full .dt-table td {width:auto!important;}
+@media(min-width:1500px) {.mp-search-bar {padding-left:30px;padding-right:30px;}}
+@media(max-width:600px) {.mp-search-bar {padding:12px 12px 0;}}

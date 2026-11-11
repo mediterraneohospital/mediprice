@@ -40,6 +40,21 @@
       nav.appendChild(a);
     });
     existingBrand.insertAdjacentElement('afterend', nav);
+    // The dedicated mobile shell already owns its search and navigation.
+    var mobileShell = false;
+    try { mobileShell = !!parent.MediMobileNavigation; } catch (error) {}
+    if (mobileShell) {
+      document.documentElement.classList.add('mp-mobile-shell');
+    } else {
+      var search = header.querySelector('.gsearch');
+      var main = document.querySelector('#app > main');
+      if (search && main) {
+        var searchBar = document.createElement('div');
+        searchBar.className = 'mp-search-bar';
+        searchBar.appendChild(search);
+        main.insertBefore(searchBar, main.firstChild);
+      }
+    }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
